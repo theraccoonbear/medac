@@ -1,18 +1,12 @@
-[provider]
-name=theraccoonbearcity
-
-[settings]
-rebuild_json_every=1 second
-
 [paths]
-root=/home/don/code/theraccoonshare.com/public_html/medac/-dev
-video=/home/don/Desktop/Video
+root=/var/www
+video=/home/username/Video
 json=media
 thumbs=media/thumbs
 
 [checksum]
 chunks_per_file=100
-entropy=10000
+entropy=100000
 
 [thumbnails]
 width=150

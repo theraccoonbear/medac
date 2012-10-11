@@ -36,10 +36,30 @@ sub bestMatch {
 	my $best_dist = 100000;
 	my $best_match = '';
 	
+	my $orig_clean = lc($orig);
+	$orig_clean =~ s/[^A-Za-z0-9 ]+/ /gi;
+	$orig_clean =~ s/\s{2,}/ /gi;
+	
+	#if ($orig ne $orig_clean) {
+	#	logMsg "O: $orig, OC: $orig_clean";
+	#}
+	
 	foreach my $v (@vals) {
-		my $d = distance($orig, $v);
+		my $nv = lc($v);
+		$nv =~ s/[^A-Za-z0-9 ]+/ /gi;
+		$nv =~ s/\s{2,}/ /gi;
 		
-		if ($d == 0) { return $v; }
+		#if ($v ne $nv) {
+		#	logMsg "V: $v, NV: $nv";
+		#}
+		
+		my $d = distance($orig_clean, $nv);
+		
+		#logMsg "$orig_clean : $nv : $d";
+		
+		if ($d == 0) {
+			return $v;
+		}
 		
 		if ($d < $best_dist) {
 			$d = $best_dist;
@@ -138,25 +158,31 @@ sub inferContext {
 				$ctxt->{episode_number} = $2 + 0;
 			} elsif ($filename =~ m/^(\d{1,2})[^\d]/gi) {
 				$ctxt->{episode_number} = $1 + 0;
+			} elsif ($filename =~ m/(\d{1,2})/gi) {
+				$ctxt->{episode_number} = $1 + 0;
 			}
 			
 			my $show_obj = tvrShowSearch($ctxt->{name});#, 1);
 			
 			# show level
-			$ctxt->{url} = $show_obj->getLink() || '?';
-			$ctxt->{country} = $show_obj->getCountry() || '?';
-			$ctxt->{tv_rage_id} = $show_obj->getShowID() || '?';
-			$ctxt->{started} = $show_obj->getYearStarted() || '?';
-			$ctxt->{ended} = $show_obj->getYearEnded() || '?';
-			$ctxt->{status} = $show_obj->getStatus() || '?';
-			$ctxt->{genres} = $show_obj->getGenres();
+			if (defined $show_obj) {
+				$ctxt->{url} = $show_obj->getLink() || '?';
+				$ctxt->{country} = $show_obj->getCountry() || '?';
+				$ctxt->{tv_rage_id} = $show_obj->getShowID() || '?';
+				$ctxt->{started} = $show_obj->getYearStarted() || '?';
+				$ctxt->{ended} = $show_obj->getYearEnded() || '?';
+				$ctxt->{status} = $show_obj->getStatus() || '?';
+				$ctxt->{genres} = $show_obj->getGenres();
 			
-			if ($ctxt->{season_number} =~ m/^\d+$/ && $ctxt->{season_number} =~ m/^\d+$/) {
-				my $ep_obj = tvrEpisodeSearch($show_obj->getShowID(), $ctxt->{season_number}, $ctxt->{episode_number});
-				if (defined $ep_obj) {
-					$ctxt->{episode_title} = $ep_obj->getTitle() || '?';
-					$ctxt->{air_date} = $ep_obj->getAirDate() || '?';
+				if ($ctxt->{season_number} =~ m/^\d+$/ && $ctxt->{episode_number} =~ m/^\d+$/) {
+					my $ep_obj = tvrEpisodeSearch($show_obj->getShowID(), $ctxt->{season_number}, $ctxt->{episode_number});
+					if (defined $ep_obj) {
+						$ctxt->{episode_title} = $ep_obj->getTitle() || '?';
+						$ctxt->{air_date} = $ep_obj->getAirDate() || '?';
+					}
 				}
+			} else {
+				logMsg "... FAILING on search for $ctxt->{name}\n";
 			}
 		}
 	} else {
@@ -365,14 +391,21 @@ sub loadDir {
 							my $sh_episode = $f_obj->{ctxt}->{episode_number};
 							
 							my $subep = '';
+							my $subep_char = '';
 							
-							while (defined $media_root->{TV}->{$sh_name}->{$sh_season}->{$sh_episode . $subep}) {
+							while (defined $media_root->{TV}->{$sh_name}->{$sh_season}->{$sh_episode . $subep_char}) {
 								$subep = $subep eq '' ? 1 : $subep + 1;
+								$subep_char = chr($subep + 96);
+							}
+							
+							$f_obj->{ctxt}->{sub_ep} = '';
+							if ($subep_char ne '') {
+								$f_obj->{ctxt}->{sub_ep} = $subep_char;
 							}
 							
 							logMsg('Program: ' . $f_obj->{ctxt}->{name} . 
 							       ', Season: ' . $f_obj->{ctxt}->{season_number} .
-							       ', Episode: ' . $f_obj->{ctxt}->{episode_number} . $subep .
+							       ', Episode: ' . $f_obj->{ctxt}->{episode_number} . $f_obj->{ctxt}->{sub_ep} .
 							       ', Title: ' . $f_obj->{ctxt}->{episode_title});
 							       
 						}
@@ -433,14 +466,10 @@ sub loadDir {
 							my $sh_name = $f_obj->{ctxt}->{name};
 							my $sh_season = $f_obj->{ctxt}->{season_number};
 							my $sh_episode = $f_obj->{ctxt}->{episode_number};
+							my $sub_ep = $f_obj->{ctxt}->{sub_ep};
 							
-							my $subep = '';
 							
-							while (defined $media_root->{TV}->{$sh_name}->{$sh_season}->{$sh_episode . $subep}) {
-								$subep = $subep eq '' ? 1 : $subep + 1;
-							}
-							
-							$media_root->{TV}->{$sh_name}->{$sh_season}->{$sh_episode . $subep} = $f_obj;
+							$media_root->{TV}->{$sh_name}->{$sh_season}->{$sh_episode . $sub_ep} = $f_obj;
 						} elsif ($f_obj->{ctxt}->{category} eq 'Movie') {
 							#$media_root->{Movie}->{$f_obj->{ctxt}->{name}}->{$f_obj->{ctxt}->{season_number}}->{$f_obj->{ctxt}->{episode_number}} = $f_obj;
 						} else {
