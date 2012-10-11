@@ -109,11 +109,21 @@ $(function() {
 		$attach_to.append($tv);
 		var $children = $tv.find('ul.children');
 		
+		var or_arr = [];
+		
 		for (var show_name in node) {
 			if (node.hasOwnProperty(show_name)) {
-				renderShow($children, node, show_name);
+				or_arr.push(show_name);
 			}
 		}
+		
+		or_arr.sort();
+		
+		for (var i = 0; i < or_arr.length; i++) {
+			var show_name = or_arr[i];
+			renderShow($children, node, show_name);
+		}
+		
 	}; // renderTV()
 	
 	$.getJSON('media/media.json', {}, function(data, status, xhr) {

@@ -179,6 +179,7 @@ sub inferContext {
 			
 				#if ($ctxt->{season_number} =~ m/^\d+$/ && $ctxt->{episode_number} =~ m/^\d+$/) {
 				if ($ctxt->{episode_number} =~ m/^\d+$/) {
+					# TO-DO: make this work for single season shows, but don't bork up things like DVD extras for real shows
 					my $eff_season = ($ctxt->{season_number} =~ m/^\d+$/) ? $ctxt->{season_nunber} : 1;
 					my $ep_obj = tvrEpisodeSearch($show_obj->getShowID(), $ctxt->{season_number}, $ctxt->{episode_number});
 					if (defined $ep_obj) {
