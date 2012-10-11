@@ -319,7 +319,7 @@ li.closed > ul {
 }
 
 li.directory {
-	list-style-image: url(../img/folder-icon.jpeg);
+	list-style-image: url(../img/folder-icon.png);
 	font-size: 24px;
 }
 
@@ -328,7 +328,12 @@ li.content {
 }
 
 li.video {
-	list-style-image: url(../img/video-icon.jpeg);
+	list-style-image: url(../img/video-icon.png);
+}
+
+li.media-TV {
+  list-style-image: url(../img/media-TV.png);
+  margin-left: 32px;
 }
 
 ul.meta {
