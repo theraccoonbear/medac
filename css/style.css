@@ -299,12 +299,32 @@ td { vertical-align: top; }
 	list-style: none;
 }*/
 
+body {
+  background-color: #000;
+  color: #8c8;
+}
+
+a {
+  color: #cc5;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+a:hover {
+  color:  #ff8
+}
+
 li.closed > ul {
 	display: none;
 }
 
 li.directory {
 	list-style-image: url(../img/folder-icon.jpeg);
+	font-size: 24px;
+}
+
+li.content {
+  font-size: 32px;
 }
 
 li.video {
@@ -317,6 +337,8 @@ ul.meta {
 
 img.thumb {
 	margin: 2px;
+	padding: 5px;
+	border: 1px solid #ff8;
 }
 
 td.thumb {

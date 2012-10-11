@@ -1,8 +1,14 @@
+[provider]
+name=theraccoonbearcity
+
+[settings]
+rebuild_json_every=1 second
+
 [paths]
-root=/home/don/code/theraccoonshare.com/public_html/medac/
-video=/home/don/Desktop/Band of Brothers
-json=/home/don/code/theraccoonshare.com/public_html/medac/media
-thumbs=/home/don/code/theraccoonshare.com/public_html/medac/media/thumbs
+root=/home/don/code/theraccoonshare.com/public_html/medac/-dev
+video=/home/don/Desktop/Video
+json=media
+thumbs=media/thumbs
 
 [checksum]
 chunks_per_file=100
@@ -10,3 +16,4 @@ entropy=10000
 
 [thumbnails]
 width=150
+count=5

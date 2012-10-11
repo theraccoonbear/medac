@@ -3,6 +3,7 @@ $(function() {
 	var tmplVid = $('#tmplVideoEntry').html();
 	var tmplThumbs = $('#tmplThumbs').html();
 	var tmplNode = $('#tmplNodeEntry').html();
+	var tmplContent = $('#tmplContentEntry').html();
 	
 	var formatFileSize = function(size) {
 		
@@ -70,7 +71,7 @@ $(function() {
 	}; // renderShow()
 	
 	var renderTV = function($attach_to, node) {
-		var $tv = $(Mustache.render(tmplNode, 'TV'));
+		var $tv = $(Mustache.render(tmplContent, 'TV'));
 		
 		$attach_to.append($tv);
 		var $children = $tv.find('ul.children');
