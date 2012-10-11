@@ -186,6 +186,26 @@ my $thumb_width = $config->{thumbnails}->{width};
 my $thumb_count = $config->{thumbnails}->{count};
 my $chunks_per_file = int($config->{checksum}->{chunks_per_file});
 my $entropy = int($config->{checksum}->{entropy});
+my $rebuild_cfg = $config->{settings}->{rebuild_json_every};
+my $do_rebuilds = 0;
+my $last_rebuild;
+
+my %unit_conversions = (
+	'seconds' => 1, 'second' => 1, 'secs' => 1, 'sec' => 1, 's' => 1,
+	'minutes' => 60, 'minute' => 60, 'mins' => 60, 'min' => 60, 'm' => 60
+);
+my $unit_conversion_rgx = join('|', keys %unit_conversions);
+my $rebuild_freq = 1000000;
+
+
+if (defined $rebuild_cfg && $rebuild_cfg =~ m/(\d+)\s+($unit_conversion_rgx)/gi) {
+	my $count = $1;
+	my $units = lc($2);
+	$do_rebuilds = 1;
+	$rebuild_freq = $count * $unit_conversions{$units};
+}
+
+
 
 if ($root_dir !~ m/\/$/) {
 	$root_dir .= '/';
@@ -267,9 +287,12 @@ sub outputJSON() {
 	$base_obj->{media} = $media_root;
 	$base_obj->{provider} = $config->{provider};
 	
+	logMsg('');
+	logMsg('Encoding JSON...');
+	my $json = encode_json($base_obj);
+	logMsg('Writing to disk...');
 	open MFH, ">$json_path" or die "Can't write JSON to $json_path: $!\n";
-	#print MFH encode_json($root);
-	print MFH encode_json($base_obj);
+	print MFH $json;
 	close MFH;
 }
 
@@ -424,6 +447,16 @@ sub loadDir {
 							#$media_root->{Other}->{$f_obj->{ctxt}->{name}}->{$f_obj->{ctxt}->{season_number}}->{$f_obj->{ctxt}->{episode_number}} = $f_obj;
 						}
 						
+						if ($do_rebuilds) {
+							my $elap = time() - $last_rebuild;
+							logMsg('Periodic rebuild...');
+							if ($elap > $rebuild_freq) {
+								outputJSON();
+							}
+							logMsg('Continuing processing...');
+							$last_rebuild = time();
+						}
+						
 					} # video?
 					
 					
@@ -443,7 +476,7 @@ sub loadDir {
 	return $dobj;
 }
 
-
+$last_rebuild = time();
 my $root = loadDir($video_dir, $media_pattern);
 
 outputJSON();
