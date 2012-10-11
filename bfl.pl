@@ -449,11 +449,13 @@ sub loadDir {
 						
 						if ($do_rebuilds) {
 							my $elap = time() - $last_rebuild;
-							logMsg('Periodic rebuild...');
+							
 							if ($elap > $rebuild_freq) {
+								logMsg('Periodic rebuild...');
 								outputJSON();
+								logMsg('Continuing processing...');
 							}
-							logMsg('Continuing processing...');
+							
 							$last_rebuild = time();
 						}
 						
