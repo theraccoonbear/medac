@@ -454,9 +454,8 @@ sub loadDir {
 								logMsg('Periodic rebuild...');
 								outputJSON();
 								logMsg('Continuing processing...');
+								$last_rebuild = time();
 							}
-							
-							$last_rebuild = time();
 						}
 						
 					} # video?
