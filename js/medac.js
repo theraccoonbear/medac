@@ -1,4 +1,25 @@
+var __media = {};
+
 $(function() {
+	var countFields = function(obj) {
+		var cnt = 0;
+		for (var p in obj) {
+			if (obj.hasOwnProperty(p)) {
+				cnt++;
+			}
+		}
+		return cnt;
+	};
+	
+	var firstField = function(obj) {
+		for (var p in obj) {
+			if (obj.hasOwnProperty(p)) {
+				return p;
+			}
+		}
+		return false;
+	};
+	
 	var tmplDir = $('#tmplDirEntry').html();
 	var tmplVid = $('#tmplVideoEntry').html();
 	var tmplThumbs = $('#tmplThumbs').html();
@@ -63,9 +84,21 @@ $(function() {
 		var $show = $(Mustache.render(tmplNode, show_name));
 		$attach_to.append($show);
 		var $children = $show.find('ul.children');
-		for (var season_number in show) {
-			if (show.hasOwnProperty(season_number)) {
-				renderSeason($children, show, season_number);
+		
+		var season_num = firstField(show);
+		
+		if (countFields(show) == 1 && !/^\d+$/.test(season_num)) {
+			if (season_num !== false) {
+				var episodes = show[season_num];
+				for (var ep_num in episodes) {
+					renderEpisode($children, episodes, ep_num);
+				}
+			}
+		} else {
+			for (var season_number in show) {
+				if (show.hasOwnProperty(season_number)) {
+					renderSeason($children, show, season_number);
+				}
 			}
 		}
 	}; // renderShow()
@@ -79,16 +112,6 @@ $(function() {
 		for (var show_name in node) {
 			if (node.hasOwnProperty(show_name)) {
 				renderShow($children, node, show_name);
-				
-				//var show = node[show_name];
-				//var $show = $(Mustache.render(tmplNode, show_name));
-				//$attach_to.append($show);
-				//var $children = $show.find('ul.children');
-				//for (var season_number in show) {
-				//	if (show.hasOwnProperty(season_number)) {
-				//		
-				//	}
-				//}
 			}
 		}
 	}; // renderTV()
@@ -97,7 +120,11 @@ $(function() {
 		
 		var $root = $('#root');
 		
+		
+		__media = data;
 		console.log(data);
+		
+		
 		
 		var media = data.media;
 		

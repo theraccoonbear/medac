@@ -177,7 +177,9 @@ sub inferContext {
 				$ctxt->{status} = $show_obj->getStatus() || '?';
 				$ctxt->{genres} = $show_obj->getGenres();
 			
-				if ($ctxt->{season_number} =~ m/^\d+$/ && $ctxt->{episode_number} =~ m/^\d+$/) {
+				#if ($ctxt->{season_number} =~ m/^\d+$/ && $ctxt->{episode_number} =~ m/^\d+$/) {
+				if ($ctxt->{episode_number} =~ m/^\d+$/) {
+					my $eff_season = ($ctxt->{season_number} =~ m/^\d+$/) ? $ctxt->{season_nunber} : 1;
 					my $ep_obj = tvrEpisodeSearch($show_obj->getShowID(), $ctxt->{season_number}, $ctxt->{episode_number});
 					if (defined $ep_obj) {
 						$ctxt->{episode_title} = $ep_obj->getTitle() || '?';
@@ -382,6 +384,7 @@ sub loadDir {
 						
 						#$f_obj->{meta} = $metadata;
 						
+						$f_obj->{meta}->{length} = $metadata->{length};
 						$f_obj->{meta}->{duration} = convert_seconds_to_hhmmss($metadata->{length});		
 						
 						$f_obj->{meta}->{filename} = $file;
