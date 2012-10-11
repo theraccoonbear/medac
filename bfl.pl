@@ -104,6 +104,7 @@ sub tvrShowSearch {
 			my @titles = $result->getTitleList();
 			my $cor_name = bestMatch($show_name, \@titles);
 			my $show = $result->getShow($cor_name);
+			$show->{name} = $cor_name;
 		
 			$tvr_cache->{show}->{$show_name} = $show;
 			$tvr_cache->{show}->{$cor_name} = $show;
@@ -111,6 +112,7 @@ sub tvrShowSearch {
 			$cso = $show;
 		}
 	}
+
 	
 	return $cso;
 } # tvrShowSearch()
@@ -166,6 +168,7 @@ sub inferContext {
 			
 			# show level
 			if (defined $show_obj) {
+				$ctxt->{name} = $show_obj->{name} || $ctxt->{name};
 				$ctxt->{url} = $show_obj->getLink() || '?';
 				$ctxt->{country} = $show_obj->getCountry() || '?';
 				$ctxt->{tv_rage_id} = $show_obj->getShowID() || '?';
@@ -377,9 +380,11 @@ sub loadDir {
 						
 						my $metadata = $grabber->meta_data();
 						
-						$f_obj->{meta} = $metadata;
+						#$f_obj->{meta} = $metadata;
+						
 						$f_obj->{meta}->{duration} = convert_seconds_to_hhmmss($metadata->{length});		
 						
+						$f_obj->{meta}->{filename} = $file;
 						$f_obj->{meta}->{filename} =~ s/^$video_dir//gi;
 						
 						$f_obj->{ctxt} = inferContext($afp);
