@@ -260,6 +260,19 @@ sub fileType {
 	}
 }
 
+sub outputJSON() {
+	my $json_path = shift @_ || $json_output_to;
+	my $base_obj;
+
+	$base_obj->{media} = $media_root;
+	$base_obj->{provider} = $config->{provider};
+	
+	open MFH, ">$json_path" or die "Can't write JSON to $json_path: $!\n";
+	#print MFH encode_json($root);
+	print MFH encode_json($base_obj);
+	close MFH;
+}
+
 sub loadDir {
 	my $dir = shift @_;
 	my $pattern = shift @_ || '.+';
@@ -433,15 +446,7 @@ sub loadDir {
 
 my $root = loadDir($video_dir, $media_pattern);
 
-my $base_obj;
-
-$base_obj->{media} = $media_root;
-$base_obj->{provider} = $config->{provider};
-
-open MFH, ">$json_output_to" or die "Can't write JSON to $json_output_to: $!\n";
-#print MFH encode_json($root);
-print MFH encode_json($base_obj);
-close MFH;
+outputJSON();
 
 logMsg;
 logMsg "done.";
