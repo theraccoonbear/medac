@@ -1,0 +1,12 @@
+[paths]
+root=/home/don/code/theraccoonshare.com/public_html/medac/
+video=/home/don/Desktop/Band of Brothers
+json=/home/don/code/theraccoonshare.com/public_html/medac/media
+thumbs=/home/don/code/theraccoonshare.com/public_html/medac/media/thumbs
+
+[checksum]
+chunks_per_file=100
+entropy=10000
+
+[thumbnails]
+width=150

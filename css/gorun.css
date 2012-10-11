@@ -1,0 +1,139 @@
+body {
+	font-family: Verdana, Arial, Tahoma, sans-serif;
+	font-size: 14px;
+}
+
+header {
+	margin: 20px 0px 20px 50px;
+}
+
+label, .label {
+	display: inline-block;
+	font-weight: bold;
+	width: 175px;
+	float: left;
+	text-align: right;
+	padding-right: 10px;
+}
+
+label.cb, .label.cb {
+	width: auto !important;
+	float: none;
+	text-align: left;
+}
+
+div.fleft {
+	float: left;
+}
+
+div.input {
+	width: 1024px;
+	padding: 0px 0px 20px 25px;
+	margin: 25px 0px 25px 25px;
+}
+
+.plan {
+	margin: 10px 0px 10px 50px;
+}
+
+.plan th {
+	background-color: #000;
+	color: #ff8;
+	font-weight: bold;
+	padding: 5px 20px 5px 20px;
+}
+
+.plan td {
+	padding: 5px 20px 5px 20px;
+	border: 1px solid #aaa;
+	white-space: nowrap;
+	/*min-width: 50px;*/
+}
+
+.plan .odd td {
+	background-color: #ddd;
+}
+
+.plan .even td {
+	background-color: #fff;
+}
+
+.plan .jump td {
+	background-color: #faa;
+	color: #f23;
+}
+
+.plan .weekchange td {
+	border-top: 5px solid #777;
+}
+
+.plan .tapering td {
+	font-style: italic;
+	font-weight: bold;
+}
+
+.note {
+	font-size: 10px;
+	font-style: italic;
+	color: #23c;
+	padding: 2px;
+	display: inline-block;
+	width: 500px;
+}
+
+.note.warning {
+	font-weight: bold;
+	color: #f23;
+	background-color: #faa;
+}
+
+select {
+	width: 175px;
+}
+
+span.paperCheckBox {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	border: 3px solid #333;
+	border-right: 2px solid #aaa;
+	border-bottom: 2px solid #aaa;
+	background-color: #fff;
+}
+
+span.help {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url('question-mark.gif');
+}
+
+#chart {
+	width: 750px;
+	height: 350px;
+}
+
+.print {
+	visibility: hidden;
+}
+
+#parameters {
+	margin-left: 50px;
+}
+
+@media print {
+	/*div.printable {
+		display: block;
+	}*/
+	.noprint {
+		display: none;
+		margin-left: 10px;
+	}
+}
+
+
+@media only print {
+	.print {
+		visibility: visible !important;
+	}
+}

@@ -1,0 +1,106 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Cwd;
+use WebService::TVRage::EpisodeListRequest;
+use WebService::TVRage::ShowSearchRequest;
+
+binmode STDOUT, ":utf8";
+
+my $shsrch = WebService::TVRage::ShowSearchRequest->new();
+my $epsrch = WebService::TVRage::EpisodeListRequest->new();
+
+my $cwd = $ARGV[0] || getcwd();
+my $fname_tmpl = $ARGV[1] || '[[season-number]][[episode-number-padded]] - [[show-name]] - [[episode-title]].[[extension]]';
+
+print "Working in \"$cwd\"...\n";
+
+
+sub formatFilename {
+  my $parts = shift @_;
+  my $tmpl = shift @_ || $fname_tmpl;
+  my $fld_name;
+  
+  while ($tmpl =~ m/\[\[([a-z-]+)\]\]/gi) {
+    $fld_name = $1;
+    $tmpl =~ s/\[\[$fld_name\]\]/$parts->{$fld_name}/gi;
+  }
+   
+  return $tmpl;
+} # formatFilename()
+
+print "STATUS: Working in \"$cwd\"...\n";
+
+
+my @dparts = split(/\//, $cwd);
+my $cd = pop @dparts;
+my $pd = pop @dparts;
+my $showname = 'unknown';
+
+if ($cd =~ m/^season\s+\d+$/gi) {
+  $showname = $pd;
+} else {
+  $cd =~ m/^(.+?)\s*?-[^-]+$/gi;
+  $showname = $1;
+}
+
+if (!defined $showname) {
+  print "ERROR: Unable to determine show name.\n";
+  exit 1;
+}
+
+$showname =~ s/\s*\(.+?\)//;
+
+print "DATA: show-name=$showname\n";
+
+my $result = $shsrch->search($showname);
+
+if (!defined $result) {
+  print "ERROR: Search failed.\n";
+  exit 1;
+}
+
+my $show = $result->getShow($showname);
+
+if (!defined $show) {
+  print "ERROR: No show results.\n";
+  exit 3;
+}
+$result = WebService::TVRage::EpisodeListRequest->new('episodeID' => $show->getShowID());
+my $episodes = $result->getEpisodeList();
+
+
+opendir DFH, $cwd or die "Can't read from $cwd: $!";
+my @FILES = readdir DFH;
+foreach my $file (sort {lc($a) cmp lc($b)} @FILES) {
+  if ($file =~ m/^(.+?)\.([A-Za-z0-9]{3})$/gi) {
+    my $ext = $2;
+    my $mfile = $file;
+    my $meta;
+  
+    $mfile =~ s/[^A-Za-z0-9\s]//gi;
+    
+    if ($mfile =~ m/[sS]?(0?[1-9]|[12345][0-9])[xeE]?([0123][1-9])/gi) {
+      my $season = $1 + 0;
+      my $epnum = $2 + 0;
+      my $episode = $episodes->getEpisode($season, $epnum);
+      if (!defined $episode) {
+        print "WARNING: Unable to find episode.\n";
+      } else {
+        my $title = $episode->getTitle();
+        
+        $meta->{'season-number'} = $season;
+        $meta->{'episode-number'} = $epnum;
+        $meta->{'episode-number-padded'} = $epnum;      
+        if ($epnum < 10) {
+          $meta->{'episode-number-padded'} = "0$epnum";
+        }
+        $meta->{'show-name'} = $showname;
+        $meta->{'episode-title'} = $title;
+        $meta->{'extension'} = $ext;
+        
+        print "RENAME:  \"$file\" > \"" . formatFilename($meta) . "\"\n";
+      }
+    }
+  }
+}
