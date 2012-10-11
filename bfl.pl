@@ -115,9 +115,9 @@ sub inferContext {
 		my $cd = pop @dparts;
 		my $pd = pop @dparts;
 		
-		if ($cd =~ m/^season\s+(\d+)$/gi) {
+		if ($cd =~ m/^(season|series)\s+(\d+)$/gi) {
 			$ctxt->{name} = $pd;
-			$ctxt->{season_number} = $1;
+			$ctxt->{season_number} = $2;
 		} elsif ($cd =~ m/^(.+?)\s*?-[^-]+$/gi) {
 			$ctxt->{name} = $1;
 		} else {
@@ -128,7 +128,7 @@ sub inferContext {
 			if ($filename =~ m/(episode|part)\s+(\d+)/gi) {
 				#logMsg 'method 1';
 				$ctxt->{episode_number} = $2 + 0;
-			} elsif ($filename  =~ m/[sS]?(0?[1-9]|[12345][0-9])[xeE]?([0123][0-9])/gi) {
+			} elsif ($filename  =~ m/[sS]?(0?[1-9]|[12345][0-9])[xseE]?([0123][0-9])/gi) {
 				#logMsg 'method 2';
 				$ctxt->{season_number} = $1 + 0;
 				$ctxt->{episode_number} = $2 + 0;
@@ -214,8 +214,6 @@ if ($thumb_path !~ m/\/$/) {
 	$thumb_path .= '/';
 }
 
-
-#my $video_dir = -d '/home/g33k/Documents/media/Video/Documentary/Dimensions (English)' ? '/home/g33k/Documents/media/Video/Documentary/Dimensions (English)' : '/Users/don/Desktop/Video';
 
 my @video_extensions = qw(avi mpg mpeg mp4 mov mkv);
 my @audio_extensions = qw(mp3 ogg m4a m4p wav aac);
@@ -326,13 +324,22 @@ sub loadDir {
 						
 						logMsg $f_obj->{meta}->{filename};
 						if ($f_obj->{ctxt}->{category} eq 'TV') {
+							my $sh_name = $f_obj->{ctxt}->{name};
+							my $sh_season = $f_obj->{ctxt}->{season_number};
+							my $sh_episode = $f_obj->{ctxt}->{episode_number};
+							
+							my $subep = '';
+							
+							while (defined $media_root->{TV}->{$sh_name}->{$sh_season}->{$sh_episode . $subep}) {
+								$subep = $subep eq '' ? 1 : $subep + 1;
+							}
+							
 							logMsg('Program: ' . $f_obj->{ctxt}->{name} . 
 							       ', Season: ' . $f_obj->{ctxt}->{season_number} .
-							       ', Episode: ' . $f_obj->{ctxt}->{episode_number} .
+							       ', Episode: ' . $f_obj->{ctxt}->{episode_number} . $subep .
 							       ', Title: ' . $f_obj->{ctxt}->{episode_title});
 							       
 						}
-						#logMsg 's' . $f_obj->{ctxt}->{season_number} . 'e' . $f_obj->{ctxt}->{episode_number};
 						
 						$f_obj->{md5} = $file_md5;
 						
