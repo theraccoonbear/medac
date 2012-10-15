@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+use lib 'Medac';
 use JSON::XS;
 use strict;
 use warnings;
@@ -13,6 +14,7 @@ use Config::Auto;
 use WebService::TVRage::EpisodeListRequest;
 use WebService::TVRage::ShowSearchRequest;
 use Text::Levenshtein qw(distance);
+use Medac::Misc::TV::Series;
 
 $| = 0;
 
@@ -165,6 +167,8 @@ sub inferContext {
 			
 			my $show_obj = tvrShowSearch($ctxt->{name});#, 1);
 			
+			
+			
 			# show level
 			if (defined $show_obj) {
 				$ctxt->{name} = $show_obj->{name} || $ctxt->{name};
@@ -174,9 +178,18 @@ sub inferContext {
 				$ctxt->{started} = $show_obj->getYearStarted() || '?';
 				$ctxt->{ended} = $show_obj->getYearEnded() || '?';
 				$ctxt->{status} = $show_obj->getStatus() || '?';
-				$ctxt->{genres} = $show_obj->getGenres();
-			
-				#if ($ctxt->{season_number} =~ m/^\d+$/ && $ctxt->{episode_number} =~ m/^\d+$/) {
+				$ctxt->{genres} = join(',', (values %{$show_obj->{_showHash}->{genres}})) || '?'; #$show_obj->getGenres();
+				
+				my $tv_show_search = Medac::Misc::TV::Series->search($ctxt->{name});
+				#print Dumper($tv_show_search);
+				if ($#{$tv_show_search} > 0) {
+					my $tv_show = Medac::Misc::TV::Series->get($tv_show_search->[0]);
+					$ctxt->{thumb_url} = $tv_show_search->[0]->{thumb_url};
+					$ctxt->{image} = $tv_show->{image};
+					$ctxt->{synopsis} = $tv_show->{synopsis};
+					$ctxt->{tv_dot_com_id} = $tv_show->{tv_dot_com_id};
+				}
+				
 				if ($ctxt->{episode_number} =~ m/^\d+$/) {
 					# TO-DO: make this work for single season shows, but don't bork up things like DVD extras for real shows
 					my $eff_season = ($ctxt->{season_number} =~ m/^\d+$/) ? $ctxt->{season_nunber} : 1;
@@ -365,8 +378,6 @@ sub loadDir {
 					open $CSFH, $afp || die "Can't read $afp: $!\n";
 					binmode($CSFH);
 					
-					#print "AFP: $afp\nSIZE: $size\nEFF ENTROPY: $eff_entropy\nSTEP SIZE: $step_size\nCHUNK SIZE: $chunk_size\nCHUNKS PER FILE: $chunks_per_file\n"; exit(0);
-					
 					for (my $offset = 0; $offset < $chunks_per_file - 1 ; $offset += $step_size) {
 						my $buf;
 						my $rc = read($CSFH, $buf, $chunk_size, $offset);
@@ -391,6 +402,8 @@ sub loadDir {
 						$f_obj->{meta}->{filename} =~ s/^$video_dir//gi;
 						
 						$f_obj->{ctxt} = inferContext($afp);
+						
+						print Dumper($f_obj->{ctxt}); exit;
 						
 						logMsg $f_obj->{meta}->{filename};
 						if ($f_obj->{ctxt}->{category} eq 'TV') {
