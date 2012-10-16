@@ -25,38 +25,47 @@ sub search {
 	my $search_type = shift @_ || 'tv_series';
 	
 	my $search_url = $IMDB_BASE_URL . '/search/title?title=' . $search . '&title_type=' . $search_type;
+	my $ret_val = {};
 	
-	$mech->add_header(Referer => 'http://www.imdb.com/search/title');
-	
-	#print Dumper($mech);
-	
-	$mech->get($search_url);
-	
-	
-	
-	die unless ($mech->success);
-	my $content = $mech->{content};
-	
-	my $search_scraper = scraper {
-		process 'table.results tr td.title', 'entries[]' => scraper {
-			process 'a[href^="/title"]', 'title' => 'TEXT';
-			process 'a[href^="/title"]', 'url' => '@href';
-			process 'span.outline', 'synopsis' => 'TEXT';
-			process 'span.year_type', 'year' => 'TEXT';
-			
+	if (defined $search_cache->{$search_url}) {
+		$ret_val = $search_cache->{$search_url};
+	} else {
+		
+		$mech->add_header(Referer => 'http://www.imdb.com/search/title');
+		
+		#print Dumper($mech);
+		
+		$mech->get($search_url);
+		
+		
+		
+		die unless ($mech->success);
+		my $content = $mech->{content};
+		
+		my $search_scraper = scraper {
+			process 'table.results tr td.title', 'entries[]' => scraper {
+				process 'a[href^="/title"]', 'title' => 'TEXT';
+				process 'a[href^="/title"]', 'url' => '@href';
+				process 'span.outline', 'synopsis' => 'TEXT';
+				process 'span.year_type', 'year' => 'TEXT';
+				
+			}
+		};
+		
+		my $results = $search_scraper->scrape($content);
+		
+		
+		foreach my $entry (@{$results->{entries}}) {
+			#print Dumper($entry);
+			$entry->{year} =~ s/[^0-9]+//gi;
+			$entry->{id} = $entry->{url};
+			$entry->{id} =~ s/.+?\/([^\/]+)\/?$/$1/gi;
+			push @{$ret_val}, $entry;
 		}
-	};
-	
-	my $results = $search_scraper->scrape($content);
-	
-	my $ret_val;
-	foreach my $entry (@{$results->{entries}}) {
-		#print Dumper($entry);
-		$entry->{year} =~ s/[^0-9]+//gi;
-		$entry->{id} = $entry->{url};
-		$entry->{id} =~ s/.+?\/([^\/]+)\/?$/$1/gi;
-		push @{$ret_val}, $entry;
+		
+		$search_cache->{$search_url} = $ret_val;
 	}
+	
 	return $ret_val;
 } # search()
 
@@ -69,7 +78,7 @@ sub searchMovie {
 sub searchSeries {
 	my $self = shift @_;
 	my $title = shift @_;
-	return $self->search($title, 'tv_series');
+	return $self->search($title, 'tv_series,mini_series');
 } # searchSeries()
 
 sub getSeries {
@@ -115,7 +124,7 @@ sub getEpisodes {
 	my $ret_val = ();
 	my $url = '';
 	if (defined $show->{url}) {
-		$url = $IMDB_BASE_URL . $show->{url} . 'epsiodes';
+		$url = $IMDB_BASE_URL . $show->{url} . 'epsiodes?season=1';
 	} else {
 		return $ret_val;
 	}
