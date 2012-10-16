@@ -36,11 +36,11 @@ sub get {
       die unless ($mech->success);
       my $content = $mech->{content};
       my $details_scraper = scraper {
-	process '.show_head h1', 'title' => 'TEXT';
-	process 'div.score', 'score' => 'TEXT';
-	process '.image_box img', 'image' => '@src';
-	process '.description span._more_less', 'synopsis' => 'TEXT';
-	process 'form._rate_it input[name=targetid]', 'tv_dot_com_id' => '@value';
+				process '.show_head h1', 'title' => 'TEXT';
+				process 'div.score', 'score' => 'TEXT';
+				process '.image_box img', 'image' => '@src';
+				process '.description span._more_less', 'synopsis' => 'TEXT';
+				process 'form._rate_it input[name=targetid]', 'tv_dot_com_id' => '@value';
       };
 	  
       my $results = $details_scraper->scrape($content);
