@@ -19,6 +19,8 @@ print Dumper($srch_rslt);
 
 my $show = Medac::Metadata::Source::IMDB->getSeries($srch_rslt->[0]);
 
+print Dumper($show);
+
 #$srch_rslt = Medac::Metadata::Source::IMDB->searchMovie('Firefly');
 #
 #print Dumper($srch_rslt);
