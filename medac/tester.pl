@@ -1,6 +1,4 @@
 #!/usr/bin/perl
-#use lib 'Medac';
-
 use FindBin;
 use JSON::XS;
 use strict;
@@ -9,50 +7,31 @@ use Data::Dumper;
 use File::Basename;
 use POSIX;
 use Config::Auto;
-#use Medac::Misc::TV::Series;
-
 use Medac::Metadata::Source::IMDB;
 
-my $srch_rslt = Medac::Metadata::Source::IMDB->searchSeries('Firefly');
+my $show_name = 'Firefly';
+$show_name = 'Dexter';
+$show_name = 'Band of Brothers';
 
+my $srch_rslt = Medac::Metadata::Source::IMDB->searchSeries($show_name);
+
+print "Search for \"$show_name\" returned:\n";
 print Dumper($srch_rslt);
 
-my $show = Medac::Metadata::Source::IMDB->getSeries($srch_rslt->[0]);
+my $show = Medac::Metadata::Source::IMDB->getShow($srch_rslt->[0]);
 
+print "Show details:\n";
 print Dumper($show);
 
-#$srch_rslt = Medac::Metadata::Source::IMDB->searchMovie('Firefly');
-#
-#print Dumper($srch_rslt);
+my @seasons = keys %{$show->{seasons}};
+my $s_max = $#seasons;
+my $s_idx = floor(rand() * $s_max);
+my $season_num = $seasons[$s_idx];
 
+#print "::::: " . $s_idx . ' ::: ' . $season_num ; exit;
+#$season_num = 3;
 
+my $season = Medac::Metadata::Source::IMDB->getSeason($show, $season_num);
 
-# custom
-#use Medac::File;
-#use Medac::Logging;
-
-#my $tv_search = new Medac::Misc::TV::Series();
-#my $srch_rslt;
-#
-##print "Searching for M*A*S*H*\n";
-##$srch_rslt = $tv_search->search('M*A*S*H*');
-##print Dumper($srch_rslt) . "\n";
-#
-#my $show_name = 'Band of Brothers';
-#
-#print "Searching for $show_name\n";
-#$srch_rslt = Medac::Misc::TV::Series->search($show_name);
-#
-##print scalar @{$srch_rslt->{results}
-##print Dumper($srch_rslt) . "\n";
-#
-#my $show = Medac::Misc::TV::Series->get($srch_rslt->[0]);
-#
-#print Dumper($show);
-#print $show->{synopsis};
-
-
-
-#my $logger = new Medac::Logging();
-#
-#print Dumper($logger);
+print "Season #$season_num:\n";
+print Dumper($season);
