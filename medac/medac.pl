@@ -14,7 +14,8 @@ use Config::Auto;
 use WebService::TVRage::EpisodeListRequest;
 use WebService::TVRage::ShowSearchRequest;
 use Text::Levenshtein qw(distance);
-use Medac::Misc::TV::Series;
+#use Medac::Misc::TV::Series;
+use Medac::Metadata::Source::IMDB;
 
 $| = 0;
 
@@ -25,6 +26,7 @@ my $epsrch = WebService::TVRage::EpisodeListRequest->new();
 
 my $tvr_cache;
 
+my $md_imdb = new Medac::Metadata::Source::IMDB();
 
 sub logMsg {
 	my $msg = shift @_ || '...';
@@ -324,6 +326,57 @@ sub fileType {
 	}
 }
 
+sub parsePath {
+	my $path = shift @_ || '';
+	
+	$path =~ s/^\///gi;
+	
+	my $context = {
+		'media_type' => 'unknown',
+		'path' => $path
+	};
+	
+	my @path_parts = split(/\//, $path);
+	my $filename = $path_parts[-1];
+	my $parent = $path_parts[-2];
+	my $g_parent = $path_parts[-3];
+	my $g_g_parent = $path_parts[-3];
+	
+	if ($path_parts[0] eq 'TV') {
+		$context->{media_type} = 'TV';
+		
+		
+		if ($parent =~ m/^(?<show_name>.+?)-(Season|Series)\s*(?<season_number>\d+)$/gi) {
+			$context->{show_name} = $+{show_name};
+			$context->{season_number} = $+{season_number} + 0;
+		} elsif ($parent =~ m/(Season|Series)\s*(?<season_number>\d+)/gi) {
+			$context->{show_name} = $g_parent;
+			$context->{season_number} = $+{season_number} + 0;
+		} else {
+			$context->{show_name} = $parent;
+		}
+	
+		if ($filename =~ m/^(?<season_number>\d{1,2}?)(?<episode_number>\d{2})[^\d]/gi) {
+			$context->{season_number} = $+{season_number} + 0;
+			$context->{episode_number} = $+{episode_number} + 0;
+		} elsif ($filename =~ m/[sS]?(?<season_number>[12345][0-9]|0?[1-9])[xseE](?<episode_number>[0123]?[0-9])/gi) {
+			$context->{season_number} = $+{season_number} + 0;
+			$context->{episode_number} = $+{episode_number} + 0;
+		} elsif ($filename =~ m/Part\s*(?<episode_number>\d+)/gi) {
+			if (!defined $context->{season_number}) { $context->{season_number} = 1; }
+			$context->{episode_number} = $+{episode_number} + 0;
+		} else {
+			print "ERROR: $path\n";	
+		}
+		
+		#print Dumper($context);
+	} else {
+		$context->{media_type} = 'Movie';
+	}
+	
+	return $context;
+} # parsePath()
+
 sub outputJSON() {
 	my $json_path = shift @_ || $json_output_to;
 	my $base_obj;
@@ -400,36 +453,14 @@ sub loadDir {
 						
 						$f_obj->{meta}->{filename} = $file;
 						$f_obj->{meta}->{filename} =~ s/^$video_dir//gi;
+						$f_obj->{rel_path} = $afp;
+						$f_obj->{rel_path} =~ s/^$video_dir//gi;
 						
-						$f_obj->{ctxt} = inferContext($afp);
 						
-						print Dumper($f_obj->{ctxt}); exit;
+						
+						
 						
 						logMsg $f_obj->{meta}->{filename};
-						if ($f_obj->{ctxt}->{category} eq 'TV') {
-							my $sh_name = $f_obj->{ctxt}->{name};
-							my $sh_season = $f_obj->{ctxt}->{season_number};
-							my $sh_episode = $f_obj->{ctxt}->{episode_number};
-							
-							my $subep = '';
-							my $subep_char = '';
-							
-							while (defined $media_root->{TV}->{$sh_name}->{$sh_season}->{$sh_episode . $subep_char}) {
-								$subep = $subep eq '' ? 1 : $subep + 1;
-								$subep_char = chr($subep + 96);
-							}
-							
-							$f_obj->{ctxt}->{sub_ep} = '';
-							if ($subep_char ne '') {
-								$f_obj->{ctxt}->{sub_ep} = $subep_char;
-							}
-							
-							logMsg('Program: ' . $f_obj->{ctxt}->{name} . 
-							       ', Season: ' . $f_obj->{ctxt}->{season_number} .
-							       ', Episode: ' . $f_obj->{ctxt}->{episode_number} . $f_obj->{ctxt}->{sub_ep} .
-							       ', Title: ' . $f_obj->{ctxt}->{episode_title});
-							       
-						}
 						
 						$f_obj->{md5} = $file_md5;
 						
@@ -481,20 +512,47 @@ sub loadDir {
 						$f_obj->{meta}->{niceSize} = niceSize($f_obj->{size}, 1);
 					
 						push @ch_files, $f_obj;
-						
-						#$media_root->{$f_obj->{meta}->{md5}} = $f_obj;
-						if ($f_obj->{ctxt}->{category} eq 'TV') {
-							my $sh_name = $f_obj->{ctxt}->{name};
-							my $sh_season = $f_obj->{ctxt}->{season_number};
-							my $sh_episode = $f_obj->{ctxt}->{episode_number};
-							my $sub_ep = $f_obj->{ctxt}->{sub_ep};
+					
+						my $ctxt = parsePath($f_obj->{rel_path});
+						$f_obj->{ctxt} = $ctxt;
+					
+						if ($ctxt->{media_type} eq 'TV') {
+							my $show_list = $md_imdb->searchSeries($ctxt->{show_name});
+							my $show = $md_imdb->getShow($show_list->[0]);
+							my $season = $md_imdb->getSeason($show, $ctxt->{season_number});
+							my $episode = $season->[$ctxt->{episode_number}];
 							
+							#print Dumper($show_list);
+							#print Dumper($show);
+							#print "*****************************************\n";
 							
-							$media_root->{TV}->{$sh_name}->{$sh_season}->{$sh_episode . $sub_ep} = $f_obj;
-						} elsif ($f_obj->{ctxt}->{category} eq 'Movie') {
-							#$media_root->{Movie}->{$f_obj->{ctxt}->{name}}->{$f_obj->{ctxt}->{season_number}}->{$f_obj->{ctxt}->{episode_number}} = $f_obj;
-						} else {
-							#$media_root->{Other}->{$f_obj->{ctxt}->{name}}->{$f_obj->{ctxt}->{season_number}}->{$f_obj->{ctxt}->{episode_number}} = $f_obj;
+							#if ($show->{title} eq 'Game of Thrones') {
+							#	print Dumper($show_list);
+							#	print Dumper($show);
+							#	print Dumper($season);
+							#	print Dumper($episode);
+							#}
+							
+							if (ref $episode eq 'HASH') {
+								$f_obj->{ctxt}->{episode_title} = $episode->{name};
+								$f_obj->{imdb} = $episode;
+								my $sub_ep_num = 0;
+								my $sub_ep = '';
+								
+								while (defined $media_root->{TV}->{$ctxt->{show_name}}->{$ctxt->{season_number}}->{$ctxt->{episode_number} . $sub_ep}) {
+									$sub_ep_num++;
+									$sub_ep = '.' . $sub_ep_num;
+								}
+								
+								$media_root->{TV}->{$ctxt->{show_name}}->{$ctxt->{season_number}}->{$ctxt->{episode_number} . $sub_ep} = $f_obj;
+							
+								logMsg('Program: ' . $f_obj->{ctxt}->{show_name} . 
+												 ', Season: ' . $f_obj->{ctxt}->{season_number} .
+												 ', Episode: ' . $f_obj->{ctxt}->{episode_number} . $sub_ep .
+												 ', Title: ' . $f_obj->{ctxt}->{episode_title} . "\n");
+							} else {
+								logMsg("WARNING: Unknown episode.  Possible special or extra content?");
+							}
 						}
 						
 						if ($do_rebuilds) {

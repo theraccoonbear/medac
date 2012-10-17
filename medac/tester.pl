@@ -12,6 +12,7 @@ use Medac::Metadata::Source::IMDB;
 my $show_name = 'Firefly';
 $show_name = 'Dexter';
 $show_name = 'Band of Brothers';
+$show_name = 'Eastbound and Down';
 
 my $srch_rslt = Medac::Metadata::Source::IMDB->searchSeries($show_name);
 

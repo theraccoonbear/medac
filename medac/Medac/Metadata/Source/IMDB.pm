@@ -44,6 +44,11 @@ sub search {
 	my $search = shift @_;
 	my $search_type = shift @_ || 'tv_series';
 	
+	
+	$search =~ s/ and$/ &/gi;
+	$search =~ s/^and /& /gi;
+	$search =~ s/ and / & /gi;
+	
 	my $search_url = $IMDB_BASE_URL . '/search/title?title=' . $search . '&title_type=' . $search_type;
 	my $ret_val = ();
 	my @s_results;
@@ -164,7 +169,9 @@ sub getSeason {
 	my $show = shift @_;
 	my $season = shift @_ || 1;
 	
-	$season += 0;
+	if ($season =~ m/^\d+/) {
+		$season += 0;
+	}
 	
 	my $ret_val = ();
 	my $url = '';
