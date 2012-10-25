@@ -10,7 +10,7 @@ use POSIX;
 use GD;
 use Image::Resize;
 use Digest::MD5 qw(md5 md5_hex);
-use Config::Auto;
+#use Config::Auto;
 #use WebService::TVRage::EpisodeListRequest;
 #use WebService::TVRage::ShowSearchRequest;
 use Text::Levenshtein qw(distance);
@@ -236,7 +236,10 @@ my $last_rebuild;
 
 my %unit_conversions = (
 	'seconds' => 1, 'second' => 1, 'secs' => 1, 'sec' => 1, 's' => 1,
-	'minutes' => 60, 'minute' => 60, 'mins' => 60, 'min' => 60, 'm' => 60
+	'minutes' => 60, 'minute' => 60, 'mins' => 60, 'min' => 60, 'm' => 60,
+	'hours' => 60 * 60, 'hour' => 60 * 60, 'hr' => 60 * 60, 'hrs' => 60 * 60, 'h' => 60 * 60,
+	'days' => 60 * 60 * 24, 'day' => 60 * 60 * 24, 'd' => 60 * 60 * 24,
+	'weeks' => 60 * 60 * 24 * 7, 'week' => 60 * 60 * 24 * 7, 'wks' => 60 * 60 * 24 * 7, 'wk' => 60 * 60 * 24 * 7, 'w' => 60 * 60 * 24 * 7,
 );
 my $unit_conversion_rgx = join('|', keys %unit_conversions);
 my $rebuild_freq = 1000000;

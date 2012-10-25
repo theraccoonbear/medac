@@ -11,7 +11,12 @@
   },
 
   "settings": {
-    "rebuild_json_every": "30 seconds"
+    "rebuild_json_every": "30 seconds",
+    "cache": {
+      "TV": {
+	"stale_after": "2 weeks"
+      }
+    }
   },
     
   "paths": { 

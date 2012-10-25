@@ -13,6 +13,7 @@ use Medac::Cache;
 my $cache = new Medac::Cache();
 
 $cache->cache('x', {'thing'=>'y'});
+$cache->dump();
 exit;
 
 my $show_name = 'Firefly';
