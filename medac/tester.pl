@@ -8,6 +8,12 @@ use File::Basename;
 use POSIX;
 use Config::Auto;
 use Medac::Metadata::Source::IMDB;
+use Medac::Cache;
+
+my $cache = new Medac::Cache();
+
+$cache->cache('x', {'thing'=>'y'});
+exit;
 
 my $show_name = 'Firefly';
 $show_name = 'Dexter';

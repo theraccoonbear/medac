@@ -1,12 +1,16 @@
 package Medac::Metadata::Source::IMDB;
 
+use lib '../../..';
+
 use Moose;
+
 use WWW::Mechanize;
 use Web::Scraper;
 use HTTP::Cookies;
 use Data::Dumper;
 use Text::Levenshtein qw(distance);
 use Mojo::DOM;
+use Medac::Cache;
 
 my $ua_string = "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.79 Safari/537.4";
 my $cookie_jar = HTTP::Cookies->new(); 
@@ -40,9 +44,13 @@ sub dist {
 }
 
 sub search {
+	
+	
 	my $self = shift @_;
 	my $search = shift @_;
 	my $search_type = shift @_ || 'tv_series';
+	
+	
 	
 	
 	$search =~ s/ and$/ &/gi;
@@ -93,6 +101,7 @@ sub search {
 		
 		$ret_val = \@s_results;
 		$search_cache->{$search_url} = $ret_val;
+		#Medac::Cache->cache("search:$search_url", $ret_val);
 	}
 	
 	return $ret_val;
