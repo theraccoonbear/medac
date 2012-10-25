@@ -11,8 +11,8 @@ use GD;
 use Image::Resize;
 use Digest::MD5 qw(md5 md5_hex);
 use Config::Auto;
-use WebService::TVRage::EpisodeListRequest;
-use WebService::TVRage::ShowSearchRequest;
+#use WebService::TVRage::EpisodeListRequest;
+#use WebService::TVRage::ShowSearchRequest;
 use Text::Levenshtein qw(distance);
 #use Medac::Misc::TV::Series;
 use Medac::Metadata::Source::IMDB;
@@ -21,8 +21,8 @@ $| = 0;
 
 my $config = Config::Auto::parse();
 
-my $shsrch = WebService::TVRage::ShowSearchRequest->new();
-my $epsrch = WebService::TVRage::EpisodeListRequest->new();
+#my $shsrch = WebService::TVRage::ShowSearchRequest->new();
+#my $epsrch = WebService::TVRage::EpisodeListRequest->new();
 
 my $tvr_cache;
 
@@ -72,53 +72,53 @@ sub bestMatch {
 	
 	return $best_match;
 }
-sub tvrEpisodeSearch {
-	my $show_id= shift @_;
-	my $s_num =  shift @_;
-	my $e_num = shift @_;
-	
-	my $episodes;
-	
-	my $cache_key = $show_id;
-	
-	if (defined $tvr_cache->{episodes}->{$cache_key}) {
-		$episodes = $tvr_cache->{episodes}->{$cache_key};
-	} else {
-		my $result = WebService::TVRage::EpisodeListRequest->new('episodeID' => $show_id);
-		$episodes = $result->getEpisodeList();
-		$tvr_cache->{episodes}->{$cache_key} = $episodes;
-	}
-	
-	my $episode = $episodes->getEpisode($s_num, $e_num);
+#sub tvrEpisodeSearch {
+#	my $show_id= shift @_;
+#	my $s_num =  shift @_;
+#	my $e_num = shift @_;
+#	
+#	my $episodes;
+#	
+#	my $cache_key = $show_id;
+#	
+#	if (defined $tvr_cache->{episodes}->{$cache_key}) {
+#		$episodes = $tvr_cache->{episodes}->{$cache_key};
+#	} else {
+#		my $result = WebService::TVRage::EpisodeListRequest->new('episodeID' => $show_id);
+#		$episodes = $result->getEpisodeList();
+#		$tvr_cache->{episodes}->{$cache_key} = $episodes;
+#	}
+#	
+#	my $episode = $episodes->getEpisode($s_num, $e_num);
+#
+#	return $episode;
+#} # tvrEpisodeSearch()
 
-	return $episode;
-} # tvrEpisodeSearch()
-
-sub tvrShowSearch {
-	my $show_name = shift @_;
-	my $cso;
-	
-	if (defined $tvr_cache->{show}->{$show_name}) {
-		$cso = $tvr_cache->{show}->{$show_name};
-	} else {
-		#logMsg "Searching for \"$show_name\"";
-		my $result = $shsrch->search($show_name);
-		if (defined $result) {
-			my @titles = $result->getTitleList();
-			my $cor_name = bestMatch($show_name, \@titles);
-			my $show = $result->getShow($cor_name);
-			$show->{name} = $cor_name;
-		
-			$tvr_cache->{show}->{$show_name} = $show;
-			$tvr_cache->{show}->{$cor_name} = $show;
-			
-			$cso = $show;
-		}
-	}
-
-	
-	return $cso;
-} # tvrShowSearch()
+#sub tvrShowSearch {
+#	my $show_name = shift @_;
+#	my $cso;
+#	
+#	if (defined $tvr_cache->{show}->{$show_name}) {
+#		$cso = $tvr_cache->{show}->{$show_name};
+#	} else {
+#		#logMsg "Searching for \"$show_name\"";
+#		my $result = $shsrch->search($show_name);
+#		if (defined $result) {
+#			my @titles = $result->getTitleList();
+#			my $cor_name = bestMatch($show_name, \@titles);
+#			my $show = $result->getShow($cor_name);
+#			$show->{name} = $cor_name;
+#		
+#			$tvr_cache->{show}->{$show_name} = $show;
+#			$tvr_cache->{show}->{$cor_name} = $show;
+#			
+#			$cso = $show;
+#		}
+#	}
+#
+#	
+#	return $cso;
+#} # tvrShowSearch()
 
 sub inferContext {
 	my $file_path = shift @_;
@@ -365,8 +365,10 @@ sub parsePath {
 		} elsif ($filename =~ m/Part\s*(?<episode_number>\d+)/gi) {
 			if (!defined $context->{season_number}) { $context->{season_number} = 1; }
 			$context->{episode_number} = $+{episode_number} + 0;
+		} elsif ($filename =~ m/^(?<episode_number>\d+)/gi) {
+			$context->{episode_number} = $+{episode_number} + 0;
 		} else {
-			print "ERROR: $path\n";	
+			print "ERROR (Cannot Determine Season/Episode): $path\n";	
 		}
 		
 		#print Dumper($context);
@@ -515,6 +517,7 @@ sub loadDir {
 					
 						my $ctxt = parsePath($f_obj->{rel_path});
 						$f_obj->{ctxt} = $ctxt;
+						
 					
 						if ($ctxt->{media_type} eq 'TV') {
 							my $show_list = $md_imdb->searchSeries($ctxt->{show_name});
@@ -552,6 +555,8 @@ sub loadDir {
 												 ', Title: ' . $f_obj->{ctxt}->{episode_title} . "\n");
 							} else {
 								logMsg("WARNING: Unknown episode.  Possible special or extra content?");
+								print Dumper($episode);
+								exit(0);
 							}
 						}
 						
@@ -563,12 +568,10 @@ sub loadDir {
 								outputJSON();
 								logMsg('Continuing processing...');
 								$last_rebuild = time();
-							}
-						}
+							} # time to rebuild?
+						} # rebuilds?
 						
 					} # video?
-					
-					
 				} # matches file pattern?
 			} # dir or file?
 		} # not . or ..

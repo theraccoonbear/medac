@@ -192,17 +192,23 @@ sub getSeason {
 			die unless ($mech->success);
 			my $content = $mech->{content};
 			
+			
+			
 			my $dom = Mojo::DOM->new($content);
 			my $eps = $dom->find('.list_item');
 			my @ep_list = [];
 			for my $ep ($eps->each) {
+				
+				
 				my $ep_entry = {
 					'image' => $ep->find('div.image img')->[0]->{src},
 					'url' => $ep->find('a[itemprop="url"]')->[0]->{href},
 					'name' => $ep->find('a[itemprop="name"]')->[0]->text,
 					'episode_number' => $ep->find('meta[itemprop="episodeNumber"]')->[0]->{content} + 0,
-					'synopsis' => $ep->find('div[itemprop="description"]')->[0]->text				 
+					'synopsis' => $ep->find('div[itemprop="description"]')->[0]->text,
+					'season_number' => $season
 				};
+				
 				$ep_list[$ep_entry->{episode_number}] = $ep_entry;
 			}
 			
