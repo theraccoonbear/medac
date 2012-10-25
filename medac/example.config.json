@@ -1,0 +1,33 @@
+{
+  "provider": {
+    "name": "theraccoonbearcity",
+    "host": {
+      "name": "medac.snm.com",
+      "port": 22,
+      "user": "guest",
+      "pass": "gu35t!",
+      "path": "/home/don/Desktop/Video/"
+    }
+  },
+
+  "settings": {
+    "rebuild_json_every": "30 seconds"
+  },
+    
+  "paths": { 
+    "root": "/var/www",
+    "video": "/home/username/Video",
+    "json": "media",
+    "thumbs": "media/thumbs"
+  },
+    
+  "checksum": {
+    "chunks_per_file": 100,
+    "entropy": 10000
+  },
+  
+  "thumbnails": {
+    "width": 150,
+    "count": 5
+  }
+}

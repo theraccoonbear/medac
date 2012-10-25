@@ -16,13 +16,11 @@ use Config::Auto;
 use Text::Levenshtein qw(distance);
 #use Medac::Misc::TV::Series;
 use Medac::Metadata::Source::IMDB;
+use Slurp;
 
 $| = 0;
 
-my $config = Config::Auto::parse();
-
-#my $shsrch = WebService::TVRage::ShowSearchRequest->new();
-#my $epsrch = WebService::TVRage::EpisodeListRequest->new();
+my $config = decode_json(slurp('medac.json')); #Config::Auto::parse('medac.yml', {format => 'yaml'});
 
 my $tvr_cache;
 
