@@ -10,11 +10,7 @@ use POSIX;
 use GD;
 use Image::Resize;
 use Digest::MD5 qw(md5 md5_hex);
-#use Config::Auto;
-#use WebService::TVRage::EpisodeListRequest;
-#use WebService::TVRage::ShowSearchRequest;
 use Text::Levenshtein qw(distance);
-#use Medac::Misc::TV::Series;
 use Medac::Metadata::Source::IMDB;
 use Slurp;
 
@@ -274,6 +270,7 @@ if (-f $json_output_to) {
 
 my $thumb_path = $root_dir . $config->{paths}->{thumbs};
 if (! -d $thumb_path) {
+	print "$thumb_path\n";
 	showUsage("Thumb path is not a valid directory.");
 }
 
@@ -453,15 +450,13 @@ sub loadDir {
 						
 						$f_obj->{meta}->{length} = $metadata->{length};
 						$f_obj->{meta}->{duration} = convert_seconds_to_hhmmss($metadata->{length});		
-						
+						$f_obj->{meta}->{video_width} = $metadata->{video_width};
+						$f_obj->{meta}->{video_height} = $metadata->{video_height};
+						$f_obj->{meta}->{video_fps} = $metadata->{video_fps};
 						$f_obj->{meta}->{filename} = $file;
 						$f_obj->{meta}->{filename} =~ s/^$video_dir//gi;
 						$f_obj->{rel_path} = $afp;
 						$f_obj->{rel_path} =~ s/^$video_dir//gi;
-						
-						
-						
-						
 						
 						logMsg $f_obj->{meta}->{filename};
 						
@@ -526,17 +521,6 @@ sub loadDir {
 							my $season = $md_imdb->getSeason($show, $ctxt->{season_number});
 							my $episode = $season->[$ctxt->{episode_number}];
 							
-							#print Dumper($show_list);
-							#print Dumper($show);
-							#print "*****************************************\n";
-							
-							#if ($show->{title} eq 'Game of Thrones') {
-							#	print Dumper($show_list);
-							#	print Dumper($show);
-							#	print Dumper($season);
-							#	print Dumper($episode);
-							#}
-							
 							if (ref $episode eq 'HASH') {
 								$f_obj->{ctxt}->{episode_title} = $episode->{name};
 								$f_obj->{imdb} = $episode;
@@ -556,8 +540,9 @@ sub loadDir {
 												 ', Title: ' . $f_obj->{ctxt}->{episode_title} . "\n");
 							} else {
 								logMsg("WARNING: Unknown episode.  Possible special or extra content?");
-								print Dumper($episode);
-								exit(0);
+								#$md_imdb->dumpCache();
+								#print Dumper($episode);
+								#exit(0);
 							}
 						}
 						

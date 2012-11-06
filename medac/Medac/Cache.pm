@@ -2,62 +2,92 @@ package Medac::Cache;
 
 use Moose;
 use Data::Dumper;
+use JSON::XS;
 use Digest::MD5 qw(md5 md5_hex);
-use Slurp;
+use File::Slurp;
+use Cwd qw(abs_path cwd);
 
-#has '_cache' => (
-#  'is' => 'rw',
-#  'isa' => 'HashRef'
-#);
+has 'context' => (
+	'is' => 'rw',
+	'isa' => 'Str',
+	'default' => 'basic'
+);
 
-my $_cache = {};
+has 'cache' => (
+  'is' => 'rw',
+	'isa' => 'HashRef',
+	'default' => sub {
+		my $self = shift @_;
+		my $d_cache = $self->readDiskCache();
+		return $d_cache;
+	}
+);
 
 sub keyCalc {
   my $self = shift @_;
   my $name = shift @_;
-  
+
+	return $name;  
   return md5_hex($name);
+}
+
+sub cacheFile() {
+	my $self = shift @_;
+	my $mod_path = abs_path(__FILE__);
+	$mod_path =~ s/\/[^\/]+$//gi;
+	
+	my $path = $mod_path . '/Cache/' . $self->keyCalc($self->context) . '.dat';
+	return $path;
+}
+
+sub readDiskCache() {
+	my $self = shift @_;
+	my $cache_file = shift @_ || $self->cacheFile(); #'Cache/' . $self->keyCalc($ctxt) . '.dat';
+	my $ret_val = {};
+	if (-f $cache_file) {
+		$ret_val = decode_json(read_file($cache_file));
+	}
+	
+	return $ret_val
+}
+
+sub writeDiskCache() {
+	my $self = shift @_;
+	#my $ctxt = $self->context;
+	my $cache_file = shift @_ || $self->cacheFile(); #'Cache/' . $self->keyCalc($ctxt) . '.dat';
+	write_file($cache_file, encode_json($self->cache));
+	return 1;
 }
 
 sub setVal {
   my $self = shift @_;
-  my $context = shift @_;
-  my $key = shift @_;
+  my $name = shift @_;
   my $val = shift @_;
+	my $key = $self->keyCalc($name);
   
-  #print Dumper($self->_cache);
-  
-  if (! defined $_cache) {
-    $_cache = {};  
-  }
-  if (! defined $_cache->{$context}) {
-    $_cache->{$context} = {};
-  }
-  
-  $_cache->{$context}->{$key} = $val;
+	$self->cache->{$key} = $val;
+	$self->writeDiskCache();
 }
 
 sub hit {
   my $self = shift @_;
-  my $context = 'unknown';
-  my $name = 'name';
+  my $name = shift @_;
   
+	my $key = $self->keyCalc($name);
+	
   my $ret_val = 0;
-  
-  if (scalar @_ == 2) {
-    $context = shift @_;
+  if (defined $self->cache->{$key}) {
+    $ret_val = 1;
   }
-  
-  $name = shift @_;
-  
-  my $key = $self->keyCalc($name);
-  
-  
-  if (defined $_cache->{$context}) {
-    if (defined $_cache->{$context}->{$key}) {
-      $ret_val = 1;
-    }
-  }
+	
+	#print "Cache hit for \"$name\"? ";
+	#print $ret_val == 1 ? 'YES!' : 'NO!';
+	#print "\n\n";
+	#if ($ret_val == 0) {
+	#	$self->dump();
+	#}
+	#print "\n";
+	
   
   return $ret_val;
 }
@@ -65,65 +95,41 @@ sub hit {
 sub getVal {
   my $self = shift @_;
   
-  my $context = 'unknown';
-  my $name = 'name';
-  
-  my $ret_val = 0;
-  
-  if (scalar @_ == 2) {
-    $context = shift @_;
-  }
-  
-  $name = shift @_;
+  my $name = shift @_;
   my $key = $self->keyCalc($name);
   
-  return $_cache->{$context}->{$key};
+  return $self->cache->{$key};
 }
 
-sub get {
+sub retrieve {
   my $self = shift @_;
   
-  my $context = 'unknown';
-  my $name = 'name';
+  my $name = shift @_;
   
-  my $ret_val = 0;
-  
-  if (scalar @_ == 2) {
-    $context = shift @_;
-  }
-  
-  $name = shift @_;
-  
-  if ($self->hit($context, $name)) {
-    return $self->getVal($context, $name);
+  if ($self->hit($name)) {
+    return $self->getVal($name);
   } else {
     return {};
   }
 }
 
-sub cache {
+sub store {
   my $self = shift @_;
-  
-  my @CALLER = caller();
-  
-  my $context = 'UNKNOWN';
-  
-  if (scalar @_ == 3) {
-    $context = shift @_;
-  }
   
   my $name = shift @_;
   my $value = shift @_;
   
   my $key = $self->keyCalc($name);
   
-  my $cache_rep = 'cache/' . $CALLER[0] . '.cache';
+  #my $cache_rep = 'cache/' . $CALLER[0] . '.cache';
 
-  $self->setVal($context, $key, $value);
+  $self->setVal($key, $value);
 }
 
 sub dump {
-  print Dumper($_cache);
+	my $self = shift @_;
+  print Dumper($self->cache);
+	return;
 }
 
 1;

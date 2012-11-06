@@ -1,5 +1,4 @@
 package Medac::Metadata::Source::IMDB;
-
 use lib '../../..';
 
 use Moose;
@@ -21,9 +20,27 @@ my $IMDB_BASE_URL = 'http://www.imdb.com';
 
 #my $home_url = 'http://www.tv.com';
 
-my $search_cache = {};
-my $show_cache = {};
-my $season_cache = {};
+has 'search_cache' => (
+	'is' => 'rw',
+	'isa' => 'Medac::Cache',
+	'default' => sub { return new Medac::Cache('context'=>'IMDBSearch'); }
+);
+
+has 'show_cache' => (
+	'is' => 'rw',
+	'isa' => 'Medac::Cache',
+	'default' => sub { return new Medac::Cache('context'=>'IMDBShow'); }
+);
+
+has 'season_cache' => (
+	'is' => 'rw',
+	'isa' => 'Medac::Cache',
+	'default' => sub { return new Medac::Cache('context'=>'IMDBSeason'); }
+);
+
+#my $search_cache = {};
+#my $show_cache = {};
+#my $season_cache = {};
 
 sub dist {
 	my $self = shift @_;
@@ -61,8 +78,8 @@ sub search {
 	my $ret_val = ();
 	my @s_results;
 	
-	if (defined $search_cache->{$search_url}) {
-		$ret_val = $search_cache->{$search_url};
+	if ($self->search_cache->hit($search_url)) {
+		$ret_val = $self->search_cache->retrieve($search_url);
 	} else {
 		
 		$mech->add_header(Referer => 'http://www.imdb.com/search/title');
@@ -100,7 +117,7 @@ sub search {
 		@s_results = sort {$a->{distance} <=> $b->{distance}} @s_results;
 		
 		$ret_val = \@s_results;
-		$search_cache->{$search_url} = $ret_val;
+		$self->search_cache->store($search_url, $ret_val);
 		#Medac::Cache->cache("search:$search_url", $ret_val);
 	}
 	
@@ -137,8 +154,8 @@ sub getShow {
 	
 	my $cache_key = $get_what->{title};
 	
-	if (defined $show_cache->{$cache_key}) {
-		$ret_val = $show_cache->{$cache_key};
+	if ($self->show_cache->hit($cache_key)) {
+		$ret_val = $self->show_cache->retrieve($cache_key);
 		
 	} else {
 		$mech->get($url);
@@ -167,7 +184,7 @@ sub getShow {
 		$ret_val->{year} = $get_what->{year};
 		$ret_val->{id} = $get_what->{id};
 		$ret_val->{url} = $get_what->{url};
-		$show_cache->{$cache_key} = $ret_val;
+		$self->show_cache->store($cache_key, $ret_val);
 	}
 	
 	return $ret_val;
@@ -192,8 +209,8 @@ sub getSeason {
 		
 		my $cache_key =  $show->{title} . '::' . $season;
 		
-		if (defined $season_cache->{$cache_key}) {
-			$ret_val = $season_cache->{$cache_key};
+		if ($self->season_cache->hit($cache_key)) {
+			$ret_val = $self->season_cache->retrieve($cache_key);
 		} else {
 			#$mech->add_header(Referer => $referer);
 			$mech->get($url);
@@ -222,7 +239,7 @@ sub getSeason {
 			}
 			
 			$ret_val = \@ep_list;
-			$season_cache->{$cache_key} = $ret_val;
+			$self->season_cache->store($cache_key, $ret_val);
 		}
 	} else {
 		return $ret_val;
@@ -230,5 +247,16 @@ sub getSeason {
 	
 	return $ret_val;
 } # getSeason()
+
+sub dumpCache {
+	my $self = shift @_;
+	
+	print "SEARCH:\n";
+	$self->search_cache->dump();
+	print "SHOW:\n";
+	$self->show_cache->dump();
+	print "SEASON:\n";
+	$self->season_cache->dump();
+}
 
 1;

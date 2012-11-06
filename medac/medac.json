@@ -14,14 +14,14 @@
     "rebuild_json_every": "30 seconds",
     "cache": {
       "TV": {
-	"stale_after": "2 weeks"
+				"stale_after": "2 weeks"
       }
     }
   },
     
   "paths": { 
-    "root": "/home/don/code/theraccoonshare.com/public_html/medac-dev",
-    "video": "/home/don/Desktop/Video",
+    "root": "/Users/don/Public/Subversion/theraccoonshare.com/public_html/medac-dev",
+    "video": "/Users/don/Desktop/Video/TV",
     "json": "media",
     "thumbs": "media/thumbs"
   },
