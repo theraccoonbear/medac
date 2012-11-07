@@ -20,6 +20,8 @@ $(function() {
 		return false;
 	};
 	
+	var md5_cache = {};
+	
 	var tmplDir = $('#tmplDirEntry').html();
 	var tmplVid = $('#tmplVideoEntry').html();
 	var tmplThumbs = $('#tmplThumbs').html();
@@ -33,33 +35,12 @@ $(function() {
 	var renderFile = function($attach_to, file_node) {
 		//console.log("FILE: " + file_node.name);
 		if (typeof file_node.meta !== 'undefined' && typeof file_node.meta.length !== 'undefined' && file_node.meta.length > 5 * 60) {
+			md5_cache[file_node.md5] = file_node;
 			var $file = $(Mustache.render(tmplVid, file_node));
 			$file.find('td.thumb').html(Mustache.render(tmplThumbs, file_node));
 			$attach_to.append($file);
 		}
 	}; // renderFile();
-	
-	//var renderDir = function($attach_to, dir_node) {
-	//	//console.log('DIR: ' + dir_node.name);
-	//	var $dir = $(Mustache.render(tmplDir, dir_node));
-	//	$attach_to.append($dir);
-	//	
-	//	var $children = $dir.find('ul.children');
-	//	
-	//	if (typeof dir_node.dirs !== 'undefined') {
-	//		for (var i = 0; i < dir_node.dirs.length; i++) {
-	//			var dir = dir_node.dirs[i];
-	//			renderDir($children, dir);
-	//		}
-	//	}
-	//	
-	//	if (typeof dir_node.files !== 'undefined') {
-	//		for (var i = 0; i < dir_node.files.length; i++) {
-	//			var file = dir_node.files[i];
-	//			renderFile($children, file);
-	//		}
-	//	}
-	//}; // renderDir();
 	
 	var renderEpisode = function($attach_to, episodes, episode_number) {
 		var episode = episodes[episode_number];
@@ -192,6 +173,18 @@ $(function() {
 			$a.remove();
 			
 			e.preventDefault();
+		});
+		
+		$('.fileLink').click(function(e) {
+			var $this = $(this);
+			var md5 = $this.data('md5');
+			
+			if (typeof md5_cache[md5] !== 'undefined') {
+				console.log("Cache hit for: " + md5);
+				console.log(md5_cache[md5]);
+			} else {
+				console.log("No cache hit for: " + md5);
+			}
 		});
 	});
 });

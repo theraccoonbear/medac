@@ -336,7 +336,7 @@ li.media-TV {
   margin-left: 32px;
 }
 
-ul.meta {
+.meta ul {
 	list-style-image: url(../img/meta-icon.png);
 }
 
@@ -353,4 +353,8 @@ td.thumb {
 
 .hiddenThumbs img.thumb {
 	display: none;
+}
+
+td.plot {
+  font-size: 20px;
 }

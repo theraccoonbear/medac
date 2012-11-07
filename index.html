@@ -85,12 +85,12 @@
 	</script>
 	
 	<script type="text/x-mustache" id="tmplVideoEntry">
-		<li class="video" data-path="{{meta.filename}}" data-md5="{{md5}}">
-			<a href="#!{{name}}" name="!{{name}}" class="fileLink medLink">{{ctxt.episode_title}} (S{{ctxt.season_number}}E{{ctxt.episode_number}})</a><br/>
+		<li class="video" data-path="{{meta.filename}}" >
+			<a href="#!{{name}}" name="!{{name}}" data-md5="{{md5}}" class="fileLink medLink">{{ctxt.episode_title}} (S{{ctxt.season_number}}E{{ctxt.episode_number}})</a><br/>
 			<table class="details">
 				<tr>
-				  <td>
-						<ul class="meta">
+					<td class="meta">
+						<ul>
 							<li class="size">Size: {{meta.niceSize}}</li>
 							<li class="duration">Length: {{meta.duration}}</li>
 							<li class="dimensions">Dimensions: {{meta.video_width}} x {{meta.video_height}}</li>
@@ -98,6 +98,10 @@
 						</ul>
 					</td><td class="thumb">
 					  
+					</td>
+				</tr><tr>
+					<td class="plot" colspan="2">
+						{{imdb.synopsis}}
 					</td>
 				</tr>
 			</table>
