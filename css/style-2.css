@@ -85,6 +85,7 @@ a:hover {
   border: none;
   font-size: 16px;
   height: auto;
+  padding: 2px;
 }
 #iface-frame #iface-tray .selectColumn ul.facts li:hover {
   margin: auto;
