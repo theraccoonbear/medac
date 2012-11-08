@@ -55,40 +55,29 @@
 				{{title}}
 			</li>
 			{{#items}}
-			<li data-key="{{.}}"><div>{{pre}}{{.}}</div></li>
+			<li data-key="{{.}}"><a href="#"><div>{{pre}}{{.}}</div></a></li>
 			{{/items}}
 		</ul>
 	</script>
 	
 	<script type="text/x-mustache-template" id="selColTVTmpl">
-		<li class="video" data-path="{{meta.filename}}" >
-			<a href="#!{{name}}" name="!{{name}}" data-md5="{{md5}}" class="fileLink medLink">{{ctxt.episode_title}} (S{{ctxt.season_number}}E{{ctxt.episode_number}})</a><br/>
-			<table class="details">
-				<tr>
-					<td class="meta">
-						<ul>
-							<li class="size">Size: {{meta.niceSize}}</li>
-							<li class="duration">Length: {{meta.duration}}</li>
-							<li class="dimensions">Dimensions: {{meta.video_width}} x {{meta.video_height}}</li>
-							<li class="fps">FPS: {{meta.video_fps}}</li>
-						</ul>
-					</td><td class="thumb">
-					  
-					</td>
-				</tr><tr>
-					<td class="plot" colspan="2">
-						<!--
-						
-						{{#imdb.image}}
-						<img src="{{imdb.image}}" alt="Image" />
-						{{/imdb.image}}
-						
-						-->
-						{{imdb.synopsis}}
-					</td>
-				</tr>
-			</table>
-		</li>
+		<div class="selectColumn">
+			<h1 class="heading"><a class="goBack">&laquo;</a> {{imdb.name}}</h1>
+			<div>
+				<ul class="facts">
+					<li><strong>Size:</strong> {{meta.niceSize}}</li>
+					<li><strong>Length:</strong> {{meta.duration}}</li>
+					<li>{{meta.video_width}} x {{meta.video_height}} @ {{meta.video_fps}}</li>
+				</ul><!-- /.facts -->
+			</div>
+			<div class="synopsis">{{imdb.synopsis}}</div>
+			<div class="hiddenThumbs">
+				<!--<a href="#" class="showThumbs"><img src="img/thumb.png" alt="Show Thumbs" title="Show Thumbs" /></a>-->
+				{{#meta.thumbs}}
+					<img src="{{.}}" class="thumb" />
+				{{/meta.thumbs}}
+			</div>
+		</div>
 	</script>
 
   <!-- JavaScript at the bottom for fast page loading -->

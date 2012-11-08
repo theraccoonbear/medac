@@ -365,9 +365,12 @@ sub parsePath {
 		} elsif ($filename =~ m/[sS]?(?<season_number>[12345][0-9]|0?[1-9])[xseE](?<episode_number>[0123]?[0-9])/gi) {
 			$context->{season_number} = $+{season_number} + 0;
 			$context->{episode_number} = $+{episode_number} + 0;
-		} elsif ($filename =~ m/Part\s*(?<episode_number>\d+)/gi) {
+		} elsif ($filename =~ m/(Episode|Part)\s*(?<episode_number>\d+)/gi) {
 			if (!defined $context->{season_number}) { $context->{season_number} = 1; }
 			$context->{episode_number} = $+{episode_number} + 0;
+		} elsif ($filename =~ m/(?<season_number>\d)(?<episode_number>\d{2})/gi) {
+			if (!defined $context->{season_number}) { $context->{season_number} = $+{season_number}; }
+			$context->{episode_number} = $+{episode_number};
 		} elsif ($filename =~ m/^(?<episode_number>\d+)/gi) {
 			$context->{episode_number} = $+{episode_number} + 0;
 		} else {
