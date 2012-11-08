@@ -13,6 +13,7 @@
   "settings": {
     "rebuild_json_every": "30 seconds",
     "cache": {
+			"stale_after": "2 weeks",
       "TV": {
 				"stale_after": "2 weeks"
       }
