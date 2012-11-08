@@ -81,8 +81,7 @@ $(function() {
 						terminal = prepend === false;
 					}
 				}
-				
-				
+				document.location.hash = '#' + crumbs.join('/');
 				
 				var rendered = '';
 				if (terminal) {
@@ -105,6 +104,7 @@ $(function() {
 			var $list = $this.parents('.selectColumn');
 			
 			crumbs.pop();
+			document.location.hash = '#' + crumbs.join('/');
 			$iface.animate({'left':'+=' + frame_width}, 250, null, function() { $list.remove(); });
 			
 			e.preventDefault();
