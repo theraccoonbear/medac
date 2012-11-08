@@ -10,6 +10,9 @@ a:hover {
   color: #4d4d4d;
   cursor: hand !important;
 }
+a:visited {
+  color: #000000;
+}
 .goBack {
   display: inline-block;
   background-color: #3c3c3c;
