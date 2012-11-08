@@ -1,4 +1,23 @@
-#iface-wrapper {
+a {
+  color: #000000;
+}
+a:hover {
+  color: #4d4d4d;
+}
+.goBack {
+  display: inline-block;
+  background-color: #3c3c3c;
+  width: 50px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  border-radius: 10px;
+  border: 2px solid #000000;
+  cursor: hand !important;
+  text-align: center;
+}
+#iface-frame {
   width: 640px;
   height: 480px;
   padding: 0px;
@@ -6,38 +25,50 @@
   overflow-y: scroll;
   overflow-x: hidden;
 }
-#iface-wrapper ul.selectColumn {
+#iface-frame #iface-tray {
+  position: relative;
+  width: 10000px;
+  height: 600px;
+}
+#iface-frame #iface-tray ul.selectColumn {
   margin: 0px;
   padding: 0px;
+  float: left;
 }
-#iface-wrapper ul.selectColumn li {
+#iface-frame #iface-tray ul.selectColumn li {
   background: #888888;
   padding: 15px;
   list-style: none;
   font-size: 28px;
-  width: 610px;
+  width: 608px;
   height: 70px;
   border: 1px solid #000;
   color: #000000;
   -webkit-transition: color 0.3s;
   -webkit-transition: background-color 0.3s;
 }
-#iface-wrapper ul.selectColumn li:hover {
+#iface-frame #iface-tray ul.selectColumn li:hover {
   cursor: pointer;
   cursor: hand;
   background-color: #d4d4d4;
   color: #4d4d4d;
 }
-#iface-wrapper ul.selectColumn li.heading {
+#iface-frame #iface-tray ul.selectColumn li:hover div {
+  padding-left: 25px;
+}
+#iface-frame #iface-tray ul.selectColumn li.heading {
   font-size: 36px;
   font-weight: bold;
 }
-#iface-wrapper ul.selectColumn li.heading:hover {
+#iface-frame #iface-tray ul.selectColumn li.heading:hover {
   cursor: default;
   background-color: #888888;
   color: #000000;
+  padding-left: 15px;
 }
-#iface-wrapper ul.selectColumn li div {
+#iface-frame #iface-tray ul.selectColumn li div {
   height: 100px;
   margin-top: 20px;
+  padding-left: 0px;
+  -webkit-transition: padding 0.3s;
 }

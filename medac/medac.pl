@@ -286,7 +286,12 @@ my $video_pattern = '\.(' . join('|', @video_extensions) . ')$';
 my $audio_pattern = '\.(' . join('|', @audio_extensions) . ')$';
 my $media_pattern = '\.(' . join('|', (@video_extensions, @audio_extensions)) . ')$';
 
-my $media_root;
+my $media_root = {
+ 'TV' => {},
+ 'Movies' => {},
+ 'Music' => {},
+ 'Other' => {}
+};
 
 sub niceSize {
 	# Will work up to considerable file sizes!

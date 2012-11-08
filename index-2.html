@@ -38,30 +38,57 @@
 	</header>
 	
   <div role="main">
-		<div id="iface-wrapper">
-			<!--<ul class="selectColumn">
-				<li class="heading">
-					Media Types
-				</li>
-				<li><div data-key="TV">TV</div></li>
-				<li><div data-key="Movies">Movies</div></li>
-				<li><div data-key="Music">Music</div></li>
-				<li><div data-key="Other">Other</div></li>
-			</ul>-->
+		<div id="iface-frame">
+			<div id="iface-tray">
+				
+			</div>
 		</div>
   </div>
   <footer>
 
   </footer>
 
-
 	<script type="text/x-mustache-template" id="selColTmpl">
-		<ul class="selectColumn">
-			<li class="heading">{{name}}</li>
+		<ul class="selectColumn" data-tier="{{tier}}">
+			<li class="heading">
+				{{^isRoot}}<a class="goBack">&laquo;</a> {{/isRoot}}
+				{{title}}
+			</li>
 			{{#items}}
-			<li><div data-key="{{key}}">{{name}}</div></li>
+			<li data-key="{{.}}"><div>{{pre}}{{.}}</div></li>
 			{{/items}}
 		</ul>
+	</script>
+	
+	<script type="text/x-mustache-template" id="selColTVTmpl">
+		<li class="video" data-path="{{meta.filename}}" >
+			<a href="#!{{name}}" name="!{{name}}" data-md5="{{md5}}" class="fileLink medLink">{{ctxt.episode_title}} (S{{ctxt.season_number}}E{{ctxt.episode_number}})</a><br/>
+			<table class="details">
+				<tr>
+					<td class="meta">
+						<ul>
+							<li class="size">Size: {{meta.niceSize}}</li>
+							<li class="duration">Length: {{meta.duration}}</li>
+							<li class="dimensions">Dimensions: {{meta.video_width}} x {{meta.video_height}}</li>
+							<li class="fps">FPS: {{meta.video_fps}}</li>
+						</ul>
+					</td><td class="thumb">
+					  
+					</td>
+				</tr><tr>
+					<td class="plot" colspan="2">
+						<!--
+						
+						{{#imdb.image}}
+						<img src="{{imdb.image}}" alt="Image" />
+						{{/imdb.image}}
+						
+						-->
+						{{imdb.synopsis}}
+					</td>
+				</tr>
+			</table>
+		</li>
 	</script>
 
   <!-- JavaScript at the bottom for fast page loading -->

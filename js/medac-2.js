@@ -1,101 +1,104 @@
 var MEDAC = {};
 
+var HIER = {
+	'TV': ['','Season ','Episode ', false],
+	'Movies': ['Title']
+};
+
+var colNode = function(obj, t, root) {
+	var memberKeys = function(obj) {
+		var members = [];
+		for (var p in obj) {
+			if (obj.hasOwnProperty(p)) {
+				members.push(p);
+			}
+		}
+		
+		return members;
+	};
+	
+	this.title = t;
+	this.isRoot = root === true;
+	this.items = memberKeys(obj);
+};
+
+
+var drill = function(o, keys) {
+	for (var i = 0; i < keys.length; i++) {
+		var k = keys[i];
+		if (typeof o[k] !== 'undefined') {
+			o = o[k];
+		}
+	}
+	return o;
+};
+
+
 $(function() {
 	var selColTmpl = $('#selColTmpl').html();
+	var selColTVTmpl = $('#selColTVTmpl').html();
+	var crumbs = [];
+	
 	
 	$.getJSON('media/media.json', {}, function(data, status, xhr) {
 		
 		var $root = $('#root');
-		
+		var $frame = $('#iface-frame');
+		var frame_width = $frame.width();
+		var $iface = $('#iface-tray');
 		
 		MEDAC = data;
 		
-		var media = data.media;
 		
-		var $iface = $('#iface-wrapper');
-		
-		var media_types = {
-			name: "Media Types",
-			items: []
+		var buildSelCol = function(title, items) {
+			return Mustache.render(selColTmpl, t_obj);
 		};
 		
-		for (var prop in data.media) {
-			if (data.media.hasOwnProperty(prop)) {
-				var item = {name: prop, key: prop};
-				media_types.items.push(item);
+		$iface.append(Mustache.render(selColTmpl, new colNode(MEDAC.media, 'Media', true)));
+		
+		$('.selectColumn > li').live('click', function(e) {
+			var $this = $(this);
+			if (!$this.hasClass('heading')) {
+				var key = $this.data('key');
+				crumbs.push(key);
+				var newNode = drill(MEDAC.media, crumbs);
+				var wh = HIER[crumbs[0]];
+				
+				var node = new colNode(newNode, key)
+				var terminal = false;
+				
+				if (typeof wh !== 'undefined') {
+					var prepend = wh[crumbs.length - 1];
+					var keyPre = wh[crumbs.length - 2];
+					if (typeof keyPre != 'undefined') {
+						node.title = keyPre + key;
+					}
+					if (typeof prepend !== 'undefined') {
+						node.pre = prepend;
+						terminal = prepend === false;
+					}
+				}
+				
+				console.log(terminal);
+				
+				
+				$iface.append(Mustache.render(selColTmpl, node)).animate({'left': '-=' + frame_width}, 250);
+				
 			}
-		}
+			e.preventDefault();
+			return false;
+		});
 		
-		$iface.append(Mustache.render(selColTmpl, media_types));
+		$('a.goBack').live('click', function(e) {
+			var $this = $(this);
+			var $list = $this.parents('ul.selectColumn');
+			
+			crumbs.pop();
+			$iface.animate({'left':'+=' + frame_width}, 250, null, function() { $list.remove(); });
+			
+			e.preventDefault();
+			return false;
+		});
 		
-		//renderDir($root, media);
-		
-		//renderTV($root, media.TV);
-		
-		
-		
-		//$('.dirLink').click(function(e) {
-		//	$ctxt = $(this);
-		//	$parent = $ctxt.parent('li');
-		//	
-		//	if ($parent.hasClass('closed')) {
-		//		var eo = typeof $parent.data('opened') !== 'undefined';
-		//		if (eo) {
-		//			$parent.children('td.thumbs');
-		//		} else {
-		//			$parent.data('opened','true');
-		//		}
-		//		
-		//		$parent.children('ul').slideDown(250);
-		//		$parent.removeClass('closed');
-		//	} else {
-		//		$parent.children('ul').slideUp(250);
-		//		$parent.addClass('closed')
-		//	}
-		//	
-		//	//$parent.toggleClass('closed');
-		//	
-		//	if (e.preventDefault) { e.preventDefault(); }
-		//				
-		//	return false;
-		//});
-		//
-		//$('.showThumbs').click(function(e) {
-		//	var $a = $(this);
-		//	$a.fadeOut(250, function() { $(this).remove(); });
-		//	var $div = $a.parent('.hiddenThumbs');
-		//	var $imgs = $div.find('img.thumb');
-		//	
-		//	var cnt = 0;
-		//	var fade_time = Math.floor(1000 / $imgs.length);
-		//	
-		//	$imgs.each(function(idx, elem) {
-		//		var $img = $(elem);
-		//		
-		//		$img.attr('src', $img.data('src'));
-		//		setTimeout(function() {
-		//			$img.fadeIn(fade_time);
-		//		}, Math.floor(cnt * fade_time * 0.5));
-		//		cnt++;
-		//		
-		//	});
-		//	
-		//	//$div.removeClass('hiddenThumbs');
-		//	$a.remove();
-		//	
-		//	e.preventDefault();
-		//});
-		
-		//$('.fileLink').click(function(e) {
-		//	var $this = $(this);
-		//	var md5 = $this.data('md5');
-		//	
-		//	if (typeof md5_cache[md5] !== 'undefined') {
-		//		console.log("Cache hit for: " + md5);
-		//		console.log(md5_cache[md5]);
-		//	} else {
-		//		console.log("No cache hit for: " + md5);
-		//	}
-		//});
 	}); // get media JSON
 });
