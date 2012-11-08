@@ -16,7 +16,7 @@ use Slurp;
 
 $| = 0;
 
-my $config = decode_json(slurp('medac.json')); #Config::Auto::parse('medac.yml', {format => 'yaml'});
+my $config = decode_json(slurp('config.json')); #Config::Auto::parse('medac.yml', {format => 'yaml'});
 
 my $tvr_cache;
 
