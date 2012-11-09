@@ -94,13 +94,15 @@
 	
 	<script type="text/x-mustache-template" id="tmpl-TV-EPISODE">
 		<div class="selectColumn">
-			<h1 class="heading"><a href="#" class="goBack">&laquo;</a> {{orig.imdb.name}}</h1>
 			<div class="details">
+				<h1 class="heading"><a href="#" class="goBack">&laquo;</a> <a href="#" class="fileLink" data-md5="{{orig.md5}}">{{orig.imdb.name}}</a></h1>
+				
 				<div class="thumbs">
 					{{#orig.meta.thumbs}}
 						<img src="{{.}}" class="thumb" />
 					{{/orig.meta.thumbs}}
 				</div><!-- /.thumbs -->
+				
 				<div>
 					<ul class="facts">
 						<li><strong>Size:</strong> {{orig.meta.niceSize}}</li>
@@ -108,6 +110,7 @@
 						<li><strong>Dimensions</strong> {{orig.meta.video_width}} x {{orig.meta.video_height}} @ {{orig.meta.video_fps}} FPS</li>
 					</ul><!-- /.facts -->
 				</div>
+				
 				<div class="synopsis">
 					{{orig.imdb.synopsis}}
 				</div><!-- /.synopsis -->

@@ -63,6 +63,10 @@ a.goBack {
 			width: 100%;
 			
 			div {
+				&.details {
+					margin-left: 10px;	
+				}
+				
 				&.synopsis {
 					width: 640px;
 				}
@@ -73,11 +77,11 @@ a.goBack {
 				&.heading {
 					font-size: 36px;
 					font-weight: bold;
+					text-shadow: darken(@base_color, 20%) 3px 3px 5px;
 					&:hover {
 						cursor: default;
 						background-color: @base_color;
 						color: @text_color;
-						//padding-left: 10px;
 					}
 				}
 				
@@ -86,6 +90,7 @@ a.goBack {
 					white-space: nowrap;
 					a {
 						color: @text_color;
+						text-shadow: darken(@base_color, 20%) 2px 2px 3px;
 						text-decoration: none;
 						margin-top: 0;
 					} // a
@@ -138,7 +143,6 @@ a.goBack {
 					margin: 5px;
 					border: 2px solid darken(@text_color, 30%);
 				}
-				//display: none;
 			}
 			
 		}

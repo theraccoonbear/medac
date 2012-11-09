@@ -1,12 +1,6 @@
 var MEDAC = {};
 var TEMPLATES = {};
 
-//isa = function(obj) {
-//	var what = Object.prototype.toString;
-//	
-//	return what.call(obj);
-//};
-
 $(function() {
 	var colNode = function(obj, t, root) {
 		var n = {
@@ -109,6 +103,9 @@ $(function() {
 		
 		var newNode = drill(MEDAC.media, crumbs);
 		var node = new colNode(newNode, key)
+		
+		console.log(node);
+		
 		var rendered = Mustache.render(getTemplateFor(crumbs), node);
 		
 		$iface.append(rendered).animate({'left': '-=' + frame_width}, 250);
@@ -131,6 +128,12 @@ $(function() {
 		return false;
 	}); // $('a.goBack').live('click' ...
 	
+	$('a.fileLink').live('click', function(e) {
+		
+		
+		e.preventDefault();
+		return false;
+	});
 	
 	
 	

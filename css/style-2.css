@@ -43,6 +43,9 @@ a.goBack {
   float: left;
   width: 100%;
 }
+#iface-frame #iface-tray .selectColumn div.details {
+  margin-left: 10px;
+}
 #iface-frame #iface-tray .selectColumn div.synopsis {
   width: 640px;
 }
@@ -52,6 +55,7 @@ a.goBack {
 #iface-frame #iface-tray .selectColumn li.heading {
   font-size: 36px;
   font-weight: bold;
+  text-shadow: #555555 3px 3px 5px;
 }
 #iface-frame #iface-tray .selectColumn li.heading:hover {
   cursor: default;
@@ -72,6 +76,7 @@ a.goBack {
 }
 #iface-frame #iface-tray .selectColumn li.menuItem a {
   color: #000000;
+  text-shadow: #555555 2px 2px 3px;
   text-decoration: none;
   margin-top: 0;
 }
