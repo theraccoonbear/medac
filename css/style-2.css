@@ -4,28 +4,25 @@ body {
   overflow: hidden;
 }
 a {
-  color: #000000;
+  color: #000000, 30%;
   display: block;
 }
 a:hover {
-  color: #4d4d4d;
+  color: #999999;
   cursor: hand !important;
 }
 a:visited {
-  color: #000000;
+  color: #4d4d4d;
 }
-.goBack {
+a.goBack {
   display: inline-block;
-  background-color: #3c3c3c;
-  width: 50px;
-  -webkit-border-radius: 10px;
-  -moz-border-radius: 10px;
-  -ms-border-radius: 10px;
-  -o-border-radius: 10px;
-  border-radius: 10px;
-  border: 2px solid #000000;
+  text-indent: -10000px;
+  background-image: url(../img/back-button.png);
+  width: 31px;
+  height: 31px;
   cursor: hand !important;
   text-align: center;
+  text-decoration: none;
 }
 #iface-frame {
   width: 100%;
@@ -46,6 +43,12 @@ a:visited {
   float: left;
   width: 100%;
 }
+#iface-frame #iface-tray .selectColumn div.synopsis {
+  width: 640px;
+}
+#iface-frame #iface-tray .selectColumn li {
+  padding-left: 10px;
+}
 #iface-frame #iface-tray .selectColumn li.heading {
   font-size: 36px;
   font-weight: bold;
@@ -54,7 +57,6 @@ a:visited {
   cursor: default;
   background-color: #888888;
   color: #000000;
-  padding-left: 10px;
 }
 #iface-frame #iface-tray .selectColumn li.menuItem {
   overflow: hidden;
@@ -66,8 +68,10 @@ a:visited {
   border: 1px solid #000;
   -webkit-transition: color 0.3s;
   -webkit-transition: background-color 0.3s;
+  -webkit-transition: padding 0.3s;
 }
 #iface-frame #iface-tray .selectColumn li.menuItem a {
+  color: #000000;
   text-decoration: none;
   margin-top: 0;
 }
@@ -76,15 +80,11 @@ a:visited {
   cursor: hand;
   background-color: #d4d4d4;
   color: #4d4d4d;
-}
-#iface-frame #iface-tray .selectColumn li.menuItem:hover div {
-  padding-left: 35px;
+  padding-left: 25px;
 }
 #iface-frame #iface-tray .selectColumn li.menuItem div {
   height: 50px;
   padding-top: 20px;
-  padding-left: 10px;
-  -webkit-transition: padding 0.3s;
 }
 #iface-frame #iface-tray .selectColumn ul.facts li {
   list-style: circle;
@@ -97,8 +97,7 @@ a:visited {
   margin: auto;
   background-color: inherit;
 }
-#iface-frame #iface-tray .selectColumn .hiddenThumbs img.thumb {
-  margin: 2px;
-  padding: 5px;
-  border: 1px solid #ff8;
+#iface-frame #iface-tray .selectColumn .thumbs img.thumb {
+  margin: 5px;
+  border: 2px solid #000000;
 }

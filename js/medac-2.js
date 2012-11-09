@@ -1,10 +1,31 @@
 var MEDAC = {};
+var TEMPLATES = {};
 
-
-
+//isa = function(obj) {
+//	var what = Object.prototype.toString;
+//	
+//	return what.call(obj);
+//};
 
 $(function() {
 	var colNode = function(obj, t, root) {
+		var n = {
+			title: t,
+			items: [],
+			orig: {}
+		};
+		
+		for (var p in obj) {
+			if (obj.hasOwnProperty(p)) {
+				n.items.push({key:p,val:obj[p]});
+				n.orig[p] = obj[p];
+			}
+		}
+
+		return n;
+	}; // colNode()
+	
+	var colNodeX = function(obj, t, root) {
 		var memberKeys = function(obj) {
 			var members = [];
 			for (var p in obj) {
@@ -33,19 +54,8 @@ $(function() {
 	}; // drill()
 	
 	var doResize = function() {
-		//var isInIframe = (window.location != window.parent.location) ? true : false;
-		////var obj = screen; // isInIframe ? $(this).parents('iframe') : $(screen);
-		////console.log(obj);
-		//
-		//if (isInIframe) {
-		//	frame_width = $('body').width();
-		//	frame_height = $(document).height();
-		//} else {
-			frame_width = screen.availWidth;
-			frame_height = screen.availHeight;
-		//}
-		//console.log(frame_width + ' x ' + frame_height);
-		//
+		frame_width = screen.availWidth;
+		frame_height = screen.availHeight;
 		$frame.css({width: frame_width, height: frame_height});
 		$('.selectColumn').css({'width':frame_width});
 		$('.selectColumn > li').css({'width':frame_width - 50});
@@ -55,43 +65,54 @@ $(function() {
 		return Mustache.render(selColTmpl, t_obj);
 	}; // buildSelCol()
 	
+	var updateLocation = function() {
+		document.location.hash = '#' + crumbs.join('/');
+	}; // updateLocation()
+	
+	var getTemplateFor = function(path) {
+		if (path.length < 1) { return ''; }
+		var cat = path[0];
+		var extent = path.length > 1 ? path.length - 1 : 0;
+		var ret_val = TEMPLATES._DEFAULT;
+		
+		if (typeof TEMPLATES[cat] !== 'undefined' && typeof TEMPLATES[cat][extent] !== 'undefined') {
+			ret_val = TEMPLATES[cat][extent];
+		}
+		
+		return ret_val;
+	}; // getTemplateFor()
+	
+	var loadTemplates = function() {
+		var DEFAULT = '<DIV class="selectColumn"><a href="#" class="goBack">&laquo;</a> MISSING TEMPLATE!</div>';
+		for (var cat in TEMPLATES) {
+			if (TEMPLATES.hasOwnProperty(cat)) {
+				for (var i = 0; i < TEMPLATES[cat].length; i++) {
+					var tmplID = '#tmpl-' + cat + '-' + TEMPLATES[cat][i];
+					var $tmpl = $(tmplID);
+					if ($tmpl.length > 0) {
+						TEMPLATES[cat][i] = $tmpl.html();
+					} else {
+						TEMPLATES[cat][i] = '<DIV class="selectColumn"><a href="#" class="goBack">&laquo;</a> UNDEFINED TEMPLATE "' +  cat + ':' + TEMPLATES[cat][i] + '"!</div>';
+					}
+				}
+			}
+		}
+		TEMPLATES._DEFAULT = DEFAULT;
+	}; // loadTemplates()
+	
 	$('.selectColumn > li.menuItem > a').live('click', function(e) {
 		var $this = $(this).parent('li');
-		if (!$this.hasClass('heading')) {
-			var key = $this.data('key');
-			crumbs.push(key);
-			var newNode = drill(MEDAC.media, crumbs);
-			console.log(crumbs);
-			console.log(newNode);
-			var wh = HIER[crumbs[0]];
-			
-			var node = new colNode(newNode, key)
-			var terminal = false;
-			
-			if (typeof wh !== 'undefined') {
-				var prepend = wh[crumbs.length - 1];
-				var keyPre = wh[crumbs.length - 2];
-				if (typeof keyPre != 'undefined') {
-					node.title = keyPre + key;
-				}
-				if (typeof prepend !== 'undefined') {
-					node.pre = prepend;
-					terminal = prepend === false;
-				}
-			}
-			document.location.hash = '#' + crumbs.join('/');
-			
-			var rendered = '';
-			if (terminal) {
-				
-				rendered = Mustache.render(selColTVTmpl, newNode);
-			} else {
-				rendered = Mustache.render(selColTmpl, node);
-			}
-			
-			$iface.append(rendered).animate({'left': '-=' + frame_width}, 250);
-			doResize();
-		}
+		var key = $this.data('key');
+		
+		crumbs.push(key);
+		updateLocation();
+		
+		var newNode = drill(MEDAC.media, crumbs);
+		var node = new colNode(newNode, key)
+		var rendered = Mustache.render(getTemplateFor(crumbs), node);
+		
+		$iface.append(rendered).animate({'left': '-=' + frame_width}, 250);
+		doResize();
 		
 		e.preventDefault();
 		return false;
@@ -102,47 +123,29 @@ $(function() {
 		var $list = $a.parents('.selectColumn');
 		
 		crumbs.pop();
-		document.location.hash = '#' + crumbs.join('/');
+		updateLocation();
+		
 		$iface.animate({'left':'+=' + frame_width}, 250, null, function() { $list.remove(); });
 		
 		e.preventDefault();
 		return false;
 	}); // $('a.goBack').live('click' ...
 	
-	$('.showThumbs').live('click', function(e) {
-		var $a = $(this);
-		$a.fadeOut(250, function() { $(this).remove(); });
-		var $div = $a.parent('.hiddenThumbs');
-		var $imgs = $div.find('img.thumb');
-		
-		var cnt = 0;
-		var fade_time = Math.floor(1000 / $imgs.length);
-		
-		$imgs.each(function(idx, elem) {
-			var $img = $(elem);
-			
-			$img.attr('src', $img.data('src'));
-			setTimeout(function() {
-				$img.fadeIn(fade_time);
-			}, Math.floor(cnt * fade_time * 0.5));
-			cnt++;
-			
-		});
-		
-		$a.remove();
-		
-		e.preventDefault();
-	}); // $('.showThumbs').live('click' ...
+	
+	
 	
 	$(window).resize(doResize);
 	
-	var selColTmpl = $('#selColTmpl').html();
-	var selColTVTmpl = $('#selColTVTmpl').html();
+	var rootTmpl = $('#tmpl-ROOT').html();
 	var crumbs = [];
-	var HIER = {
-		'TV': ['','Season ','Episode ', false],
-		'Movies': ['Title']
+	
+	
+	TEMPLATES = {
+		'TV': ['BASE','SHOW','SEASON','EPISODE']
 	};
+	
+	loadTemplates();
+	
 
 	var $frame = $('#iface-frame');
 	var frame_width = screen.width;
@@ -153,11 +156,7 @@ $(function() {
 	
 	$.getJSON('media/media.json', {}, function(data, status, xhr) {
 		$('#spinner').remove();
-		
 		MEDAC = data;
-		
-		$iface.append(Mustache.render(selColTmpl, new colNode(MEDAC.media, 'Media', true)));
-		
-		
+		$iface.append(Mustache.render(rootTmpl, new colNode(MEDAC.media, 'Media', true)));		
 	}); // get media JSON
 });

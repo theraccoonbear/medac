@@ -48,38 +48,73 @@
 
   </footer>
 
-	<script type="text/x-mustache-template" id="selColTmpl">
+	<script type="text/x-mustache-template" id="tmpl-ROOT">
 		<ul class="selectColumn" data-tier="{{tier}}">
 			<li class="heading">
-				{{^isRoot}}<a href="#" class="goBack">&laquo;</a> {{/isRoot}}
 				{{title}}
 			</li>
 			{{#items}}
-			<li data-key="{{.}}" class="menuItem"><a href="#"><div>{{pre}}{{.}}</div></a></li>
+			<li data-key="{{key}}" class="menuItem"><a href="#"><div>{{key}}</div></a></li>
 			{{/items}}
 		</ul>
 	</script>
 	
-	<script type="text/x-mustache-template" id="selColTVTmpl">
-		<div class="selectColumn">
-			<h1 class="heading"><a href="#" class="goBack">&laquo;</a> {{imdb.name}}</h1>
-			<div>
-				<ul class="facts">
-					<li><strong>Size:</strong> {{meta.niceSize}}</li>
-					<li><strong>Length:</strong> {{meta.duration}}</li>
-					<li>{{meta.video_width}} x {{meta.video_height}} @ {{meta.video_fps}}</li>
-				</ul><!-- /.facts -->
-			</div>
-			<div class="synopsis">{{imdb.synopsis}}</div>
-			<div class="hiddenThumbs">
-				<!--<a href="#" class="showThumbs"><img src="img/thumb.png" alt="Show Thumbs" title="Show Thumbs" /></a>-->
-				{{#meta.thumbs}}
-					<img src="{{.}}" class="thumb" />
-				{{/meta.thumbs}}
-			</div>
-		</div>
+	<script type="text/x-mustache-template" id="tmpl-TV-BASE">
+		<ul class="selectColumn">
+			<li class="heading">
+				<a href="#" class="goBack">&laquo;</a> Shows
+			</li>
+			{{#items}}
+			<li data-key="{{key}}" class="menuItem"><a href="#"><div>{{pre}}{{key}}</div></a></li>
+			{{/items}}
+		</ul>
 	</script>
-
+	
+	<script type="text/x-mustache-template" id="tmpl-TV-SHOW">
+		<ul class="selectColumn">
+			<li class="heading">
+				<a href="#" class="goBack">&laquo;</a> {{title}}
+			</li>
+			{{#items}}
+			<li data-key="{{key}}" class="menuItem"><a href="#"><div>Season {{key}}</div></a></li>
+			{{/items}}
+		</ul>
+	</script>
+	
+	<script type="text/x-mustache-template" id="tmpl-TV-SEASON">
+		<ul class="selectColumn">
+			<li class="heading">
+				<a href="#" class="goBack">&laquo;</a> Season {{title}}
+			</li>
+			{{#items}}
+			<li data-key="{{key}}" class="menuItem"><a href="#"><div>{{key}}. {{val.imdb.name}}</div></a></li>
+			{{/items}}
+		</ul>
+	</script>
+	
+	<script type="text/x-mustache-template" id="tmpl-TV-EPISODE">
+		<div class="selectColumn">
+			<h1 class="heading"><a href="#" class="goBack">&laquo;</a> {{orig.imdb.name}}</h1>
+			<div class="details">
+				<div class="thumbs">
+					{{#orig.meta.thumbs}}
+						<img src="{{.}}" class="thumb" />
+					{{/orig.meta.thumbs}}
+				</div><!-- /.thumbs -->
+				<div>
+					<ul class="facts">
+						<li><strong>Size:</strong> {{orig.meta.niceSize}}</li>
+						<li><strong>Length:</strong> {{orig.meta.duration}}</li>
+						<li><strong>Dimensions</strong> {{orig.meta.video_width}} x {{orig.meta.video_height}} @ {{orig.meta.video_fps}} FPS</li>
+					</ul><!-- /.facts -->
+				</div>
+				<div class="synopsis">
+					{{orig.imdb.synopsis}}
+				</div><!-- /.synopsis -->
+			</div><!-- /.details -->
+		</div><!-- /.selectColumn -->
+	</script>
+	
   <!-- JavaScript at the bottom for fast page loading -->
 
   <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
