@@ -40,7 +40,7 @@
   <div role="main">
 		<div id="iface-frame">
 			<div id="iface-tray">
-				
+				<img src="img/spinner.gif" alt="Spinner" id="spinner" />
 			</div>
 		</div>
   </div>
@@ -51,18 +51,18 @@
 	<script type="text/x-mustache-template" id="selColTmpl">
 		<ul class="selectColumn" data-tier="{{tier}}">
 			<li class="heading">
-				{{^isRoot}}<a class="goBack">&laquo;</a> {{/isRoot}}
+				{{^isRoot}}<a href="#" class="goBack">&laquo;</a> {{/isRoot}}
 				{{title}}
 			</li>
 			{{#items}}
-			<li data-key="{{.}}"><a href="#"><div>{{pre}}{{.}}</div></a></li>
+			<li data-key="{{.}}" class="menuItem"><a href="#"><div>{{pre}}{{.}}</div></a></li>
 			{{/items}}
 		</ul>
 	</script>
 	
 	<script type="text/x-mustache-template" id="selColTVTmpl">
 		<div class="selectColumn">
-			<h1 class="heading"><a class="goBack">&laquo;</a> {{imdb.name}}</h1>
+			<h1 class="heading"><a href="#" class="goBack">&laquo;</a> {{imdb.name}}</h1>
 			<div>
 				<ul class="facts">
 					<li><strong>Size:</strong> {{meta.niceSize}}</li>
