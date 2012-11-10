@@ -19,9 +19,24 @@ $(function() {
 			orig: {}
 		};
 		
+		var num_indexes = true;
+		var num_rgx = new RegExp(/^\d+$/);
 		for (var p in obj) {
 			if (obj.hasOwnProperty(p)) {
-				n.items.push({key:p,val:obj[p]});
+				num_indexes = num_indexes && num_rgx.test(p);
+				console.log(num_indexes + ' : ' + p);
+				if (!num_indexes) { break; }
+			}
+		}
+		
+		
+		for (var p in obj) {
+			if (obj.hasOwnProperty(p)) {
+				if (num_indexes) {
+					n.items[p] = {key:p,val:obj[p]};
+				} else {
+					n.items.push({key:p,val:obj[p]});
+				}
 				n.orig[p] = obj[p];
 			}
 		}
