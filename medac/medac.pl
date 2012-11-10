@@ -16,7 +16,7 @@ use Slurp;
 
 $| = 0;
 
-my $config = decode_json(slurp('medac.json')); #Config::Auto::parse('medac.yml', {format => 'yaml'});
+my $config = decode_json(slurp('config.json')); #Config::Auto::parse('medac.yml', {format => 'yaml'});
 
 my $tvr_cache;
 
@@ -239,7 +239,12 @@ my $video_pattern = '\.(' . join('|', @video_extensions) . ')$';
 my $audio_pattern = '\.(' . join('|', @audio_extensions) . ')$';
 my $media_pattern = '\.(' . join('|', (@video_extensions, @audio_extensions)) . ')$';
 
-my $media_root;
+my $media_root = {
+ 'TV' => {},
+ 'Movies' => {},
+ 'Music' => {},
+ 'Other' => {}
+};
 
 sub niceSize {
 	# Will work up to considerable file sizes!
@@ -313,9 +318,12 @@ sub parsePath {
 		} elsif ($filename =~ m/[sS]?(?<season_number>[12345][0-9]|0?[1-9])[xseE](?<episode_number>[0123]?[0-9])/gi) {
 			$context->{season_number} = $+{season_number} + 0;
 			$context->{episode_number} = $+{episode_number} + 0;
-		} elsif ($filename =~ m/Part\s*(?<episode_number>\d+)/gi) {
+		} elsif ($filename =~ m/(Episode|Part)\s*(?<episode_number>\d+)/gi) {
 			if (!defined $context->{season_number}) { $context->{season_number} = 1; }
 			$context->{episode_number} = $+{episode_number} + 0;
+		} elsif ($filename =~ m/(?<season_number>\d)(?<episode_number>\d{2})/gi) {
+			if (!defined $context->{season_number}) { $context->{season_number} = $+{season_number}; }
+			$context->{episode_number} = $+{episode_number};
 		} elsif ($filename =~ m/^(?<episode_number>\d+)/gi) {
 			$context->{episode_number} = $+{episode_number} + 0;
 		} else {

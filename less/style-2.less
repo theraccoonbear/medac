@@ -1,0 +1,146 @@
+@iwidth: 640px;
+@iheight: 480px;
+@base_color: #888;
+@text_color: #000;
+
+@entry_height: 70px;
+
+
+body {
+	background: @base_color;
+	color: @text_color;
+	overflow: hidden;
+}
+
+.rounded-corners (@radius: 5px) {
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+  -ms-border-radius: @radius;
+  -o-border-radius: @radius;
+  border-radius: @radius;
+}
+
+a {
+	color: @text_color, 30%;
+	display: block;
+	&:hover {
+		color: lighten(@text_color, 60%);
+		cursor: hand !important;
+	}
+	&:visited {
+		color: lighten(@text_color, 30%);
+	}
+}
+
+a.goBack {
+	display: inline-block;
+	text-indent: -10000px;
+	background-image: url(../img/back-button.png);
+	width: 31px;
+	height: 31px;
+	cursor: hand !important;
+	text-align: center;
+	text-decoration: none;
+}
+
+#iface-frame {
+	width: 100%;
+	height: 100%;
+	padding: 0px;
+	margin: 0px;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	
+	#iface-tray {
+		position: relative;
+		width: 10000px;
+		height: 100%;
+		
+		.selectColumn {
+			margin: 0px;
+			padding: 0px;
+			float: left;
+			width: 100%;
+			
+			div {
+				&.details {
+					margin-left: 10px;	
+				}
+				
+				&.synopsis {
+					width: 640px;
+				}
+			}
+			
+			li {
+				padding-left: 10px;
+				&.heading {
+					font-size: 36px;
+					font-weight: bold;
+					text-shadow: darken(@base_color, 20%) 3px 3px 5px;
+					&:hover {
+						cursor: default;
+						background-color: @base_color;
+						color: @text_color;
+					}
+				}
+				
+				&.menuItem {
+					overflow: hidden;
+					white-space: nowrap;
+					a {
+						color: @text_color;
+						text-shadow: darken(@base_color, 20%) 2px 2px 3px;
+						text-decoration: none;
+						margin-top: 0;
+					} // a
+					
+					list-style: none;
+					font-size: 28px;
+					width: 100%;
+					height: @entry_height;
+					border: 1px solid #000;
+					
+					-webkit-transition: color 0.3s;
+					-webkit-transition: background-color 0.3s;
+					-webkit-transition: padding 0.3s;
+					
+					&:hover {
+						cursor: pointer;
+						cursor: hand;
+						background-color: lighten(@base_color, 30%);
+						color: lighten(@text_color, 30%);
+						padding-left: 25px;
+					} // :hover
+					
+					div {
+						height: @entry_height - 20px;
+						padding-top: 20px;
+						//padding-left: 10px;
+						
+					} // div
+				} // .menuItem
+			} // li
+			
+			ul.facts li {
+				list-style: circle;
+				border: none;
+				font-size: 16px;
+				height: auto;
+				padding: 2px;
+				&:hover {
+					margin: auto;
+					background-color: inherit;
+				}
+			}
+			
+			.thumbs {
+				img.thumb {
+					margin: 5px;
+					border: 2px solid darken(@text_color, 30%);
+				}
+			}
+			
+		}
+	}
+}
