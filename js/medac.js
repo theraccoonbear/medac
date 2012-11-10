@@ -1,4 +1,6 @@
 var __media = {};
+var __local = {};
+var __md5_cache = {};
 
 $(function() {
 	var countFields = function(obj) {
@@ -20,7 +22,7 @@ $(function() {
 		return false;
 	};
 	
-	var md5_cache = {};
+	
 	
 	var tmplDir = $('#tmplDirEntry').html();
 	var tmplVid = $('#tmplVideoEntry').html();
@@ -35,7 +37,7 @@ $(function() {
 	var renderFile = function($attach_to, file_node) {
 		//console.log("FILE: " + file_node.name);
 		if (typeof file_node.meta !== 'undefined' && typeof file_node.meta.length !== 'undefined' && file_node.meta.length > 5 * 60) {
-			md5_cache[file_node.md5] = file_node;
+			__md5_cache[file_node.md5] = file_node;
 			var $file = $(Mustache.render(tmplVid, file_node));
 			$file.find('td.thumb').html(Mustache.render(tmplThumbs, file_node));
 			$attach_to.append($file);
@@ -179,12 +181,22 @@ $(function() {
 			var $this = $(this);
 			var md5 = $this.data('md5');
 			
-			if (typeof md5_cache[md5] !== 'undefined') {
+			if (typeof __md5_cache[md5] !== 'undefined') {
 				console.log("Cache hit for: " + md5);
-				console.log(md5_cache[md5]);
+				//console.log(__md5_cache[md5]);
+				__local.enqueueDownload(md5);
 			} else {
 				console.log("No cache hit for: " + md5);
 			}
 		});
 	});
+	
+		
+	__local = {
+		enqueueDownload: function(md5) {
+			var item = __md5_cache[md5];
+			console.log(item);
+		}
+	};
+	
 });

@@ -45,7 +45,7 @@
     
   </div>
   <footer>
-
+	
   </footer>
 
 
@@ -86,7 +86,7 @@
 	
 	<script type="text/x-mustache" id="tmplVideoEntry">
 		<li class="video" data-path="{{meta.filename}}" >
-			<a href="#!{{name}}" name="!{{name}}" data-md5="{{md5}}" class="fileLink medLink">{{ctxt.episode_title}} (S{{ctxt.season_number}}E{{ctxt.episode_number}})</a><br/>
+			<a href="#!{{name}}" name="!{{name}}" data-md5="{{md5}}" class="fileLink medLink downloadLink">{{ctxt.episode_title}} (S{{ctxt.season_number}}E{{ctxt.episode_number}})</a><br/>
 			<table class="details">
 				<tr>
 					<td class="meta">
@@ -109,7 +109,6 @@
 	</script>
 	
 	<script type="text/x-mustache" id="tmplThumbs">
-		
 		<div class="hiddenThumbs">
 			<a href="#" class="showThumbs"><img src="img/thumb.png" alt="Show Thumbs" title="Show Thumbs" /></a>
 			{{#meta.thumbs}}

@@ -358,3 +358,7 @@ td.thumb {
 td.plot {
   font-size: 20px;
 }
+
+.hidden {
+  display: none;
+}

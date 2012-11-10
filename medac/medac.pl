@@ -66,53 +66,6 @@ sub bestMatch {
 	
 	return $best_match;
 }
-#sub tvrEpisodeSearch {
-#	my $show_id= shift @_;
-#	my $s_num =  shift @_;
-#	my $e_num = shift @_;
-#	
-#	my $episodes;
-#	
-#	my $cache_key = $show_id;
-#	
-#	if (defined $tvr_cache->{episodes}->{$cache_key}) {
-#		$episodes = $tvr_cache->{episodes}->{$cache_key};
-#	} else {
-#		my $result = WebService::TVRage::EpisodeListRequest->new('episodeID' => $show_id);
-#		$episodes = $result->getEpisodeList();
-#		$tvr_cache->{episodes}->{$cache_key} = $episodes;
-#	}
-#	
-#	my $episode = $episodes->getEpisode($s_num, $e_num);
-#
-#	return $episode;
-#} # tvrEpisodeSearch()
-
-#sub tvrShowSearch {
-#	my $show_name = shift @_;
-#	my $cso;
-#	
-#	if (defined $tvr_cache->{show}->{$show_name}) {
-#		$cso = $tvr_cache->{show}->{$show_name};
-#	} else {
-#		#logMsg "Searching for \"$show_name\"";
-#		my $result = $shsrch->search($show_name);
-#		if (defined $result) {
-#			my @titles = $result->getTitleList();
-#			my $cor_name = bestMatch($show_name, \@titles);
-#			my $show = $result->getShow($cor_name);
-#			$show->{name} = $cor_name;
-#		
-#			$tvr_cache->{show}->{$show_name} = $show;
-#			$tvr_cache->{show}->{$cor_name} = $show;
-#			
-#			$cso = $show;
-#		}
-#	}
-#
-#	
-#	return $cso;
-#} # tvrShowSearch()
 
 sub inferContext {
 	my $file_path = shift @_;
