@@ -1,6 +1,16 @@
 var MEDAC = {};
 var TEMPLATES = {};
 
+var ACCOUNT = {
+	username: 'g33k',
+	password: 'qwerty',
+	host: {
+		name: 'medac-dev.snm.com',
+		port: 80,
+	}
+};
+
+
 $(function() {
 	var colNode = function(obj, t, root) {
 		var n = {
@@ -162,4 +172,12 @@ $(function() {
 		MEDAC = data;
 		$iface.append(Mustache.render(rootTmpl, new colNode(MEDAC.media, 'Media', true)));		
 	}); // get media JSON
+	
+	
+	// Downloads
+	$('a.fileLink').live('click', function(e) {
+		e.preventDefault();
+	});
+	
+	
 });
