@@ -22,9 +22,19 @@ my $tvr_cache;
 
 my $md_imdb = new Medac::Metadata::Source::IMDB();
 
+my $log_file = 'logs/' . time() . '.log';
+my $no_log_file = 0;
+
 sub logMsg {
 	my $msg = shift @_ || '...';
 	print "$msg\n";
+	if (!$no_log_file) {
+		open LFH, ">>$log_file" or $no_log_file = 1 ;
+		if (!$no_log_file) {
+			print LFH "$msg\n";
+			close LFH;
+		}
+	}
 }
 
 sub bestMatch {
