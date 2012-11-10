@@ -1,9 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use JSON::XS;
-use Data::Dumper;
-use CGI;
+use API;
 
 my $q = CGI->new();
 
@@ -11,7 +9,7 @@ sub pr {
 	my $o = shift @_;
 	
 	print '<pre>';
-	print Dumper($o);
+	print Data::Dumper::Dumper($o);
 	print '</pre>';
 }
 

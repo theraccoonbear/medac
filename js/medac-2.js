@@ -1,5 +1,6 @@
 var MEDAC = {};
 var TEMPLATES = {};
+var INDEX = {};
 
 var ACCOUNT = {
 	username: 'g33k',
@@ -12,6 +13,42 @@ var ACCOUNT = {
 
 
 $(function() {
+	
+	var num_rgx = new RegExp(/^\d+$/);
+	
+	var buildFileIndex = function(data) {
+		var depth = 0;
+		var crawlObj = function(obj, crumbs) {
+			depth++;
+			if (depth > 20) { return; }		
+			if (typeof crumbs === 'undefined') {
+				crumbs = [];
+			}
+			for (var p in obj) {
+				if (obj.hasOwnProperty(p)) {
+					if (p == 'md5') {
+						INDEX[obj[p]] = crumbs.slice(0);
+					} else {
+						var deeper = false;
+						if (num_rgx.test(p) && typeof obj !== 'string') {
+							deeper = true;
+						} else if (!num_rgx.test(p)) {
+							deeper = true;
+						}
+						if (deeper) {
+							crumbs.push(p);
+							crawlObj(obj[p], crumbs);
+							crumbs.pop();
+						}
+					}
+				}
+			}
+			depth--;
+		}; // crawlObj();
+		
+		crawlObj(data);
+	}; // buildFileIndex()
+	
 	var colNode = function(obj, t, root) {
 		var n = {
 			title: t,
@@ -20,11 +57,10 @@ $(function() {
 		};
 		
 		var num_indexes = true;
-		var num_rgx = new RegExp(/^\d+$/);
 		for (var p in obj) {
 			if (obj.hasOwnProperty(p)) {
 				num_indexes = num_indexes && num_rgx.test(p);
-				console.log(num_indexes + ' : ' + p);
+				//console.log(num_indexes + ' : ' + p);
 				if (!num_indexes) { break; }
 			}
 		}
@@ -185,13 +221,22 @@ $(function() {
 	$.getJSON('media/media.json', {}, function(data, status, xhr) {
 		$('#spinner').remove();
 		MEDAC = data;
+		buildFileIndex(MEDAC);
+		console.log(MEDAC);
 		$iface.append(Mustache.render(rootTmpl, new colNode(MEDAC.media, 'Media', true)));		
 	}); // get media JSON
 	
 	
 	// Downloads
 	$('a.fileLink').live('click', function(e) {
+		var $this = $(this);
+		var md5 = $this.data('md5');
+		
+		var file = drill(MEDAC, INDEX[md5]);
+		console.log(file);
+		
 		e.preventDefault();
+		return false;
 	});
 	
 	
