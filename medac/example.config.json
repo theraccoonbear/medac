@@ -24,7 +24,8 @@
     "root": "/Users/don/Public/Subversion/theraccoonshare.com/public_html/medac-dev",
     "video": "/Users/don/Desktop/Video/TV",
     "json": "media",
-    "thumbs": "media/thumbs"
+    "thumbs": "media/thumbs",
+    "downloads": "/home/Desktop/MedacDownloads/"
   },
     
   "checksum": {

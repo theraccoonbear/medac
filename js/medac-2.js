@@ -233,7 +233,22 @@ $(function() {
 		var md5 = $this.data('md5');
 		
 		var file = drill(MEDAC, INDEX[md5]);
-		console.log(file);
+		
+		var request = {
+			'provider': MEDAC.provider,
+			'account': ACCOUNT,
+			'resource': {
+				'md5': md5,
+				'path': file.rel_path
+			}
+		}
+		
+		console.log(request);
+		
+		$.post('/cgi-bin/start-download.cgi', {'request': JSON.stringify(request)}, function(data, status, xhr) {
+			console.log(data);
+		},'json');
+		
 		
 		e.preventDefault();
 		return false;
