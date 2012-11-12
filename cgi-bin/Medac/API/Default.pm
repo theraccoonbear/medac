@@ -3,6 +3,8 @@ package Medac::API::Default;
 
 use Moose;
 
+
+
 extends 'Medac::API';
 
 use strict;
@@ -21,6 +23,18 @@ sub action {
   my $action = shift @_;
   my $params = shift @_;
   
+  my $class_name = ref($self);
+  
+  $self->pr(defined $class_name);
+  
+  my $debug = '';
+  no strict 'refs';
+  for(keys %Foo::) { # All the symbols in Foo's symbol table
+    $debug .= "$_\n" if defined &{$_}; # check if symbol is method
+  }
+  use strict 'refs';
+  
+  $self->pr($debug);
   
   #$self->pr(&{$action});
   #$self->$action($params);
