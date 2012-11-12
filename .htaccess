@@ -1,9 +1,9 @@
-AddHandler cgi-script .cgi .pl
-Options +ExecCGI
-<IfModule mod_rewrite.c>
-	  RewriteEngine On
-	  RewriteBase /
-	  RewriteCond %{REQUEST_FILENAME} !-f
-	  RewriteCond %{REQUEST_FILENAME} !-d
-	  RewriteRule ^(.+)$ /cgi-bin/dispatch.cgi?path=$1 [L,QSA]
-</IfModule>
+#AddHandler cgi-script .cgi .pl
+#Options +ExecCGI
+#<IfModule mod_rewrite.c>
+#	  RewriteEngine On
+#	  RewriteBase /
+#	  RewriteCond %{REQUEST_FILENAME} !-f
+#	  RewriteCond %{REQUEST_FILENAME} !-d
+#	  RewriteRule ^(.+)$ /cgi-bin/dispatch.cgi?path=$1 [L,QSA]
+#</IfModule>

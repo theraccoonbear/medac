@@ -1,0 +1,27 @@
+<VirtualHost *:80>
+    ServerAdmin don.c.smith@gmail.com
+    DocumentRoot "/Users/don/Public/Subversion/theraccoonshare.com/public_html/medac-dev"
+    ServerName medac-dev.snm.com
+    ServerAlias medac-dev.snm.com
+    ErrorLog /Users/don/Public/Subversion/theraccoonshare.com/public_html/medac-dev/logs/error.log
+    #RewriteLog /Users/don/Public/Subversion/theraccoonshare.com/public_html/medac-dev/logs/rewrite.log                                                                                                                                     
+    #RewriteLogLevel 5                                                                                                                                                                                                                      
+    <Directory /Users/don/Public/Subversion/theraccoonshare.com/public_html/medac-dev>
+               Allow from all
+               <IfModule mod_rewrite.c>
+                         RewriteEngine On
+                         RewriteBase /
+                         RewriteCond %{REQUEST_FILENAME} !-f
+                         RewriteCond %{REQUEST_FILENAME} !-d
+                         RewriteRule ^(.+)$ /cgi-bin/dispatch.cgi?path=$1 [L,QSA]
+               </IfModule>
+    </Directory>
+    <Directory /Users/don/Public/Subversion/theraccoonshare.com/public_html/medac-dev/cgi-bin>
+               Allow from all
+               AddHandler cgi-script .cgi .pl
+               Options +ExecCGI
+    </Directory>
+
+
+    ScriptAlias /cgi-bin/ /Users/don/Public/Subversion/theraccoonshare.com/public_html/medac-dev/cgi-bin/
+</VirtualHost>

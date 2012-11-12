@@ -6,6 +6,4 @@ use Medac::API;
 
 my $api = new Medac::API();
 
-#print Dumper($api);
-
 $api->dispatch();

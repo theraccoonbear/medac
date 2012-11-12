@@ -18,36 +18,67 @@ use POSIX;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use Cwd qw(abs_path cwd);
 
+has 'exposed' => (
+	is => 'ro',
+	isa => 'ArrayRef',
+	default => sub { return ['who']; }
+);
+
+# useful for debugging file permissions
+sub who {
+	my $self = shift @_;
+	
+	my @groups = split '\s', $(;
+	my $gr = ();
+	my %used = {};
+	foreach my $g (@groups) {
+		if (!$used{$g}) {
+			my ($name,$passwd,$gid,$members) = getgrgid $g;
+			push @{$gr}, {name => $name, id => $g};
+		}
+		$used{$g} = 1;
+	}
+	
+	my $uinfo = {
+		'root' => $< == 0 ? JSON::XS::true : JSON::XS::false,
+		'user' => (getpwuid($<))[0],
+		'groups' => $gr
+	};
+	
+	$self->json_pr($uinfo, "Running as...");
+}
+
+
+sub exposedAction {
+	my $self = shift @_;
+	my $action = shift @_;
+	
+	foreach my $act (@{$self->exposed}) {
+		if ($act eq $action) {
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
 sub action {
   my $self = shift @_;
   my $action = shift @_;
   my $params = shift @_;
   
-  my $class_name = ref($self);
-  
-  $self->pr(defined $class_name);
-  
-  my $debug = '';
-  no strict 'refs';
-  for(keys %Foo::) { # All the symbols in Foo's symbol table
-    $debug .= "$_\n" if defined &{$_}; # check if symbol is method
-  }
-  use strict 'refs';
-  
-  $self->pr($debug);
-  
-  #$self->pr(&{$action});
-  #$self->$action($params);
-  #my $fnc = 'action';
-  #$self->pr(defined &{$self->$fnc});
-  #$self->pr(defined &{$action});
-  
-  if (defined $self->{$action}) {
-    #$self->pr($self->$action());
-    $self->$action($params);
+	if ($action =~ m/[^A-Za-z_]/gi) {
+		$self->error("Invalid action: $action");
+	}
+	
+	if ($self->can($action)) {
+		if ($self->exposedAction($action)) {
+			$self->$action($params);
+		} else {
+			$self->error("Unexposed action: $action");
+		}
   } else {
-    $self->pr($self, $action);
-    $self->error('Unknown action: ' . $action);
+    $self->error("Unimplemented action: $action");
   }
 }
 

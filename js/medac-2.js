@@ -244,9 +244,10 @@ $(function() {
 			}
 		}
 		
-		console.log(request);
+		//console.log(request);
 		
-		$.post('/cgi-bin/start-download.cgi', {'request': JSON.stringify(request)}, function(data, status, xhr) {
+		//$.post('/cgi-bin/start-download.cgi', {'request': JSON.stringify(request)}, function(data, status, xhr) {
+		$.post('/download/enqueue', {'request': JSON.stringify(request)}, function(data, status, xhr) {
 			console.log(data);
 		},'json');
 		
