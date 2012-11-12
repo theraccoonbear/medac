@@ -62,7 +62,7 @@
 	<script type="text/x-mustache-template" id="tmpl-TV-BASE">
 		<ul class="selectColumn">
 			<li class="heading">
-				<a href="#" class="goBack">&laquo; Shows</a>
+				<a href="#" class="goBack"> Shows</a>
 			</li>
 			{{#items}}
 			<li data-key="{{key}}" class="menuItem"><a href="#"><div>{{pre}}{{key}}</div></a></li>
@@ -73,7 +73,7 @@
 	<script type="text/x-mustache-template" id="tmpl-TV-SHOW">
 		<ul class="selectColumn">
 			<li class="heading">
-				<a href="#" class="goBack">&laquo; {{title}}</a>
+				<a href="#" class="goBack"> {{title}}</a>
 			</li>
 			{{#items}}
 			<li data-key="{{key}}" class="menuItem"><a href="#"><div>Season {{key}}</div></a></li>
@@ -84,7 +84,7 @@
 	<script type="text/x-mustache-template" id="tmpl-TV-SEASON">
 		<ul class="selectColumn">
 			<li class="heading">
-				<a href="#" class="goBack">&laquo; Season {{title}}</a>
+				<a href="#" class="goBack"> Season {{title}}</a>
 			</li>
 			{{#items}}
 			<li data-key="{{key}}" class="menuItem"><a href="#"><div>{{key}}. {{val.imdb.name}}</div></a></li>
@@ -93,29 +93,30 @@
 	</script>
 	
 	<script type="text/x-mustache-template" id="tmpl-TV-EPISODE">
-		<div class="selectColumn">
-			<div class="details">
-				<h1 class="heading"><a href="#" class="goBack">&laquo;</a> <a href="#" class="fileLink" data-md5="{{orig.md5}}">{{orig.imdb.name}}</a></h1>
-				
-				<div class="thumbs">
-					{{#orig.meta.thumbs}}
-						<img src="{{.}}" class="thumb" />
-					{{/orig.meta.thumbs}}
-				</div><!-- /.thumbs -->
-				
-				<div>
-					<ul class="facts">
-						<li><strong>Size:</strong> {{orig.meta.niceSize}}</li>
-						<li><strong>Length:</strong> {{orig.meta.duration}}</li>
-						<li><strong>Dimensions</strong> {{orig.meta.video_width}} x {{orig.meta.video_height}} @ {{orig.meta.video_fps}} FPS</li>
-					</ul><!-- /.facts -->
-				</div>
-				
-				<div class="synopsis">
-					{{orig.imdb.synopsis}}
-				</div><!-- /.synopsis -->
-			</div><!-- /.details -->
-		</div><!-- /.selectColumn -->
+		<ul class="selectColumn">
+			    <li class="heading"><a href="#" class="goBack"></a> <a href="#" class="fileLink" data-md5="{{orig.md5}}">{{orig.imdb.name}}</a></li>
+			    <li class="pane">
+					  <div class="details">
+							<div class="thumbs">
+								{{#orig.meta.thumbs}}
+									<img src="{{.}}" class="thumb" />
+								{{/orig.meta.thumbs}}
+							</div><!-- /.thumbs -->
+							
+							<div>
+								<ul class="facts">
+									<li><strong>Size:</strong> {{orig.meta.niceSize}}</li>
+									<li><strong>Length:</strong> {{orig.meta.duration}}</li>
+									<li><strong>Dimensions</strong> {{orig.meta.video_width}} x {{orig.meta.video_height}} @ {{orig.meta.video_fps}} FPS</li>
+								</ul><!-- /.facts -->
+							</div>
+							
+							<div class="synopsis">
+								{{orig.imdb.synopsis}}
+							</div><!-- /.synopsis -->
+					  </div><!-- /.details -->
+			</li><!-- /.pane -->
+		</ul><!-- /.selectColumn -->
 	</script>
 	
   <!-- JavaScript at the bottom for fast page loading -->

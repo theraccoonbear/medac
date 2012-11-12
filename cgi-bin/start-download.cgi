@@ -6,6 +6,7 @@ use File::Slurp;
 use Data::Dumper;
 use API;
 use Slurp;
+use POSIX;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 
 my $q = CGI->new();
@@ -79,10 +80,15 @@ if (-f $queue_path) {
 
 my $in_queue = 0;
 my $size = 0;
+
+my $debug = ();
+
 foreach my $f (@FILES) {
 	my $f_dl_path = $dl_path . $f;
 	
-	if (-f $f_dl_path) {
+	#push @{$debug}, {f=>$f,req=>$request->{resource}->{path}};
+	
+	if (-f $f_dl_path && $f eq $request->{resource}->{path}) {
 		$size = (stat $f_dl_path)[7];
 	}
 	
@@ -108,12 +114,18 @@ __RSYNC
 
 my $output = `$rsync_cmd`;
 
+my $total_size = $request->{resource}->{size} || 1;
+
+my $per_complete = (floor($size / $total_size * 1000) / 10) . '%';
+
 my $resp = {
 	'added' => $in_queue ? JSON::XS::false : JSON::XS::true,
 	'message' => $msg,
-	'size' => $size,
+	'downloaded' => $size,
+	'completed' => $per_complete,
 	'output' => $output,
-	'cmd' => $rsync_cmd
+	'cmd' => $rsync_cmd,
+	'debug' => $debug
 };
 
 json_pr($resp);

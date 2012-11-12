@@ -21,7 +21,7 @@ body {
 }
 
 a {
-	color: @text_color, 30%;
+	color: darken(@text_color, 30%);
 	display: block;
 	&:hover {
 		color: lighten(@text_color, 60%);
@@ -32,16 +32,6 @@ a {
 	}
 }
 
-a.goBack {
-	display: inline-block;
-	text-indent: -10000px;
-	background-image: url(../img/back-button.png);
-	width: 31px;
-	height: 31px;
-	cursor: hand !important;
-	text-align: center;
-	text-decoration: none;
-}
 
 #iface-frame {
 	width: 100%;
@@ -64,7 +54,7 @@ a.goBack {
 			
 			div {
 				&.details {
-					margin-left: 10px;	
+					margin-left: 10px;
 				}
 				
 				&.synopsis {
@@ -74,14 +64,33 @@ a.goBack {
 			
 			li {
 				padding-left: 10px;
+				list-style: none;
+				
 				&.heading {
 					font-size: 36px;
 					font-weight: bold;
 					text-shadow: darken(@base_color, 20%) 3px 3px 5px;
+					
+					.fileLink {
+						float: left;
+					}
+					
 					&:hover {
 						cursor: default;
 						background-color: @base_color;
 						color: @text_color;
+					}
+					a.goBack {
+						float: left;
+						
+						background-image: url(../img/back-button.png);
+						background-repeat: no-repeat;
+						cursor: hand !important;
+						display: block;
+						text-decoration: none;
+						text-indent: 40px;
+						min-width: 36px;
+						height: 40px;
 					}
 				}
 				
@@ -95,7 +104,7 @@ a.goBack {
 						margin-top: 0;
 					} // a
 					
-					list-style: none;
+					
 					font-size: 28px;
 					width: 100%;
 					height: @entry_height;

@@ -27,7 +27,7 @@ sub keyCalc {
   my $self = shift @_;
   my $name = shift @_;
 
-	return $name;  
+  return $name;  
   return md5_hex($name);
 }
 
@@ -63,32 +63,22 @@ sub setVal {
   my $self = shift @_;
   my $name = shift @_;
   my $val = shift @_;
-	my $key = $self->keyCalc($name);
+  my $key = $self->keyCalc($name);
   
-	$self->cache->{$key} = $val;
-	$self->writeDiskCache();
+  $self->cache->{$key} = $val;
+  $self->writeDiskCache();
 }
 
 sub hit {
   my $self = shift @_;
   my $name = shift @_;
   
-	my $key = $self->keyCalc($name);
+  my $key = $self->keyCalc($name);
 	
   my $ret_val = 0;
   if (defined $self->cache->{$key}) {
     $ret_val = 1;
-  }
-	
-	#print "Cache hit for \"$name\"? ";
-	#print $ret_val == 1 ? 'YES!' : 'NO!';
-	#print "\n\n";
-	#if ($ret_val == 0) {
-	#	$self->dump();
-	#}
-	#print "\n";
-	
-  
+  }  
   return $ret_val;
 }
 
@@ -120,16 +110,14 @@ sub store {
   my $value = shift @_;
   
   my $key = $self->keyCalc($name);
-  
-  #my $cache_rep = 'cache/' . $CALLER[0] . '.cache';
 
   $self->setVal($key, $value);
 }
 
 sub dump {
-	my $self = shift @_;
+  my $self = shift @_;
   print Dumper($self->cache);
-	return;
+  return;
 }
 
 1;

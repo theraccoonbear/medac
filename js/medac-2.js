@@ -239,7 +239,8 @@ $(function() {
 			'account': ACCOUNT,
 			'resource': {
 				'md5': md5,
-				'path': file.rel_path
+				'path': file.rel_path,
+				'size': file.size
 			}
 		}
 		
