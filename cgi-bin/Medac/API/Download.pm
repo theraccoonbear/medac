@@ -47,6 +47,9 @@ sub readQueue {
 	my $queue_dir = 'queue/' . $pr_name;
 	my $dl_path = $dl_root . $pr_name . '/';
 	
+	if (! -d $dl_path) {
+		mkdir $dl_path, 0775 or $self->error("Can't create DL path \"$dl_path\": $!");
+	}
 	
 	
 	$self->pr({

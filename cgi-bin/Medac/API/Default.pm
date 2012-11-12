@@ -42,7 +42,8 @@ sub who {
 	my $uinfo = {
 		'root' => $< == 0 ? JSON::XS::true : JSON::XS::false,
 		'user' => (getpwuid($<))[0],
-		'groups' => $gr
+		'groups' => $gr,
+		'whoami' => `whoami`
 	};
 	
 	$self->json_pr($uinfo, "Running as...");
