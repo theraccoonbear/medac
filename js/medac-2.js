@@ -1,15 +1,9 @@
 var MEDAC = {};
 var TEMPLATES = {};
+var TEMPLATE_ACTIONS = {};
 var INDEX = {};
 
-var ACCOUNT = {
-	username: 'g33k',
-	password: 'qwerty',
-	host: {
-		name: 'medac-dev.snm.com',
-		port: 80,
-	}
-};
+
 
 
 $(function() {
@@ -137,6 +131,19 @@ $(function() {
 		return ret_val;
 	}; // getTemplateFor()
 	
+	var getActionFor = function(path) {
+		if (path.length < 1) { return ''; }
+		var cat = path[0];
+		var extent = path.length > 1 ? path.length - 1 : 0;
+		var ret_val = function() { /* ... */ }
+		
+		if (typeof TEMPLATE_ACTIONS[cat] !== 'undefined' && typeof TEMPLATE_ACTIONS[cat][extent] !== 'undefined') {
+			ret_val = TEMPLATE_ACTIONS[cat][extent];
+		}
+		
+		return ret_val;
+	}; // getActionFor()
+	
 	var loadTemplates = function() {
 		var DEFAULT = '<DIV class="selectColumn"><a href="#" class="goBack">&laquo;</a> MISSING TEMPLATE!</div>';
 		for (var cat in TEMPLATES) {
@@ -152,8 +159,80 @@ $(function() {
 				}
 			}
 		}
+		
+		for (var cat in TEMPLATE_ACTIONS) {
+			if (TEMPLATE_ACTIONS.hasOwnProperty(cat)) {
+				for (var i = 0; i < TEMPLATE_ACTIONS[cat].length; i++) {
+					var tmplFunc = TEMPLATE_ACTIONS[cat][i];
+					if (typeof tmplFunc === 'function') {
+						TEMPLATE_ACTIONS[cat][i] = tmplFunc;
+					} else {
+						TEMPLATE_ACTIONS[cat][i] = function() { /* ... */ };
+					}
+				}
+			}
+		}
+		
 		TEMPLATES._DEFAULT = DEFAULT;
 	}; // loadTemplates()
+	
+	
+	var rootTmpl = $('#tmpl-ROOT').html();
+	var crumbs = [];
+	
+	
+	TEMPLATES = {
+		'TV': ['BASE','SHOW','SEASON','EPISODE']
+	};
+	
+	TEMPLATE_ACTIONS = {
+		'TV': [null, null, null, function(obj, when, orig) {
+			if (when == 'after') {
+				API.call({
+					model: 'Download',
+					action: 'status',
+					data: {
+						'resource': {
+							'md5': orig.md5,
+							'path': orig.rel_path,
+							'size': orig.size
+						}
+					},
+					callback: function(d, s, x) {
+						//console.log("Success!");
+						//console.log(d);
+						if (d.payload.exists) {
+							var per = Math.floor(d.payload.size / orig.size * 1000) / 10;
+							$('.status .downloaded').html(per + '%');
+						} else {
+							$('.status .downloaded').html("Not queued");
+						}
+					}
+				});
+			}
+		}]
+	};
+	
+	
+	
+	loadTemplates();
+	
+
+	var $frame = $('#iface-frame');
+	var frame_width = screen.width;
+	var frame_height = screen.height;
+	var $iface = $('#iface-tray');
+	doResize();
+	
+	// UI Binding
+	
+	$.getJSON('media/media.json', {}, function(data, status, xhr) {
+		$('#spinner').remove();
+		MEDAC = data;
+		buildFileIndex(MEDAC);
+		//console.log(MEDAC);
+		$iface.append(Mustache.render(rootTmpl, new colNode(MEDAC.media, 'Media', true)));		
+	}); // get media JSON
 	
 	$('.selectColumn > li.menuItem > a').live('click', function(e) {
 		var $this = $(this).parent('li');
@@ -162,14 +241,20 @@ $(function() {
 		crumbs.push(key);
 		updateLocation();
 		
+		var node_action = getActionFor(crumbs);
+		
 		var newNode = drill(MEDAC.media, crumbs);
 		var node = new colNode(newNode, key)
 		
-		console.log(node);
+		//console.log(node);
 		
 		var rendered = Mustache.render(getTemplateFor(crumbs), node);
 		
-		$iface.append(rendered).animate({'left': '-=' + frame_width}, 250);
+		node_action(node, 'before', newNode);
+		$iface.append(rendered).animate({'left': '-=' + frame_width}, 250, null, function() {
+			node_action(node, 'after', newNode);
+		});
+		
 		doResize();
 		
 		e.preventDefault();
@@ -189,43 +274,12 @@ $(function() {
 		return false;
 	}); // $('a.goBack').live('click' ...
 	
-	$('a.fileLink').live('click', function(e) {
-		
-		
-		e.preventDefault();
-		return false;
-	});
-	
-	
-	
-	$(window).resize(doResize);
-	
-	var rootTmpl = $('#tmpl-ROOT').html();
-	var crumbs = [];
-	
-	
-	TEMPLATES = {
-		'TV': ['BASE','SHOW','SEASON','EPISODE']
-	};
-	
-	loadTemplates();
-	
-
-	var $frame = $('#iface-frame');
-	var frame_width = screen.width;
-	var frame_height = screen.height;
-	var $iface = $('#iface-tray');
-	doResize();
-	
-	
-	$.getJSON('media/media.json', {}, function(data, status, xhr) {
-		$('#spinner').remove();
-		MEDAC = data;
-		buildFileIndex(MEDAC);
-		console.log(MEDAC);
-		$iface.append(Mustache.render(rootTmpl, new colNode(MEDAC.media, 'Media', true)));		
-	}); // get media JSON
-	
+	//$('a.fileLink').live('click', function(e) {
+	//	
+	//	
+	//	e.preventDefault();
+	//	return false;
+	//});
 	
 	// Downloads
 	$('a.fileLink').live('click', function(e) {
@@ -234,27 +288,43 @@ $(function() {
 		
 		var file = drill(MEDAC, INDEX[md5]);
 		
-		var request = {
-			'provider': MEDAC.provider,
-			'account': ACCOUNT,
-			'resource': {
-				'md5': md5,
-				'path': file.rel_path,
-				'size': file.size
+		//var request = {
+		//	'provider': MEDAC.provider,
+		//	'account': ACCOUNT,
+		//	'resource': {
+		//		'md5': md5,
+		//		'path': file.rel_path,
+		//		'size': file.size
+		//	}
+		//}
+		//
+		////console.log(request);
+		//
+		////$.post('/cgi-bin/start-download.cgi', {'request': JSON.stringify(request)}, function(data, status, xhr) {
+		//$.post('/download/enqueue', {'request': JSON.stringify(request)}, function(data, status, xhr) {
+		//	console.log(data);
+		//},'json');
+		API.call({
+			model: 'Download',
+			action: 'enqueue',
+			data: {
+				'resource': {
+					'md5': md5,
+					'path': file.rel_path,
+					'size': file.size
+				}
+			},
+			callBack: function(data, status, xhr) {
+				console.log("Success!");
+				console.log(data);
 			}
-		}
-		
-		//console.log(request);
-		
-		//$.post('/cgi-bin/start-download.cgi', {'request': JSON.stringify(request)}, function(data, status, xhr) {
-		$.post('/download/enqueue', {'request': JSON.stringify(request)}, function(data, status, xhr) {
-			console.log(data);
-		},'json');
+		});
 		
 		
 		e.preventDefault();
 		return false;
 	});
 	
+	$(window).resize(doResize);
 	
 });

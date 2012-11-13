@@ -101,6 +101,10 @@ sub json_pr {
 	my $message = shift @_ || '';
 	my $success = shift @_;
 	
+	if (! defined $success) {
+		$success = 1 == 1;
+	}
+	
 	if ($message eq '') {
 		$message = $success ? 'Call successful' : 'Call failed';
 	}
