@@ -24,6 +24,12 @@ has 'exposed' => (
 	default => sub { return ['who']; }
 );
 
+has 'resource' => (
+	is => 'rw',
+	isa => 'HashRef',
+	default => sub { return {}; }
+);
+
 # useful for debugging file permissions
 sub who {
 	my $self = shift @_;
@@ -63,6 +69,28 @@ sub exposedAction {
 	return 0;
 }
 
+sub init {
+	my $self = shift @_;
+	
+	my $prm = $self->drill($self->req,['params','posted']);
+	
+	if (!$prm) {
+		$self->error("Invalid parameters.  No posted data.");
+	}
+	
+	my $provider = $self->drill($prm, ['provider','name']);
+	my $resource = $self->drill($prm, ['resource']);
+	
+	if ($provider) {
+		$self->provider($provider);
+	}
+	
+	if ($resource) {
+		$self->resource($resource);
+	}
+	
+}
+
 sub action {
   my $self = shift @_;
   my $action = shift @_;
@@ -74,6 +102,7 @@ sub action {
 	
 	if ($self->can($action)) {
 		if ($self->exposedAction($action)) {
+			$self->init();
 			$self->$action($params);
 		} else {
 			$self->error("Unexposed action: $action");

@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+use lib '../medac';
 use strict;
 use warnings;
 use Data::Dumper;

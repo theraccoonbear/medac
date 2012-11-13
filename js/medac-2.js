@@ -230,6 +230,7 @@ $(function() {
 		$('#spinner').remove();
 		MEDAC = data;
 		buildFileIndex(MEDAC);
+		document.location.hash = '';
 		//console.log(MEDAC);
 		$iface.append(Mustache.render(rootTmpl, new colNode(MEDAC.media, 'Media', true)));		
 	}); // get media JSON
@@ -274,12 +275,6 @@ $(function() {
 		return false;
 	}); // $('a.goBack').live('click' ...
 	
-	//$('a.fileLink').live('click', function(e) {
-	//	
-	//	
-	//	e.preventDefault();
-	//	return false;
-	//});
 	
 	// Downloads
 	$('a.fileLink').live('click', function(e) {
@@ -288,22 +283,6 @@ $(function() {
 		
 		var file = drill(MEDAC, INDEX[md5]);
 		
-		//var request = {
-		//	'provider': MEDAC.provider,
-		//	'account': ACCOUNT,
-		//	'resource': {
-		//		'md5': md5,
-		//		'path': file.rel_path,
-		//		'size': file.size
-		//	}
-		//}
-		//
-		////console.log(request);
-		//
-		////$.post('/cgi-bin/start-download.cgi', {'request': JSON.stringify(request)}, function(data, status, xhr) {
-		//$.post('/download/enqueue', {'request': JSON.stringify(request)}, function(data, status, xhr) {
-		//	console.log(data);
-		//},'json');
 		API.call({
 			model: 'Download',
 			action: 'enqueue',

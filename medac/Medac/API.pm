@@ -13,6 +13,7 @@ use Slurp;
 use CGI;
 use POSIX;
 use Medac::API::Default;
+use Medac::Config;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use Cwd qw(abs_path cwd);
 
@@ -23,10 +24,16 @@ has 'req' => (
 	default => sub{ return {}; }
 );
 
+#has 'config' => (
+#  is => 'rw',
+#  isa => 'HashRef',
+#  default => sub { return decode_json(slurp('../medac/config.json')); }
+#);
+
 has 'config' => (
   is => 'rw',
   isa => 'HashRef',
-  default => sub { return decode_json(slurp('../medac/config.json')); }
+  default => sub { my $cfg = new Medac::Config(); return $cfg->settings; }
 );
 
 has 'q' => (
@@ -44,6 +51,8 @@ has 'root_path' => (
 		return $path;
 	}
 );
+
+
 
 sub drillex {
 	my $self = shift @_;
@@ -74,11 +83,24 @@ sub drill {
 	return $obj;
 }
 
+sub stackTrace {
+	my $self = shift @_;
+	
+	my $max_depth = 30;
+	my $i = 0;
+	my $stack = [];
+	
+	while ((my @call_details = (caller($i++))) && ($i<$max_depth)) {
+		push @{$stack}, "$i) $call_details[1] line $call_details[2] in function $call_details[3]";
+	}
+	
+	return $stack;
+}
 
 sub pr {
 	my $self = shift @_;
 	my $o = shift @_;
-	my $max_depth = 30;
+	#my $max_depth = 30;
 	
 	print "Content-Type: text/html\n\n";
 	print '<h1>Dump:</h1>';
@@ -87,10 +109,11 @@ sub pr {
 	print '</pre>';
 	print '<h1>Stack:</h1>';
 	print '<pre>';
-	my $i = 0;
-	while ( (my @call_details = (caller($i++))) && ($i<$max_depth)) {
-		print "$i) $call_details[1] line $call_details[2] in function $call_details[3]\n";
-	}
+	print join("\n", @{$self->stackTrace()});
+	#my $i = 0;
+	#while ( (my @call_details = (caller($i++))) && ($i<$max_depth)) {
+	#	print "$i) $call_details[1] line $call_details[2] in function $call_details[3]\n";
+	#}
 	print '</pre>';
 	exit;
 }
@@ -153,9 +176,12 @@ sub getModel {
 	}
 	
 	
+	my $tfp = __FILE__;
+	
+	$tfp =~ s/\/[^\/]+$//gi;
 	
 	my $fq_class_name = "Medac::API::$model";
-	my $model_path = "Medac/API/$model.pm";
+	my $model_path = "$tfp/API/$model.pm";
 	
 	my $ci = {};
 	
@@ -185,7 +211,6 @@ sub dispatch {
   my $model = 'Default';
   my $action = 'Index';
 	
-	#my $post_str = $self->q->param('request') || '{}';
 	my $post_str = $self->q->param('request') || '{"provider":{"name":"providername","host":{"pass":"p4s5w0rD","user":"guest","name":"medac-provider.hostname.com","path":"/path/to/video/","port":22}},"account":{"username":"localuser","password":"localpass","host":{"name":"medac-provider.hostname.com","port":80}},"resource":{"md5":"b00d64cd31665414f6b5ebd47c2d0fba","path":"TV/Band of Brothers/Season 1/01 - Curahee.avi"}}';
 	
 	my $posted = decode_json($post_str);
@@ -196,7 +221,7 @@ sub dispatch {
 		'posted' => $posted
 	};
 	
-  my @path_parts = split(/\//, $self->q->url_param('path'));
+  my @path_parts = split(/\//, $self->q->url_param('path') || '');
 
 	
   my $p_cnt = scalar @path_parts;
