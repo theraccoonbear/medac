@@ -38,7 +38,7 @@ sub warnMsg {
 }
 
 if ($ps =~ m/$rsync_tag/g) {
-	print "instance in progress, exiting.\n";
+	errMsg("instance in progress, exiting");
 	exit 0;
 } else {
 	my $cfg = new Medac::Config();
@@ -66,10 +66,15 @@ if ($ps =~ m/$rsync_tag/g) {
 				} else {
 					$queue->readQueue($provider);
 					
-					foreach my $qfile (@{$queue->queued}) {
-						my $qfile_path = $prov_queue_dir . $qfile->{path};
-						my $exists = -f $qfile_path ? ' Y ' : ' N ';
-						logMsg($exists . ' --- ' . $qfile_path);
+					if (scalar @{$queue->queued} > 0) {
+						
+						foreach my $qfile (@{$queue->queued}) {
+							my $qfile_path = $prov_queue_dir . $qfile->{path};
+							my $exists = -f $qfile_path ? ' Y ' : ' N ';
+							logMsg($exists . ' --- ' . $qfile_path);
+						}
+					} else{
+						logMsg("Nothing queued for provider");
 					}
 					
 					#print Dumper($queue);
@@ -82,7 +87,7 @@ if ($ps =~ m/$rsync_tag/g) {
 	
 	my $cmd = 'echo "' . $rsync_tag . '" > /dev/null && rsync -avz --progress --partial --append --files-from /home/don/code/theraccoonshare.com/public_html/medac-dev/cgi-bin/queue/theraccoonbearcity/queue.txt -e "ssh -p 22" guest@medac-dev.snm.com:/home/don/Desktop/Video/ /home/don/Desktop/MedacDownloads/theraccoonbearcity';
 	#`$cmd`;
-	print "$cmd\n";
-	print "\n\nrsync completed.\n";
+	#print "$cmd\n";
+	
 	exit 0;
 }

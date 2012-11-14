@@ -114,11 +114,8 @@
 									<li><strong>Size:</strong> {{orig.meta.niceSize}}</li>
 									<li><strong>Length:</strong> {{orig.meta.duration}}</li>
 									<li><strong>Dimensions</strong> {{orig.meta.video_width}} x {{orig.meta.video_height}} @ {{orig.meta.video_fps}} FPS</li>
+									<li class="status"><strong>Downloaded:</strong> <span class="downloaded"></span></li>
 								</ul><!-- /.facts -->
-							</div>
-							
-							<div class="status">
-								      <strong>Downloaded:</strong> <span class="downloaded"></span>
 							</div>
 							
 							<div class="synopsis">
@@ -145,16 +142,25 @@
 			<li class="clearfix"></li>
 			<li class="pane">
 				<img src="img/spinner.gif" alt="Spinner" class="liveSpinner" />
-			  <div class="queueStatus"></div>
+			  <div class="contentArea"></div>
 			</li>
 		</ul><!-- /.selectColumn -->
 	</script>
+	
 	
 	<script type="text/x-mustache-template" id="tmpl-Settings-QueueEntry">
 		<p>
 			<a href="#" class="deleteButton dequeue" data-md5="{{md5}}">&nbsp;</a> <strong>{{file.ctxt.show_name}}: s{{file.imdb.season_number}}x{{file.imdb.episode_number}}, {{file.imdb.name}}</strong><br/>
 			File Exists: {{#exists}}YES{{/exists}}{{^exists}}NO{{/exists}},
-			Completed: {{percent}}%</p>
+			Completed: {{percent}}%
+		</p>
+	</script>
+	
+	<script type="text/x-mustache-template" id ="tmpl-Settings-ProviderInfo">
+		<p>
+			<h3>{{name}}</h3>
+			{{host.user}}@{{host.name}}:{{host.port}}
+		</p>
 	</script>
 	
   <!-- JavaScript at the bottom for fast page loading -->

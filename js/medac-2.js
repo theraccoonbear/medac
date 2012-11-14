@@ -18,6 +18,20 @@ $(function() {
 		}, // currentPath()
 		
 		getRelPath: function(path) {
+			var cur = this.currentPath();
+			var shorter = Math.min(cur.length, path.length);
+			
+			var new_path = [];
+			var i = 0;
+			
+			for (i = 0; i < shorter; i++) {
+				if (cur[i] != path[i]) {
+					break;
+				}
+			}
+			
+			
+			
 			
 		}, // getRelPath()
 		
@@ -32,7 +46,7 @@ $(function() {
 			
 			var nextNode = function() {
 				if (path.length > 0 && path[0].length > 0) {
-					var node_key = path.pop(); //path.splice(0, 1)[0];
+					var node_key = path.pop();
 					ctxt.forward({key: node_key, speed: 0, callback: function() { if (path.length > 0) { nextNode(); } }});
 				}
 			};
@@ -44,7 +58,7 @@ $(function() {
 		}, // goTo();
 		
 		init: function() {
-			var path = this.currentPath(); //document.location.hash.substring(1).split('/').reverse();
+			var path = this.currentPath();
 			this.goTo(path);	
 		}, // init()
 		
@@ -294,24 +308,31 @@ $(function() {
 		}],
 		'Settings': [null, function(obj, when, orig) {
 			if (when == 'after') {
-				API.call({
-					model: 'Download',
-					action: 'queue-status',
-					data: {},
-					callback: function(d, s, x) {
-						var $ca = $('.queueStatus');
-						if (d.success) {
-							var qeTmpl = $('#tmpl-Settings-QueueEntry').html();
-							for (var i = 0; i < d.payload.length; i++) {
-								var f = d.payload[i];
-								
-								f.percent = Math.floor(f.downloaded / f.size * 1000) / 10;
-								f.file = drill(MEDAC, INDEX[f.md5]);
-								$ca.append(Mustache.render(qeTmpl, f));
+				var $ca = $('.contentArea');
+				if (obj.title == 'Download Queue') {
+					API.call({
+						model: 'Download',
+						action: 'queue-status',
+						data: {},
+						callback: function(d, s, x) {
+							
+							if (d.success) {
+								var qeTmpl = $('#tmpl-Settings-QueueEntry').html();
+								for (var i = 0; i < d.payload.length; i++) {
+									var f = d.payload[i];
+									
+									f.percent = Math.floor(f.downloaded / f.size * 1000) / 10;
+									f.file = drill(MEDAC, INDEX[f.md5]);
+									$ca.append(Mustache.render(qeTmpl, f));
+								}
 							}
 						}
-					}
-				});
+					});
+				} else if (obj.title == 'Provider Info') {
+					$('.liveSpinner').remove();
+					var piTmpl = $('#tmpl-Settings-ProviderInfo').html();
+					$ca.append(Mustache.render(piTmpl, MEDAC.provider));
+				}
 			}
 		}]
 	};
@@ -333,7 +354,8 @@ $(function() {
 		$('#spinner').remove();
 		MEDAC = data;
 		MEDAC.media.Settings = {
-			'Download Queue': {}
+			'Download Queue': {},
+			'Provider Info': {}
 		};
 		buildFileIndex(MEDAC);
 		
