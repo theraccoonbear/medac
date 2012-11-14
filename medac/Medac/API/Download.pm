@@ -20,7 +20,7 @@ use Medac::Queue;
 has 'exposed' => (
 	is => 'ro',
 	isa => 'ArrayRef',
-	default => sub { return ['status','enqueue']; }
+	default => sub { return ['status','enqueue','dequeue','queue_status']; }
 );
 
 has 'queue' => (
@@ -34,96 +34,6 @@ has 'provider' => (
 	isa => 'Str',
 	default => 'Unknown'
 );
-
-#has queue => (
-#	is => 'rw',
-#	isa => 'HashRef',
-#	default => sub { return {queue=>[]}; }
-#);
-#
-#sub writeQueue {
-#	my $self = shift @_;
-#	
-#	my $dl_dir = $self->drill($self->config, ['paths','downloads']);
-#	
-#	if (!$dl_dir) {
-#		$self->error("No download path specified in config");
-#	}
-#	
-#	my $prm = $self->drill($self->req,['params','posted']);
-#	
-#	if (!$prm) {
-#		$self->error("Invalid parameters.  No posted data.");
-#	}
-#	
-#	my $pr_name = $self->drill($prm, ['provider','name']);
-#	
-#	if (!$pr_name) {
-#		$self->error('No provider name in request');
-#	}
-#	
-#	my $pr_dl_dir = $dl_dir . $pr_name . '/';
-#	
-#	if (! -d $pr_dl_dir) {
-#		mkdir $pr_dl_dir, 0775 or $self->error("Can't create DL path \"$pr_dl_dir\": $!");
-#	}
-#	
-#	my $queue_file = $pr_dl_dir . 'queue.json';
-#	
-#	write_file($queue_file, encode_json($self->queue));
-#	
-#}
-#
-#sub readQueue {
-#	my $self = shift @_;
-#	
-#	my $dl_dir = $self->drill($self->config, ['paths','downloads']);
-#	
-#	if (!$dl_dir) {
-#		$self->error("No download path specified in config");
-#	}
-#	
-#	my $prm = $self->drill($self->req,['params','posted']);
-#	
-#	if (!$prm) {
-#		$self->error("Invalid parameters.  No posted data.");
-#	}
-#	
-#	my $pr_name = $self->drill($prm, ['provider','name']);
-#	
-#	if (!$pr_name) {
-#		$self->error('No provider name in request');
-#	}
-#	
-#	my $pr_dl_dir = $dl_dir . $pr_name . '/';
-#	
-#	if (! -d $pr_dl_dir) {
-#		mkdir $pr_dl_dir, 0775 or $self->error("Can't create DL path \"$pr_dl_dir\": $!");
-#	}
-#	
-#	my $queue_file = $pr_dl_dir . 'queue.json';
-#	my $queue = {
-#							queue => [] 
-#						};
-#	
-#	if (-f $queue_file) {
-#		$queue = decode_json(read_file($queue_file) || encode_json($queue));
-#	} else {
-#		write_file($queue_file, encode_json($queue));
-#	}
-#	
-#	eval {
-#		$self->queue($queue);
-#	};
-#	#
-#	#if ($@) {
-#	#	$self->pr($@);
-#	#} else {
-#	#	$self->pr($self->queue);
-#	#}
-#	#print "AFTER";
-#
-#}
 
 sub status {
   my $self = shift @_;
@@ -176,11 +86,8 @@ sub status {
 
 sub enqueue {
 	my $self = shift @_;
-	my $params = shift @_;
+#	my $params = shift @_;
 
-	
-	#$self->readQueue();
-	#
 	my $prm = $self->drill($self->req,['params','posted']);
 	
 	if (!$prm) {
@@ -194,8 +101,60 @@ sub enqueue {
 	$queue->enqueue($self->resource);
 	
 	$self->json_pr($self->resource, "File queued");
-	#$self->pr($queue->queued());
+}
+
+sub dequeue {
+	my $self = shift @_;
+	
+	my $prm = $self->drill($self->req,['params','posted']);
+	
+	if (!$prm) {
+		$self->error("Invalid parameters.  No posted data.");
+	}
+	
+	my $provider = $self->drill($prm, ['provider','name']);
+	my $queue = new Medac::Queue();
+	$queue->readQueue($provider);
+	
+	my $msg = "File not in queue";
+	my $exists = $queue->inQueue($self->resource);
+	if ($exists > 0) {
+		$queue->dequeue($self->resource);
+		$msg = "File dequeued";
+	}
+	
+	$self->json_pr({dequeued => $exists > 0 ? JSON::XS::true : JSON::XS::false}, $msg);
+	
+}
+
+sub queue_status {
+	my $self = shift @_;
+	
+	my $prm = $self->drill($self->req,['params','posted']);
+	my $provider = $self->drill($prm, ['provider','name']);
+	my $queue = new Medac::Queue();
+	$queue->readQueue($provider);
+	
+	my $queue_root = $queue->queueRoot();
+	
+	my $flist = [];;
+	
+	foreach my $f (@{$queue->queued()}) {
+		my $full_path = $queue_root . $f->{path};
 		
+		my $nfe = {
+			'md5' => $f->{md5},
+			'path' => $f->{path},
+			'size' => $f->{size},
+			'exists' => -f $full_path ? JSON::XS::true : JSON::XS::false,
+			'downloaded' => -f $full_path ? (stat $full_path)[7] : 0
+		};
+		
+		push @{$flist}, $nfe;
+	}
+	
+	
+	$self->json_pr($flist);
 }
 
 1;

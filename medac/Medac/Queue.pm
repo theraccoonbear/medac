@@ -92,12 +92,14 @@ sub enqueue {
 	my $self = shift @_;
 	my $resource = shift @_;
 	
-	my $in_queue = 0 == 1;
-	foreach my $qfile (@{$self->queued}) {
-		if ($qfile->{md5} eq $resource->{md5}) {
-			$in_queue = 1 == 1;
-		}
-	}
+	my $in_queue = $self->inQueue($resource);
+	
+	#my $in_queue = 0 == 1;
+	#foreach my $qfile (@{$self->queued}) {
+	#	if ($qfile->{md5} eq $resource->{md5}) {
+	#		$in_queue = 1 == 1;
+	#	}
+	#}
 	
 	if ($in_queue) {
 		$self->json_pr({already_queued => JSON::XS::true}, "File already queued");
@@ -106,10 +108,57 @@ sub enqueue {
 		$self->writeQueue();
 		$self->json_pr({already_queued => JSON::XS::false}, "File enqueued");
 	}
+}
+
+sub dequeue {
+	my $self = shift @_;
+	my $resource = shift @_;
 	
+	my $idx = $self->inQueue($resource);
 	
+	my $message = "Not in queue";
+	if ($idx) {
+		splice(@{$self->queued}, $idx - 1, 1);
+		$self->writeQueue();
+		$message = "Removed";
+	}
 	
+	$self->json_pr({removed => $idx > 0}, $message);
 	
+}
+
+sub queueRoot {
+	my $self = shift @_;
+	my $provider = shift @_ || $self->provider;
+	
+	my $dl_dir = $self->drill($self->config, ['paths','downloads']);
+	
+	if (!$dl_dir) {
+		$self->error("No download path specified in config");
+	}
+	
+	my $pr_dl_dir = $dl_dir . $provider . '/';
+	
+	return $pr_dl_dir;
+}
+
+sub inQueue {
+	my $self = shift @_;
+	my $file = shift @_;
+	
+	my $md5 = defined $file->{md5} ? $file->{md5} : $file;
+	
+	my $found = 0;
+	my $pos = 1;
+	foreach my $q_file(@{$self->queued}) {
+		if ($q_file->{md5} eq $file->{md5}) {
+			$found = 1;
+			last;
+		}
+		$pos++;
+	}
+	
+	return $found == 1 ? $pos : 0;
 }
 
 

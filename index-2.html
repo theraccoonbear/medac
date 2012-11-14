@@ -94,10 +94,15 @@
 	
 	<script type="text/x-mustache-template" id="tmpl-TV-EPISODE">
 		<ul class="selectColumn">
-			    <li class="heading"><a href="#" class="goBack"></a> <a href="#" class="fileLink" data-md5="{{orig.md5}}">{{orig.imdb.name}}</a></li>
+			    <li class="heading"><a href="#" class="goBack"> {{orig.imdb.name}}</a></li>
 					<li class="clearfix"></li>
 			    <li class="pane">
 					  <div class="details">
+							
+							<a href="#" class="fileLink" data-md5="{{orig.md5}}"><img src="img/dl-arrow.png" alt="Download" class="dlArrow" /> Download</a><br/>
+							
+							<div class="clearfix"></div>
+							
 							<div class="thumbs">
 								{{#orig.meta.thumbs}}
 									<img src="{{.}}" class="thumb" />
@@ -122,6 +127,34 @@
 					  </div><!-- /.details -->
 			</li><!-- /.pane -->
 		</ul><!-- /.selectColumn -->
+	</script>
+	
+	<script type="text/x-mustache-template" id="tmpl-Settings-LIST">
+		<ul class="selectColumn">
+			<li class="heading"><a href="#" class="goBack"> Settings</a></li>
+			<li class="clearfix"></li>
+			{{#items}}
+			<li data-key="{{key}}" class="menuItem"><a href="#"><div>{{key}}</div></a></li>
+			{{/items}}
+		</ul><!-- /.selectColumn -->
+	</script>
+	
+	<script type="text/x-mustache-template" id="tmpl-Settings-PAGE">
+		<ul class="selectColumn">
+			<li class="heading"><a href="#" class="goBack"> {{title}}</a></li>
+			<li class="clearfix"></li>
+			<li class="pane">
+				<img src="img/spinner.gif" alt="Spinner" class="liveSpinner" />
+			  <div class="queueStatus"></div>
+			</li>
+		</ul><!-- /.selectColumn -->
+	</script>
+	
+	<script type="text/x-mustache-template" id="tmpl-Settings-QueueEntry">
+		<p>
+			<a href="#" class="deleteButton dequeue" data-md5="{{md5}}">&nbsp;</a> <strong>{{file.ctxt.show_name}}: s{{file.imdb.season_number}}x{{file.imdb.episode_number}}, {{file.imdb.name}}</strong><br/>
+			File Exists: {{#exists}}YES{{/exists}}{{^exists}}NO{{/exists}},
+			Completed: {{percent}}%</p>
 	</script>
 	
   <!-- JavaScript at the bottom for fast page loading -->

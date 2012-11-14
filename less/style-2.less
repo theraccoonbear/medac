@@ -23,13 +23,13 @@ body {
 a {
 	color: darken(@text_color, 30%);
 	display: block;
-	&:hover {
-		color: lighten(@text_color, 60%);
-		cursor: hand !important;
-	}
-	&:visited {
-		color: lighten(@text_color, 30%);
-	}
+	//&:hover {
+	//	color: lighten(@text_color, 60%);
+	//	cursor: hand !important;
+	//}
+	//&:visited {
+	//	color: lighten(@text_color, 30%);
+	//}
 }
 
 
@@ -52,6 +52,46 @@ a {
 			float: left;
 			width: 100%;
 			
+			
+			a {
+				text-decoration: none;
+				cursor: hand !important;
+				
+				&.deleteButton {
+					float: left;
+					background-image: url(../img/delete-button.png);
+					background-repeat: no-repeat;
+					text-indent: -10000;
+					width: 30px;
+					height: 30px;
+					background-size: 30px 30px;
+				}
+				
+				&.goBack {
+					float: left;
+					background-image: url(../img/back-button.png);
+					background-repeat: no-repeat;
+					cursor: hand !important;
+					display: block;
+					text-indent: 40px;
+					min-width: 36px;
+					height: 40px;
+				}
+				
+			
+				&.fileLink {
+					float: left;
+					font-size: 30px;
+					font-weight: bold;
+					color: darken(@base_color, 20%);
+					text-decoration: none;
+					.dlArrow {
+						width: 30px;
+						height: 30px;
+					}
+				}
+			}
+			
 			div {
 				&.details {
 					margin-left: 10px;
@@ -66,35 +106,11 @@ a {
 				padding-left: 10px;
 				list-style: none;
 				
+				
 				&.heading {
 					font-size: 36px;
 					font-weight: bold;
 					text-shadow: darken(@base_color, 20%) 3px 3px 5px;
-					
-					.fileLink {
-						float: left;
-					}
-					
-					//&:hover {
-					//	cursor: default;
-					//	background-color: @base_color;
-					//	color: @text_color;
-					//}
-					a {
-						text-decoration: none;
-						&.goBack {
-							float: left;
-							
-							background-image: url(../img/back-button.png);
-							background-repeat: no-repeat;
-							cursor: hand !important;
-							display: block;
-							text-decoration: none;
-							text-indent: 40px;
-							min-width: 36px;
-							height: 40px;
-						}
-					}
 				}
 				
 				&.menuItem {

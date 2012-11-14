@@ -96,6 +96,9 @@ sub action {
   my $action = shift @_;
   my $params = shift @_;
   
+	$action =~ s/-/_/gi;
+	
+	
 	if ($action =~ m/[^A-Za-z_]/gi) {
 		$self->error("Invalid action: $action");
 	}
