@@ -82,8 +82,16 @@ if ($ps =~ m/$rsync_tag/g) {
 echo "{$rsync_tag}" > /dev/null && rsync -avz --progress --partial --append -e "ssh -p 22" guest\@medac-dev.snm.com:/home/don/Desktop/Video/ /home/don/Desktop/MedacDownloads/theraccoonbearcity
 __RSYNC
 							}
-							
 						}
+						
+						logMsg("Snoozing...");
+						my $x = 0;
+						while ($x < 3) {
+							sleep 1;
+							$x++;
+							logMsg($x . ' Zzzzzzz...');
+						}
+						logMsg("done!");
 					} else{
 						logMsg("Nothing queued for provider");
 					}
