@@ -300,7 +300,11 @@ $(function() {
 							var per = Math.floor(d.payload.size / orig.size * 1000) / 10;
 							$('.status .downloaded').html(per + '%');
 						} else {
-							$('.status .downloaded').html("Not queued");
+							if (d.payload.queued) {
+								$('.status .downloaded').html("Queued/pending");
+							} else {
+								$('.status .downloaded').html("Not queued");
+							}
 						}
 					}
 				});

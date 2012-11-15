@@ -17,7 +17,12 @@
       "TV": {
 				"stale_after": "2 weeks"
       }
-    }
+    },
+		"authority": {
+			"name": "theraccoonbear",
+			"hostname": "medac-dev.bhffc.com",
+			"hostport": 9191
+		}
   },
     
   "paths": { 

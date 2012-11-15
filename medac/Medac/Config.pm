@@ -15,8 +15,6 @@ use Cwd qw(abs_path cwd);
 use File::Spec;
 
 
-
-
 has 'settings' => (
   is => 'rw',
   isa => 'HashRef',
@@ -34,8 +32,53 @@ has 'settings' => (
 		
 		my $cfg_data = slurp($config_file);
 		
-		return decode_json($cfg_data);
+		my $result = {};
+			
+		eval {
+			$result = decode_json($cfg_data);
+			1;
+		};
+		
+		if ($@) {
+			print "Content-Type: text/plain\n\n";
+			my $err = $@;
+			print encode_json({success => JSON::XS::false, payload => {error => $err}, message => "Error reading config.  Note: no single quotes allowed in JSON, use double quotes only."});
+			exit;
+		}
+		
+		return $result;
 	}
 );
+
+
+sub drillex {
+	my $self = shift @_;
+	my $bits = shift @_;
+	my $default = '____________MISSING';
+	
+	my $val = $self->drill($bits, $default);
+	
+	return $val ne $default;	
+}
+
+sub drill {
+	my $self = shift @_;
+	#my $obj = shift @_;
+	my $bits = shift @_;
+	my $default = shift @_ || undef;
+	
+	my $obj = $self->settings;
+	
+	foreach my $bit (@{$bits}) {
+		if (defined $obj->{$bit}) {
+			$obj = $obj->{$bit};
+		} else {
+			$obj = $default;
+			last;
+		}
+	}
+	
+	return $obj;
+}
 
 1

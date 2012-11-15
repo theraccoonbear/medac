@@ -29,17 +29,14 @@ has 'queue' => (
 	default => sub { return new Medac::Queue(); }
 );
 
-has 'provider' => (
-	is => 'rw',
-	isa => 'Str',
-	default => 'Unknown'
-);
+#has 'provider' => (
+#	is => 'rw',
+#	isa => 'Str',
+#	default => 'Unknown'
+#);
 
 sub status {
   my $self = shift @_;
-  my $params = shift @_;
-	
-  #$self->readQueue();
   
 	my $prm = $self->drill($self->req,['params','posted']);
 	
@@ -47,9 +44,10 @@ sub status {
 		$self->error("Invalid parameters.  No posted data.");
 	}
 	
-	my $pr_name = $self->drill($prm, ['provider','name']);
-	my $dl_root = $self->drill($self->config, ['paths', 'downloads']);
-	my $resource = $self->drill($prm, ['resource','path']);
+	#my $pr_name = $self->drill($prm, ['provider','name']);
+	my $pr_name = $self->provider->{name};
+	my $dl_root = $self->config->drill(['paths', 'downloads']);
+	my $resource = $self->drill($prm, ['resource']);
 	
 	if (!$pr_name) {
 		$self->error('No provider name in request');
@@ -59,11 +57,10 @@ sub status {
 		$self->error('No resource specified');
 	}
 	
+	$self->queue->loadProviderQueue($pr_name);
 	
-	my $queue_dir = 'queue/' . $pr_name;
 	my $dl_dir = $dl_root . $pr_name . '/';
-	my $dl_path = $dl_dir . $resource;
-	
+	my $dl_path = $dl_dir . $resource->{path};
 	
 	if (! -d $dl_dir) {
 		mkdir $dl_path, 0775 or $self->error("Can't create DL path \"$dl_path\": $!");
@@ -71,22 +68,26 @@ sub status {
 	
 	
 	my $size = 0;
-	my $message = "Doesn't exist";
+	my $message = "File doesn't exist";
+	
+	my $in_queue = defined $self->queue->inQueue($resource) ? JSON::XS::true : JSON::XS::false;
 	my $exists = JSON::XS::false;
+	
+	
+	
 	if (-f $dl_path) {
 	  my @FA = stat($dl_path);
 	  $size = $FA[7];
-	  $message = "Exists";
+	  $message = "File exists";
 	  $exists = JSON::XS::true;
 	}
 	
-	$self->json_pr({'size'=>$size,'exists'=>$exists}, $message);
+	$self->json_pr({'size'=>$size,'exists'=>$exists,'queued'=>$in_queue}, $message);
   
 }
 
 sub enqueue {
 	my $self = shift @_;
-#	my $params = shift @_;
 
 	my $prm = $self->drill($self->req,['params','posted']);
 	
@@ -94,9 +95,9 @@ sub enqueue {
 		$self->error("Invalid parameters.  No posted data.");
 	}
 	
-	my $provider = $self->drill($prm, ['provider','name']);
+	#my $provider = $self->drill($prm, ['provider','name']);
 	my $queue = new Medac::Queue();
-	$queue->readQueue($provider);
+	$queue->readQueue($self->provider);
 	
 	$queue->enqueue($self->resource);
 	
@@ -112,13 +113,13 @@ sub dequeue {
 		$self->error("Invalid parameters.  No posted data.");
 	}
 	
-	my $provider = $self->drill($prm, ['provider','name']);
+	#my $provider = $self->drill($prm, ['provider','name']);
 	my $queue = new Medac::Queue();
-	$queue->readQueue($provider);
+	$queue->readQueue($self->provider);
 	
 	my $msg = "File not in queue";
 	my $exists = $queue->inQueue($self->resource);
-	if ($exists > 0) {
+	if (defined $exists) {
 		$queue->dequeue($self->resource);
 		$msg = "File dequeued";
 	}
@@ -130,10 +131,10 @@ sub dequeue {
 sub queue_status {
 	my $self = shift @_;
 	
-	my $prm = $self->drill($self->req,['params','posted']);
-	my $provider = $self->drill($prm, ['provider','name']);
+	#my $prm = $self->drill($self->req,['params','posted']);
+	#my $provider = $self->drill($prm, ['provider','name']);
 	my $queue = new Medac::Queue();
-	$queue->readQueue($provider);
+	$queue->readQueue($self->provider);
 	
 	my $queue_root = $queue->queueRoot();
 	

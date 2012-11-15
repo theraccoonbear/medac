@@ -42,11 +42,11 @@ if ($ps =~ m/$rsync_tag/g) {
 	exit 0;
 } else {
 	my $cfg = new Medac::Config();
-	my $api = new Medac::API();
+	#my $api = new Medac::API();
 	my $queue = new Medac::Queue();
 	
 	#print Dumper($cfg->settings); exit;
-	my $dl_root = $api->drill($cfg->settings, ['paths','downloads']);
+	my $dl_root = $cfg->drill(['paths','downloads']);
 	if (! -d $dl_root) {
 		errMsg("DL root missing: $dl_root");
 	}
@@ -64,14 +64,25 @@ if ($ps =~ m/$rsync_tag/g) {
 				if (! -f $prov_queue_path) {
 					warnMsg("No queue for provider $provider: $prov_queue_path");
 				} else {
-					$queue->readQueue($provider);
+					$queue->loadProviderQueue($provider);
+					#$queue->readQueue($provider);
 					
 					if (scalar @{$queue->queued} > 0) {
-						
 						foreach my $qfile (@{$queue->queued}) {
 							my $qfile_path = $prov_queue_dir . $qfile->{path};
 							my $exists = -f $qfile_path ? ' Y ' : ' N ';
-							logMsg($exists . ' --- ' . $qfile_path);
+							
+							if (-f $qfile_path) {
+								logMsg("  - $qfile_path, exists.  Dequeuing");
+								$queue->dequeue($qfile);
+							} else {
+								logMsg("  - DOWNLOAD $qfile->{path}");
+								
+								my $cmd = <<__RSYNC;
+echo "{$rsync_tag}" > /dev/null && rsync -avz --progress --partial --append -e "ssh -p 22" guest\@medac-dev.snm.com:/home/don/Desktop/Video/ /home/don/Desktop/MedacDownloads/theraccoonbearcity
+__RSYNC
+							}
+							
 						}
 					} else{
 						logMsg("Nothing queued for provider");
