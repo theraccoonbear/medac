@@ -59,21 +59,18 @@ if ($ps =~ m/$rsync_tag/g) {
 			if ($d !~ m/^\.{1,2}/gi) {
 				my $provider = $d;
 				my $prov_queue_dir = $dl_root . $provider;
-				my $prov_queue_path = $prov_queue_dir . '/queue.json';
+				#my $prov_queue_path = $prov_queue_dir . '/queue.json';
+				my $prov_queue_path = $queue->ensureQueueExists($provider);
 				logMsg("Checking provider $provider");
-				if (! -f $prov_queue_path) {
-					warnMsg("No queue for provider $provider: $prov_queue_path");
-				} else {
-					$queue->readQueue($provider);
+				
+				$queue->readQueue($provider);
 					
-					foreach my $qfile (@{$queue->queued}) {
-						my $qfile_path = $prov_queue_dir . $qfile->{path};
-						my $exists = -f $qfile_path ? ' Y ' : ' N ';
-						logMsg($exists . ' --- ' . $qfile_path);
-					}
-					
-					#print Dumper($queue);
+				foreach my $qfile (@{$queue->queued}) {
+					my $qfile_path = $prov_queue_dir . $qfile->{path};
+					my $exists = -f $qfile_path ? ' Y ' : ' N ';
+					logMsg($exists . ' --- ' . $qfile_path);
 				}
+
 			}
 		}
 	}
