@@ -5,6 +5,9 @@
 <!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!-- Consider adding a manifest.appcache: h5bp.com/d/Offline -->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+
+
+
 <head>
   <meta charset="utf-8">
 
@@ -94,10 +97,15 @@
 	
 	<script type="text/x-mustache-template" id="tmpl-TV-EPISODE">
 		<ul class="selectColumn">
-			    <li class="heading"><a href="#" class="goBack"></a> <a href="#" class="fileLink" data-md5="{{orig.md5}}">{{orig.imdb.name}}</a></li>
+			    <li class="heading"><a href="#" class="goBack"> {{orig.imdb.name}}</a></li>
 					<li class="clearfix"></li>
 			    <li class="pane">
 					  <div class="details">
+							
+							<a href="#" class="fileLink" data-md5="{{orig.md5}}"><img src="img/dl-arrow.png" alt="Download" class="dlArrow" /> Download</a><br/>
+							
+							<div class="clearfix"></div>
+							
 							<div class="thumbs">
 								{{#orig.meta.thumbs}}
 									<img src="{{.}}" class="thumb" />
@@ -109,11 +117,8 @@
 									<li><strong>Size:</strong> {{orig.meta.niceSize}}</li>
 									<li><strong>Length:</strong> {{orig.meta.duration}}</li>
 									<li><strong>Dimensions</strong> {{orig.meta.video_width}} x {{orig.meta.video_height}} @ {{orig.meta.video_fps}} FPS</li>
+									<li class="status"><strong>Downloaded:</strong> <span class="downloaded"></span></li>
 								</ul><!-- /.facts -->
-							</div>
-							
-							<div class="status">
-								      <strong>Downloaded:</strong> <span class="downloaded"></span>
 							</div>
 							
 							<div class="synopsis">
@@ -122,6 +127,43 @@
 					  </div><!-- /.details -->
 			</li><!-- /.pane -->
 		</ul><!-- /.selectColumn -->
+	</script>
+	
+	<script type="text/x-mustache-template" id="tmpl-Settings-LIST">
+		<ul class="selectColumn">
+			<li class="heading"><a href="#" class="goBack"> Settings</a></li>
+			<li class="clearfix"></li>
+			{{#items}}
+			<li data-key="{{key}}" class="menuItem"><a href="#"><div>{{key}}</div></a></li>
+			{{/items}}
+		</ul><!-- /.selectColumn -->
+	</script>
+	
+	<script type="text/x-mustache-template" id="tmpl-Settings-PAGE">
+		<ul class="selectColumn">
+			<li class="heading"><a href="#" class="goBack"> {{title}}</a></li>
+			<li class="clearfix"></li>
+			<li class="pane">
+				<img src="img/spinner.gif" alt="Spinner" class="liveSpinner" />
+			  <div class="contentArea"></div>
+			</li>
+		</ul><!-- /.selectColumn -->
+	</script>
+	
+	
+	<script type="text/x-mustache-template" id="tmpl-Settings-QueueEntry">
+		<p>
+			<a href="#" class="deleteButton dequeue" data-md5="{{md5}}">&nbsp;</a> <strong>{{file.ctxt.show_name}}: s{{file.imdb.season_number}}x{{file.imdb.episode_number}}, {{file.imdb.name}}</strong><br/>
+			File Exists: {{#exists}}YES{{/exists}}{{^exists}}NO{{/exists}},
+			Completed: {{percent}}%
+		</p>
+	</script>
+	
+	<script type="text/x-mustache-template" id ="tmpl-Settings-ProviderInfo">
+		<p>
+			<h3>{{name}}</h3>
+			{{host.user}}@{{host.name}}:{{host.port}}
+		</p>
 	</script>
 	
   <!-- JavaScript at the bottom for fast page loading -->

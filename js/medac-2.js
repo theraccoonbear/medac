@@ -10,6 +10,103 @@ $(function() {
 	
 	var num_rgx = new RegExp(/^\d+$/);
 	
+	var NAV = {
+		crumbs: [],
+		
+		currentPath: function() {
+			return document.location.hash.substring(2).split('/').reverse();
+		}, // currentPath()
+		
+		getRelPath: function(path) {
+			var cur = this.currentPath();
+			var shorter = Math.min(cur.length, path.length);
+			
+			var new_path = [];
+			var i = 0;
+			
+			for (i = 0; i < shorter; i++) {
+				if (cur[i] != path[i]) {
+					break;
+				}
+			}
+			
+			
+			
+			
+		}, // getRelPath()
+		
+		goTo: function(path) {
+			var $cols = $('.selectColumn');
+			
+			for (var i = 0; i < $cols.length - 1; i++) {
+				$cols.last().remove();
+			}
+			
+			var ctxt = this;
+			
+			var nextNode = function() {
+				if (path.length > 0 && path[0].length > 0) {
+					var node_key = path.pop();
+					ctxt.forward({key: node_key, speed: 0, callback: function() { if (path.length > 0) { nextNode(); } }});
+				}
+			};
+				
+			
+			nextNode();
+			
+			
+		}, // goTo();
+		
+		init: function() {
+			var path = this.currentPath();
+			this.goTo(path);	
+		}, // init()
+		
+		updateLocation: function() {
+			document.location.hash = '#!' + this.crumbs.join('/');
+		}, // updateLocation()
+		
+		back: function(o) {
+			if (typeof o === 'undefined') { o = {}; }
+			var speed = typeof o.speed === 'undefined' ? 250 : o.speed;
+			if (speed < 1) { speed = 1; }
+			
+			var $list = $('.selectColumn').last();
+			NAV.crumbs.pop();
+			this.updateLocation();
+			
+			$iface.animate({'left':'+=' + frame_width}, speed, null, function() { $list.remove(); });
+		}, // back()
+		
+		forward: function(o) {
+			if (typeof o === 'undefined') { o = {}; }
+			var key = o.key;
+			var speed = typeof o.speed === 'undefined' ? 250 : o.speed;
+			
+			if (speed < 1) { speed = 1; }
+			
+			NAV.crumbs.push(key);
+			NAV.updateLocation();
+			
+			var node_action = getActionFor(NAV.crumbs);
+			
+			var newNode = drill(MEDAC.media, NAV.crumbs);
+			var node = new colNode(newNode, key)
+			
+			var rendered = Mustache.render(getTemplateFor(NAV.crumbs), node);
+			
+			node_action(node, 'before', newNode);
+			$iface.append(rendered).animate({'left': '-=' + frame_width}, speed, null, function() {
+				node_action(node, 'after', newNode);
+				if (typeof o.callback === 'function') {
+					o.callback();
+				}
+			});
+			
+			doResize();
+		} // forward()
+	}; // NAV
+	
 	var buildFileIndex = function(data) {
 		var depth = 0;
 		var crawlObj = function(obj, crumbs) {
@@ -114,9 +211,7 @@ $(function() {
 		return Mustache.render(selColTmpl, t_obj);
 	}; // buildSelCol()
 	
-	var updateLocation = function() {
-		document.location.hash = '#' + crumbs.join('/');
-	}; // updateLocation()
+
 	
 	var getTemplateFor = function(path) {
 		if (path.length < 1) { return ''; }
@@ -176,13 +271,13 @@ $(function() {
 		TEMPLATES._DEFAULT = DEFAULT;
 	}; // loadTemplates()
 	
-	
 	var rootTmpl = $('#tmpl-ROOT').html();
-	var crumbs = [];
+	//var crumbs = [];
 	
 	
 	TEMPLATES = {
-		'TV': ['BASE','SHOW','SEASON','EPISODE']
+		'TV': ['BASE','SHOW','SEASON','EPISODE'],
+		'Settings': ['LIST','PAGE']
 	};
 	
 	TEMPLATE_ACTIONS = {
@@ -205,10 +300,43 @@ $(function() {
 							var per = Math.floor(d.payload.size / orig.size * 1000) / 10;
 							$('.status .downloaded').html(per + '%');
 						} else {
-							$('.status .downloaded').html("Not queued");
+							if (d.payload.queued) {
+								$('.status .downloaded').html("Queued/pending");
+							} else {
+								$('.status .downloaded').html("Not queued");
+							}
 						}
 					}
 				});
+			}
+		}],
+		'Settings': [null, function(obj, when, orig) {
+			if (when == 'after') {
+				var $ca = $('.contentArea');
+				if (obj.title == 'Download Queue') {
+					API.call({
+						model: 'Download',
+						action: 'queue-status',
+						data: {},
+						callback: function(d, s, x) {
+							
+							if (d.success) {
+								var qeTmpl = $('#tmpl-Settings-QueueEntry').html();
+								for (var i = 0; i < d.payload.length; i++) {
+									var f = d.payload[i];
+									
+									f.percent = Math.floor(f.downloaded / f.size * 1000) / 10;
+									f.file = drill(MEDAC, INDEX[f.md5]);
+									$ca.append(Mustache.render(qeTmpl, f));
+								}
+							}
+						}
+					});
+				} else if (obj.title == 'Provider Info') {
+					$('.liveSpinner').remove();
+					var piTmpl = $('#tmpl-Settings-ProviderInfo').html();
+					$ca.append(Mustache.render(piTmpl, MEDAC.provider));
+				}
 			}
 		}]
 	};
@@ -229,51 +357,58 @@ $(function() {
 	$.getJSON('media/media.json', {}, function(data, status, xhr) {
 		$('#spinner').remove();
 		MEDAC = data;
+		MEDAC.media.Settings = {
+			'Download Queue': {},
+			'Provider Info': {}
+		};
 		buildFileIndex(MEDAC);
-		document.location.hash = '';
+		
+		
+		//document.location.hash = '';
 		//console.log(MEDAC);
-		$iface.append(Mustache.render(rootTmpl, new colNode(MEDAC.media, 'Media', true)));		
+		$iface.append(Mustache.render(rootTmpl, new colNode(MEDAC.media, 'Medac: ' + MEDAC.provider.name, true)));
+		
+		NAV.init();
 	}); // get media JSON
 	
 	$('.selectColumn > li.menuItem > a').live('click', function(e) {
 		var $this = $(this).parent('li');
 		var key = $this.data('key');
 		
-		crumbs.push(key);
-		updateLocation();
-		
-		var node_action = getActionFor(crumbs);
-		
-		var newNode = drill(MEDAC.media, crumbs);
-		var node = new colNode(newNode, key)
-		
-		//console.log(node);
-		
-		var rendered = Mustache.render(getTemplateFor(crumbs), node);
-		
-		node_action(node, 'before', newNode);
-		$iface.append(rendered).animate({'left': '-=' + frame_width}, 250, null, function() {
-			node_action(node, 'after', newNode);
-		});
-		
-		doResize();
+		NAV.forward({'key':key});
 		
 		e.preventDefault();
 		return false;
 	}); // $('.selectColumn > li > a').live('click' ...
 	
 	$('a.goBack').live('click', function(e) {	
-		var $a = $(this);
-		var $list = $a.parents('.selectColumn');
-		
-		crumbs.pop();
-		updateLocation();
-		
-		$iface.animate({'left':'+=' + frame_width}, 250, null, function() { $list.remove(); });
-		
+		NAV.back();
 		e.preventDefault();
 		return false;
 	}); // $('a.goBack').live('click' ...
+	
+	$('a.dequeue').live('click', function(e) {
+		var $this = $(this);
+		var md5 = $this.data('md5');
+		
+		var file = drill(MEDAC, INDEX[md5]);
+		
+		API.call({
+			model: 'Download',
+			action: 'dequeue',
+			data: {
+				resource: {
+					md5: file.md5
+				}
+			},
+			callback: function(d, s, x) {
+				console.log(d);
+			}
+		});
+		
+		e.preventDefault();
+		return false;
+	});
 	
 	
 	// Downloads

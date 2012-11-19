@@ -78,7 +78,7 @@ sub init {
 		$self->error("Invalid parameters.  No posted data.");
 	}
 	
-	my $provider = $self->drill($prm, ['provider','name']);
+	my $provider = $self->drill($prm, ['provider']); #,'name']);
 	my $resource = $self->drill($prm, ['resource']);
 	
 	if ($provider) {
@@ -96,6 +96,9 @@ sub action {
   my $action = shift @_;
   my $params = shift @_;
   
+	$action =~ s/-/_/gi;
+	
+	
 	if ($action =~ m/[^A-Za-z_]/gi) {
 		$self->error("Invalid action: $action");
 	}
@@ -103,7 +106,7 @@ sub action {
 	if ($self->can($action)) {
 		if ($self->exposedAction($action)) {
 			$self->init();
-			$self->$action($params);
+			$self->$action(@{$params->{numerical}});
 		} else {
 			$self->error("Unexposed action: $action");
 		}

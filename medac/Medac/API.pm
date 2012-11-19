@@ -16,7 +16,20 @@ use Medac::API::Default;
 use Medac::Config;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use Cwd qw(abs_path cwd);
+use Moose::Util::TypeConstraints;
 
+
+has 'model' => (
+	is => 'rw',
+	isa => 'Str',
+	default => 'Default'
+);
+
+has 'action' => (
+	is => 'rw',
+	isa => 'Str',
+	default => 'index'
+);
 
 has 'req' => (
 	is => 'rw',
@@ -24,17 +37,25 @@ has 'req' => (
 	default => sub{ return {}; }
 );
 
-#has 'config' => (
-#  is => 'rw',
-#  isa => 'HashRef',
-#  default => sub { return decode_json(slurp('../medac/config.json')); }
-#);
+has 'initialized' => (
+  is => 'rw',
+  isa => 'Bool',
+  default => undef
+);
 
 has 'config' => (
   is => 'rw',
-  isa => 'HashRef',
-  default => sub { my $cfg = new Medac::Config(); return $cfg->settings; }
+  isa => 'Medac::Config',
+  default => sub { my $cfg = new Medac::Config(); return $cfg; }
 );
+
+#has 'provider' => (
+#	is => 'rw',
+#	isa => 'Medac::Provider',
+#	default => sub {
+#		return new Medac::Provider;
+#	}
+#);
 
 has 'q' => (
   is => 'rw',
@@ -50,6 +71,14 @@ has 'root_path' => (
 		$path =~ s/\/[^\/]+$/\//gi;
 		return $path;
 	}
+);
+
+enum 'ContextType', [qw(local www)];
+
+has 'context' => (
+	is => 'rw',
+	isa => 'ContextType',
+	default => 'local'
 );
 
 
@@ -69,11 +98,13 @@ sub drill {
 	my $self = shift @_;
 	my $obj = shift @_;
 	my $bits = shift @_;
-	my $default = shift @_ || 1 == 0;
+	my $default = shift @_ || undef;
 	
 	foreach my $bit (@{$bits}) {
-		if (defined $obj->{$bit}) {
+		if (ref $obj eq 'HASH' && defined $obj->{$bit}) {
 			$obj = $obj->{$bit};
+		} elsif (ref $obj eq 'ARRAY' && defined $obj->[$bit]) {
+			$obj = $obj->[$bit];
 		} else {
 			$obj = $default;
 			last;
@@ -102,19 +133,26 @@ sub pr {
 	my $o = shift @_;
 	#my $max_depth = 30;
 	
-	print "Content-Type: text/html\n\n";
-	print '<h1>Dump:</h1>';
-	print '<pre>';
-	print Data::Dumper::Dumper($o);
-	print '</pre>';
-	print '<h1>Stack:</h1>';
-	print '<pre>';
+	if ($self->context eq 'www') {
+		print "Content-Type: text/html\n\n";
+		print '<h1>Dump:</h1>';
+		print '<pre>';
+	} else {
+		print "Dump:\n";
+	}
+	print Dumper($o);
+	if ($self->context eq 'www') {
+		print '</pre>';
+		print '<h1>Stack:</h1>';
+		print '<pre>';
+	} else {
+		print "Stack:\n";
+	}
 	print join("\n", @{$self->stackTrace()});
-	#my $i = 0;
-	#while ( (my @call_details = (caller($i++))) && ($i<$max_depth)) {
-	#	print "$i) $call_details[1] line $call_details[2] in function $call_details[3]\n";
-	#}
-	print '</pre>';
+	
+	if ($self->context eq 'www') {
+		print '</pre>';
+	}
 	exit;
 }
 
@@ -187,7 +225,6 @@ sub getModel {
 	
 	
 	if (-f $model_path) {
-	
 		require $model_path;
 		$ci = new $fq_class_name();
 		
@@ -203,13 +240,8 @@ sub getModel {
 	return $ci;
 }
 
-sub dispatch {
-  my $self = shift @_;
-  
-  my $debug = ();
-  
-  my $model = 'Default';
-  my $action = 'Index';
+sub init {
+	my $self = shift @_;
 	
 	my $post_str = $self->q->param('request') || '{"provider":{"name":"providername","host":{"pass":"p4s5w0rD","user":"guest","name":"medac-provider.hostname.com","path":"/path/to/video/","port":22}},"account":{"username":"localuser","password":"localpass","host":{"name":"medac-provider.hostname.com","port":80}},"resource":{"md5":"b00d64cd31665414f6b5ebd47c2d0fba","path":"TV/Band of Brothers/Season 1/01 - Curahee.avi"}}';
 	
@@ -222,7 +254,6 @@ sub dispatch {
 	};
 	
   my @path_parts = split(/\//, $self->q->url_param('path') || '');
-
 	
   my $p_cnt = scalar @path_parts;
   
@@ -231,11 +262,11 @@ sub dispatch {
   }
 	
 	if ($p_cnt >= 1) {
-		$model = $self->utoc($path_parts[0]);
+		$self->model($self->utoc($path_parts[0]));
   }
   
   if ($p_cnt >= 2) {
-		$action = $path_parts[1];
+		$self->action($path_parts[1]);
 		my @prms = @path_parts[2 .. scalar @path_parts - 1];
 		
 		
@@ -256,16 +287,28 @@ sub dispatch {
   push @INC, $self->root_path;
   
   my $pl = {
-		'model' => $model,
-		'action' => $action,
+		'model' => $self->model,
+		'action' => $self->action,
 		'params' => $params
 	};
   
 	$self->req($pl);
-	
-  $model = $self->getModel($model, $pl);
+}
+
+sub dispatch {
+  my $self = shift @_;
   
-  $model->action($action, $params);
+  my $debug = ();
+  
+  $self->model('Default');
+  $self->action('Index');
+	$self->init();
+	
+#	$self->req($pl);
+	
+  my $model = $self->getModel($self->model());
+  
+  $model->action($self->action(), $self->req->{params});
   
 }
 
