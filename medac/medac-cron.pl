@@ -44,12 +44,14 @@ if ($ps =~ m/$rsync_tag/g) {
 } else {
 	#my $cfg = new Medac::Config();
 	my $api = new Medac::API(context => 'local');
-	my $cfg = $api->config;
-	my $queue = new Medac::Queue();
+	#my $cfg = $api->config;
+	#my $cfg = bless($api->config;
+	#my $queue = new Medac::Queue();
 	
 	
-	#print Dumper($cfg->settings); exit;
-	my $dl_root = $cfg->drill(['paths','downloads']);
+	my $dl_root = $api->drill(['paths','downloads']);
+	
+	
 	if (! -d $dl_root) {
 		errMsg("DL root missing: $dl_root");
 	}
@@ -60,74 +62,57 @@ if ($ps =~ m/$rsync_tag/g) {
 	foreach my $d (@FILES) {
 		if ($d !~ m/[^-_A-Za-z0-9]/gi) {
 			if ($d !~ m/^\.{1,2}/gi) {
-				my $provider = $d;
-				my $prov_queue_dir = $dl_root . $provider;
+				my $provider_name = $d;
+				my $prov_queue_dir = $dl_root . $provider_name;
 				my $prov_queue_path = $prov_queue_dir . '/queue.json';
-				#my $prov_queue_path = $prov_queue_dir . '/queue.json';
-				#my $prov_queue_path = $queue->ensureQueueExists($provider);
-				logMsg("Checking provider $provider");
+				logMsg("Checking provider $provider_name");
 				
 				my $pr_obj = new Medac::Provider();
-				$pr_obj->readProvider($provider);
-				$api->pr($pr_obj);
+				$pr_obj->readProvider($provider_name);
 				
-				$queue->readQueue($provider);
+				my $queue = $pr_obj->queue->queued;
 					
-				foreach my $qfile (@{$queue->queued}) {
-					my $qfile_path = $prov_queue_dir . $qfile->{path};
-					my $exists = -f $qfile_path ? ' Y ' : ' N ';
-					logMsg($exists . ' --- ' . $qfile_path);
-					if (! -f $prov_queue_path) {
-						warnMsg("No queue for provider $provider: $prov_queue_path");
-					} else {
-						$queue->loadProviderQueue($provider);
-						#$queue->readQueue($provider);
+				if (scalar @{$queue} < 1) {
+					logMsg("  - Nothing queued; skipping.");
+				} else {
+					logMsg("  - " . scalar @{$queue} . " downloads in queue");
+					
+					foreach my $qfile (@{$queue}) {
+						my $qfile_path = $prov_queue_dir . $qfile->{path};
+						my $exists = -f $qfile_path;
 						
-						if (scalar @{$queue->queued} > 0) {
-							foreach my $qfile (@{$queue->queued}) {
-								my $qfile_path = $prov_queue_dir . $qfile->{path};
-								my $exists = -f $qfile_path ? ' Y ' : ' N ';
-								
-								if (-f $qfile_path) {
-									my $downloaded = (stat $qfile_path)[7];
-									if ($downloaded eq $qfile->{size}) {
-										logMsg("  - $qfile_path, downloaded.  Dequeuing");
-										$queue->dequeue($qfile);
-									} else {
-										my $percent = $downloaded / $qfile->{size};
-										logMsg("  - $qfile_path partial download $percent\%");
-									}
-								} else {
-									logMsg("  - DOWNLOAD $qfile->{path}");
-									
-									my $cmd = <<__RSYNC;
-	echo "{$rsync_tag}" > /dev/null && rsync -avz --progress --partial --append -e "ssh -p 22" guest\@medac-dev.snm.com:/home/don/Desktop/Video/ /home/don/Desktop/MedacDownloads/theraccoonbearcity
-__RSYNC
-								}
-							}
-							
-							logMsg("Snoozing...");
-							my $x = 0;
-							while ($x < 3) {
-								sleep 1;
-								$x++;
-								logMsg($x . ' Zzzzzzz...');
-							}
-							logMsg("done!");
-						} else {
-							logMsg("Nothing queued for provider");
-						}
+						#print Dumper($pr_obj->info);
 						
-						#print Dumper($queue);
-					}
-				}
-			}
-		}
-	}
+						my $pr_host_name = $pr_obj->info->{host}->{name};
+						my $pr_host_port = $pr_obj->info->{host}->{port};
+						my $pr_host_user = $pr_obj->info->{host}->{user};
+						(my $pr_host_path = $pr_obj->info->{host}->{path}) =~ s/\/$//gi;
+						
+						my $cmd = "echo \"{$rsync_tag}\" > /dev/null && rsync -avz --progress --partial --append -e \"ssh -p $pr_host_port\" $pr_host_user\@$pr_host_name:$pr_host_path$qfile->{path} $qfile_path";
+						
+						logMsg("  - $cmd");
+						
+						if ($exists) {
+							my $downloaded = (stat $qfile_path)[7];
+							if ($downloaded eq $qfile->{size}) {
+								logMsg("  - Download 100% complete; dequeing: $qfile_path");
+								$pr_obj->queue->dequeue($qfile);
+							} else {
+								my $percent = $downloaded / $qfile->{size};
+								logMsg("  - Download $percent\% complete: $qfile_path ");
+							}
+						} else { # -f $qfile_path
+							logMsg("  - Download not started: $qfile->{path}");
+						} # -f qfile_path
+					} # foreach (@{$queue})
+				} # empty queue?
+			} # neither . nor ..
+		} # clean identifier name
+	} # foreach (@FILES)
 	
 	
 	
-	my $cmd = 'echo "' . $rsync_tag . '" > /dev/null && rsync -avz --progress --partial --append --files-from /home/don/code/theraccoonshare.com/public_html/medac-dev/cgi-bin/queue/theraccoonbearcity/queue.txt -e "ssh -p 22" guest@medac-dev.snm.com:/home/don/Desktop/Video/ /home/don/Desktop/MedacDownloads/theraccoonbearcity';
+	#my $cmd = 'echo "' . $rsync_tag . '" > /dev/null && rsync -avz --progress --partial --append --files-from /home/don/code/theraccoonshare.com/public_html/medac-dev/cgi-bin/queue/theraccoonbearcity/queue.txt -e "ssh -p 22" guest@medac-dev.snm.com:/home/don/Desktop/Video/ /home/don/Desktop/MedacDownloads/theraccoonbearcity';
 	#`$cmd`;
 	#print "$cmd\n";
 	

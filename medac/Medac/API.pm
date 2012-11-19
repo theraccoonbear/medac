@@ -3,6 +3,8 @@ package Medac::API;
 
 use Moose;
 
+with 'Medac::Config';
+
 use lib '..';
 #use strict;
 use warnings;
@@ -13,7 +15,7 @@ use Slurp;
 use CGI;
 use POSIX;
 use Medac::API::Default;
-use Medac::Config;
+#use Medac::Config;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use Cwd qw(abs_path cwd);
 use Moose::Util::TypeConstraints;
@@ -43,11 +45,11 @@ has 'initialized' => (
   default => undef
 );
 
-has 'config' => (
-  is => 'rw',
-  isa => 'Medac::Config',
-  default => sub { my $cfg = new Medac::Config(); return $cfg; }
-);
+#has 'config' => (
+#  is => 'rw',
+#  isa => 'Medac::Config',
+#  default => sub { my $cfg = new Medac::Config(); return $cfg; }
+#);
 
 #has 'provider' => (
 #	is => 'rw',
@@ -83,36 +85,36 @@ has 'context' => (
 
 
 
-sub drillex {
-	my $self = shift @_;
-	my $obj = shift @_;
-	my $bits = shift @_;
-	my $default = '____________MISSING';
-	
-	my $val = $self->drill($obj, $bits, $default);
-	
-	return $val ne $default;	
-}
-
-sub drill {
-	my $self = shift @_;
-	my $obj = shift @_;
-	my $bits = shift @_;
-	my $default = shift @_ || undef;
-	
-	foreach my $bit (@{$bits}) {
-		if (ref $obj eq 'HASH' && defined $obj->{$bit}) {
-			$obj = $obj->{$bit};
-		} elsif (ref $obj eq 'ARRAY' && defined $obj->[$bit]) {
-			$obj = $obj->[$bit];
-		} else {
-			$obj = $default;
-			last;
-		}
-	}
-	
-	return $obj;
-}
+#sub drillex {
+#	my $self = shift @_;
+#	my $obj = shift @_;
+#	my $bits = shift @_;
+#	my $default = '____________MISSING';
+#	
+#	my $val = $self->drill($obj, $bits, $default);
+#	
+#	return $val ne $default;	
+#}
+#
+#sub drill {
+#	my $self = shift @_;
+#	my $obj = shift @_;
+#	my $bits = shift @_;
+#	my $default = shift @_ || undef;
+#	
+#	foreach my $bit (@{$bits}) {
+#		if (ref $obj eq 'HASH' && defined $obj->{$bit}) {
+#			$obj = $obj->{$bit};
+#		} elsif (ref $obj eq 'ARRAY' && defined $obj->[$bit]) {
+#			$obj = $obj->[$bit];
+#		} else {
+#			$obj = $default;
+#			last;
+#		}
+#	}
+#	
+#	return $obj;
+#}
 
 sub stackTrace {
 	my $self = shift @_;

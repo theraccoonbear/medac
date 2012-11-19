@@ -1,9 +1,10 @@
 package Medac::Provider;
 
-#use Moose;
-use Moose::Role;
+use Moose;
+#use Moose::Role;
 
 with 'Medac::Config';
+#with 'Medac::Queue';
 #extends 'Medac::API';
 
 use strict;
@@ -26,11 +27,11 @@ has 'info' => (
     return {
       name => 'UnnamedProvider',
       host => {
-	name => 'medac.localhost',
-	path => '/media',
-	user => 'guest',
-	pass => 'gu35t',
-	port => 22
+				name => 'medac.localhost',
+				path => '/media',
+				user => 'guest',
+				pass => 'gu35t',
+				port => 22
       }
     };
   }
@@ -48,7 +49,7 @@ sub readProvider {
   my $self = shift @_;
   my $pr_name = shift @_;
   
-  my $dl_root = $self->config->drill(['paths','downloads']);
+  my $dl_root = $self->drill(['paths','downloads']);
   
   if (! -d $dl_root) {
     $self->error("Download root does not exist: $dl_root");
@@ -69,8 +70,8 @@ sub readProvider {
   my $json = read_file($provider_file);
   my $obj = decode_json($json);
   $self->info($obj);
-  
-  $self->queue($self->queue->loadProviderQueue($pr_name));
+	$self->queue->loadProviderQueue($pr_name);
+  #$self->queue($self->queue->loadProviderQueue($pr_name));
   
 }
 

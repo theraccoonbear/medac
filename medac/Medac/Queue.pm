@@ -1,7 +1,7 @@
 package Medac::Queue;
 
-#use Moose;
-use Moose::Role;
+use Moose;
+#use Moose::Role;
 
 
 with 'Medac::Config';
@@ -27,11 +27,9 @@ has queued => (
 
 sub ensureQueueExists {
 	my $self = shift @_;
-	my $provider = shift @_ || $self->provider;
+	my $provider = shift @_; # || $self->provider;
 	
-	$self->provider($provider);
-	
-	my $dl_dir = $self->config->drill(['paths','downloads']);
+	my $dl_dir = $self->drill(['paths','downloads']);
 	
 	if (!$dl_dir) {
 		$self->error("No download path specified in config");
@@ -69,7 +67,7 @@ sub readQueue {
 	
 	#$self->pr(ref $provider);
 	
-	$self->provider($provider);
+	#$self->provider($provider);
 	my $queue_file = $self->ensureQueueExists($provider); #$pr_dl_dir . 'queue.json';
 	my $queue = [];
 	
@@ -185,7 +183,7 @@ sub loadProviderQueue {
 	my $self = shift @_;
 	my $pr_name = shift @_;
 	
-	my $dl_dir = $self->config->drill(['paths','downloads']);
+	my $dl_dir = $self->drill(['paths','downloads']);
 	
 	if (!$dl_dir) {
 		$self->error("No download path specified in config");
@@ -201,11 +199,11 @@ sub loadProviderQueue {
 		$self->error("Provider metadata doesn't exist");
 	}
 	
-	my $json = decode_json(read_file($provider_file));
+	my $provider = decode_json(read_file($provider_file));
 	#print Dumper($json); exit;
 	
-	$self->provider($json);
-	$self->readQueue();
+	#$self->provider($json);
+	$self->readQueue($provider);
 }
 
 
