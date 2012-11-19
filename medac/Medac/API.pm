@@ -299,11 +299,13 @@ sub init {
 
 sub dispatch {
   my $self = shift @_;
+  my $p_model = shift @_ || 'Default';
+	my $p_action = shift @_ || 'index';;
   
-  my $debug = ();
-  
-  $self->model('Default');
-  $self->action('Index');
+	my $debug = ();
+	
+  $self->model($p_model);
+  $self->action($p_action);
 	$self->init();
 	
 #	$self->req($pl);

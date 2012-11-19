@@ -3,6 +3,8 @@ package Medac::API::Download;
 use lib '..';
 use Moose;
 
+with 'Medac::Config';
+
 extends 'Medac::API::Default';
 
 use strict;
@@ -16,6 +18,7 @@ use POSIX;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use Cwd qw(abs_path cwd);
 use Medac::Queue;
+use Medac::Provider;
 
 has 'exposed' => (
 	is => 'ro',
@@ -29,11 +32,13 @@ has 'queue' => (
 	default => sub { return new Medac::Queue(); }
 );
 
-#has 'provider' => (
-#	is => 'rw',
-#	isa => 'Str',
-#	default => 'Unknown'
-#);
+has 'provider' => (
+	is => 'rw',
+	isa => 'Medac::Provider',
+	default => sub {
+		return new Medac::Provider();
+	}
+);
 
 sub status {
   my $self = shift @_;
@@ -46,6 +51,8 @@ sub status {
 	
 	#my $pr_name = $self->drill($prm, ['provider','name']);
 	my $pr_name = $self->provider->{name};
+	
+	
 	my $dl_root = $self->config->drill(['paths', 'downloads']);
 	my $resource = $self->drill($prm, ['resource']);
 	

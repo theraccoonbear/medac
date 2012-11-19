@@ -63,11 +63,17 @@ sub drillex {
 
 sub drill {
 	my $self = shift @_;
-	#my $obj = shift @_;
-	my $bits = shift @_;
-	my $default = shift @_ || undef;
-	
 	my $obj = $self->config;
+	my $bits;
+	
+	if (scalar @_ == 1) {
+		$bits = shift @_;	
+	} else {
+		$obj = shift @_;
+		$bits = shift @_;	
+	}
+
+	my $default = shift @_ || undef;
 	
 	foreach my $bit (@{$bits}) {
 		if (defined $obj->{$bit}) {
