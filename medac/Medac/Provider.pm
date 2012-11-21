@@ -4,6 +4,8 @@ use Moose;
 #use Moose::Role;
 
 with 'Medac::Config';
+with 'Medac::Response';
+
 #with 'Medac::Queue';
 #extends 'Medac::API';
 

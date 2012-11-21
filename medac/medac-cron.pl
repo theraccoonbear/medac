@@ -14,6 +14,8 @@ use Medac::API;
 use Medac::Queue;
 use Medac::Provider;
 
+my $api = new Medac::API(context => 'local');
+
 my $rsync_tag = 'MEDAC_RSYNC_ACTIVE';
 
 my $ps = `ps aux`;
@@ -42,13 +44,6 @@ if ($ps =~ m/$rsync_tag/g) {
 	errMsg("instance in progress, exiting");
 	exit 0;
 } else {
-	#my $cfg = new Medac::Config();
-	my $api = new Medac::API(context => 'local');
-	#my $cfg = $api->config;
-	#my $cfg = bless($api->config;
-	#my $queue = new Medac::Queue();
-	
-	
 	my $dl_root = $api->drill(['paths','downloads']);
 	
 	
