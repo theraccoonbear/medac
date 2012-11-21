@@ -79,7 +79,7 @@ $(function() {
 			}
 			
 			$.post(model + '/' + action, {'request': JSON.stringify(request)}, function(data, status, xhr) {
-				$('.liveSpinner').remove();
+				//$('.liveSpinner').remove();
 				
 				if (data.success) {
 					callback(data, status, xhr);

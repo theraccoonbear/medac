@@ -3,7 +3,9 @@ package Medac::API::Download;
 use lib '..';
 use Moose;
 
-with 'Medac::Config';
+with 'Medac';
+#with 'Medac::Config';
+with 'Medac::Response';
 
 extends 'Medac::API::Default';
 
@@ -42,11 +44,10 @@ sub status {
 		$self->error("Invalid parameters.  No posted data.");
 	}
 	
-	#my $pr_name = $self->drill($prm, ['provider','name']);
-	my $pr_name = $self->provider->{name};
+	my $pr_name = $self->providerName($self->provider);
 	
 	
-	my $dl_root = $self->config->drill(['paths', 'downloads']);
+	my $dl_root = $self->drill(['paths', 'downloads']);
 	my $resource = $self->drill($prm, ['resource']);
 	
 	if (!$pr_name) {

@@ -7,4 +7,10 @@ use Medac::API;
 
 my $api = new Medac::API();
 
-$api->dispatch();
+eval {
+	$api->dispatch();
+};
+
+if ($@) {
+	$api->error("Error", $@);
+}

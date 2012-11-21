@@ -4,7 +4,7 @@ use Moose::Role;
 
 use constant IS_CGI => exists $ENV{'GATEWAY_INTERFACE'};
 
-with 'Medac::Config';
+with 'Medac';
 
 use lib '..';
 use strict;
@@ -96,7 +96,7 @@ sub json_pr {
 sub error {
 	my $self = shift @_;
 	my $msg = shift @_ || "Unknown error";
-	my $obj = shift @_;
+	my $obj = shift @_ || {};
 	
 	if (IS_CGI) {
 		$self->json_pr({stacktrace => $self->stackTrace(), object => $obj}, $msg, 1 == 0);

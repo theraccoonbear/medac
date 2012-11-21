@@ -117,7 +117,7 @@
 									<li><strong>Size:</strong> {{orig.meta.niceSize}}</li>
 									<li><strong>Length:</strong> {{orig.meta.duration}}</li>
 									<li><strong>Dimensions</strong> {{orig.meta.video_width}} x {{orig.meta.video_height}} @ {{orig.meta.video_fps}} FPS</li>
-									<li class="status"><strong>Downloaded:</strong> <span class="downloaded"></span></li>
+									<li class="status"><strong>Downloaded:</strong> <span class="downloaded"><img src="img/spinner-small.gif" alt="Spinner" class="liveSpinner" /></span></li>
 								</ul><!-- /.facts -->
 							</div>
 							
@@ -152,7 +152,7 @@
 	
 	
 	<script type="text/x-mustache-template" id="tmpl-Settings-QueueEntry">
-		<p>
+		<p class="queueEntry">
 			<a href="#" class="deleteButton dequeue" data-md5="{{md5}}">&nbsp;</a> <strong>{{file.ctxt.show_name}}: s{{file.imdb.season_number}}x{{file.imdb.episode_number}}, {{file.imdb.name}}</strong><br/>
 			File Exists: {{#exists}}YES{{/exists}}{{^exists}}NO{{/exists}},
 			Completed: {{percent}}%

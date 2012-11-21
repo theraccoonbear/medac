@@ -3,7 +3,8 @@ package Medac::API;
 
 use Moose;
 
-with 'Medac::Config';
+with 'Medac';
+#with 'Medac::Config';
 with 'Medac::Response';
 
 use lib '..';
@@ -17,7 +18,6 @@ use CGI;
 use POSIX;
 use Medac::API::Default;
 use Medac::Provider;
-#use Medac::Config;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use Cwd qw(abs_path cwd);
 use Moose::Util::TypeConstraints;
@@ -35,24 +35,12 @@ has 'action' => (
 	default => 'index'
 );
 
-has 'req' => (
-	is => 'rw',
-	isa => 'HashRef',
-	default => sub{ return {}; }
-);
+
 
 has 'initialized' => (
   is => 'rw',
   isa => 'Bool',
   default => undef
-);
-
-has 'provider' => (
-	is => 'rw',
-	isa => 'Medac::Provider',
-	default => sub {
-		return new Medac::Provider();
-	}
 );
 
 has 'q' => (
@@ -134,6 +122,14 @@ sub init {
 		'posted' => $posted
 	};
 	
+	if (defined $self->drillex($params, ['posted','provider','name'])) {
+		$self->provider($self->drill($params, ['posted','provider','name']));
+	}
+	
+	#$self->json_pr($params, "Whoa!");
+	
+	
+	
   my @path_parts = split(/\//, $self->q->url_param('path') || '');
 	
   my $p_cnt = scalar @path_parts;
@@ -174,26 +170,21 @@ sub init {
 	};
   
 	$self->req($pl);
-}
+} # init()
 
 sub dispatch {
   my $self = shift @_;
   my $p_model = shift @_ || 'Default';
-	my $p_action = shift @_ || 'index';;
+	my $p_action = shift @_ || 'who';;
   
-	my $debug = ();
 	
   $self->model($p_model);
   $self->action($p_action);
 	$self->init();
 	
-#	$self->req($pl);
-	
   my $model = $self->getModel($self->model());
   
   $model->action($self->action(), $self->req->{params});
-  
-}
-
+} # dispatch()
 
 1;

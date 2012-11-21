@@ -71,6 +71,8 @@ sub readQueue {
 	my $self = shift @_;
 	my $provider = shift @_;
 	
+	$self->provider($self->providerName($provider));
+	
 	my $queue_file = $self->queueFile($provider); #$self->ensureQueueExists($provider);
 	my $queue = [];
 	
@@ -87,11 +89,12 @@ sub readQueue {
 
 sub writeQueue {
 	my $self = shift @_;
+	
 	my $provider = shift @_ || $self->provider;
 	my $queue_data = shift @_ || $self->queued;
 	
 	my $queue_file = $self->queueFile($provider); #$self->ensureQueueExists($provider);
-	my $dl_dir = $self->config->drill(['paths','downloads']);
+	my $dl_dir = $self->drill(['paths','downloads']);
 	
 	if (!$dl_dir) {
 		$self->error("No download path specified in config");
@@ -111,7 +114,6 @@ sub writeQueue {
 	}
 	
 	
-	#my $queue_file = $pr_dl_dir . 'queue.json';
 	
 	write_file($queue_file, encode_json($queue_data));
 }
@@ -122,12 +124,19 @@ sub enqueue {
 	
 	my $in_queue = $self->inQueue($resource);
 	
+	#$self->error('Whoops!', $self->provider);
+	
 	if (defined $in_queue) {
 		$self->json_pr({already_queued => JSON::XS::true}, "File already queued");
 	} else {
 		push @{$self->queued()}, $resource;
 		$self->writeQueue();
-		$self->json_pr({already_queued => JSON::XS::false}, "File enqueued");
+		$in_queue = $self->inQueue($resource);
+		if (defined $in_queue) {
+			$self->json_pr({already_queued => JSON::XS::false, queue => $self->queued}, "File enqueued");
+		} else {
+			$self->error("Enqueue failed", {queue => $self->queued, resource => $resource});
+		}
 	}
 }
 
@@ -173,22 +182,7 @@ sub queueFile {
 	
 }
 
-sub providerName {
-	my $self = shift @_;
-	my $provider = shift @_;
-	
-	my $pr_name = $provider;
-	
-	if (ref $provider eq 'HASH' && defined $provider->{name}) {
-		$pr_name = $provider->{name};
-	} elsif (ref $provider eq 'Medac::Provider') {
-		#print "Content-Type: text/plain\n\n";
-		#print Dumper($provider); exit;
-		$pr_name = $provider->info->{name};
-	}
-	
-	return $pr_name;
-}
+
 
 sub inQueue {
 	my $self = shift @_;
@@ -221,12 +215,12 @@ sub loadProviderQueue {
 	
 	my $pr_dl_dir = $dl_dir . $pr_name . '/';
 	if (! -d $pr_dl_dir) {
-		$self->error("Provider download directory doesn't exist");
+		$self->error("Provider download directory doesn't exist: $pr_dl_dir");
 	}
 	
 	my $provider_file = $pr_dl_dir . 'provider.json';
 	if (! -f $provider_file) {
-		$self->error("Provider metadata doesn't exist");
+		$self->error("Provider metadata doesn't exist: $provider_file");
 	}
 	
 	my $provider = decode_json(read_file($provider_file));

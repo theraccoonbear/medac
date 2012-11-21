@@ -2,6 +2,8 @@ package Medac::Config;
 
 use Moose::Role;
 
+with 'Medac';
+
 use strict;
 use warnings;
 use JSON::XS;
@@ -51,40 +53,6 @@ has 'config' => (
 );
 
 
-sub drillex {
-	my $self = shift @_;
-	my $bits = shift @_;
-	my $default = '____________MISSING';
-	
-	my $val = $self->drill($bits, $default);
-	
-	return $val ne $default;	
-}
 
-sub drill {
-	my $self = shift @_;
-	my $obj = $self->config;
-	my $bits;
-	
-	if (scalar @_ == 1) {
-		$bits = shift @_;	
-	} else {
-		$obj = shift @_;
-		$bits = shift @_;	
-	}
-
-	my $default = shift @_ || undef;
-	
-	foreach my $bit (@{$bits}) {
-		if (defined $obj->{$bit}) {
-			$obj = $obj->{$bit};
-		} else {
-			$obj = $default;
-			last;
-		}
-	}
-	
-	return $obj;
-}
 
 1

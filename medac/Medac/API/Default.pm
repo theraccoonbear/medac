@@ -3,9 +3,9 @@ package Medac::API::Default;
 
 use Moose;
 
+with 'Medac';
 
-
-extends 'Medac::API';
+#extends 'Medac::API';
 
 use strict;
 use warnings;
@@ -78,11 +78,14 @@ sub init {
 		$self->error("Invalid parameters.  No posted data.");
 	}
 	
-	my $provider = $self->drill($prm, ['provider']); #,'name']);
+	my $provider = $self->drill($prm, ['provider','name']); #,'name']);
+	
+	#$self->error('Error', $provider);
+	
 	my $resource = $self->drill($prm, ['resource']);
 	
 	if ($provider) {
-		$self->provider->setProvider($provider);
+		$self->provider($provider);
 	}
 	
 	if ($resource) {

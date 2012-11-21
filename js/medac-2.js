@@ -294,8 +294,6 @@ $(function() {
 						}
 					},
 					callback: function(d, s, x) {
-						//console.log("Success!");
-						//console.log(d);
 						if (d.payload.exists) {
 							var per = Math.floor(d.payload.size / orig.size * 1000) / 10;
 							$('.status .downloaded').html(per + '%');
@@ -319,7 +317,7 @@ $(function() {
 						action: 'queue-status',
 						data: {},
 						callback: function(d, s, x) {
-							
+							$('.liveSpinner').remove();
 							if (d.success) {
 								var qeTmpl = $('#tmpl-Settings-QueueEntry').html();
 								for (var i = 0; i < d.payload.length; i++) {
@@ -329,6 +327,8 @@ $(function() {
 									f.file = drill(MEDAC, INDEX[f.md5]);
 									$ca.append(Mustache.render(qeTmpl, f));
 								}
+							} else {
+								API.apiError("Something went wrong", {});
 							}
 						}
 					});
@@ -402,7 +402,8 @@ $(function() {
 				}
 			},
 			callback: function(d, s, x) {
-				console.log(d);
+				//console.log(d);
+				$this.parent('.queueEntry').fadeOut(250, function() { $(this).remove(); });
 			}
 		});
 		
