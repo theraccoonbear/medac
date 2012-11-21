@@ -43,9 +43,16 @@ has 'queue' => (
   is => 'rw',
   isa => 'Medac::Queue',
   default => sub {
-    return new Medac::Queue;
+    return new Medac::Queue();
   }
 );
+
+sub setProvider {
+	my $self = shift @_;
+	my $provider = shift @_;
+	
+	$self->info($provider);
+}
 
 sub readProvider {
   my $self = shift @_;

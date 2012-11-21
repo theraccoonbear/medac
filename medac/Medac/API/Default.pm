@@ -82,7 +82,7 @@ sub init {
 	my $resource = $self->drill($prm, ['resource']);
 	
 	if ($provider) {
-		$self->provider($provider);
+		$self->provider->setProvider($provider);
 	}
 	
 	if ($resource) {

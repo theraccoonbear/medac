@@ -16,23 +16,21 @@ $(function() {
 		apiError: function(d, r) {
 			var mkup = [];
 			
-			var width = Math.min(screen.width - 40, 400);
+			var width = Math.min(screen.width - 40, 600);
 			var height = Math.min(screen.height - 40, 400);
+			
+			var debug_text = d.payload.error ? d.payload.error : d.payload.stacktrace.join("\n");
 			
 			mkup.push('<div class="modalWindow" style="left: 20px; height: 20px; width: ' + width + 'px; height: ' + height + 'px;">');
 			mkup.push('<h1>API Error</h1>');
 			mkup.push('<a href="#" class="dismiss">X</a>');
 			mkup.push('<div class="source">' + r.model + '::' + r.action + '()</div>');
 			mkup.push('<div class="help">' + d.message + '</div>');
-			mkup.push('<div class="debug">' + d.payload.error + '</div>');
+			mkup.push('<div class="debug">' + debug_text + '</div>');
 			mkup.push('</div>');
 			
 			var $err = $(mkup.join("\n"));
-			//var $dbg = $err.find('.debug');
-			//var $help = $err.find('.help');
-			//
-			//$dbg.html(d.payload.error);
-			//$help.html(d.message);
+			console.log(d.payload.object);
 			
 			$('.dismiss').live('click', function(e) {
 				var $this = $(this);

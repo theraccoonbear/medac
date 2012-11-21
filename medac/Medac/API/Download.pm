@@ -32,13 +32,6 @@ has 'queue' => (
 	default => sub { return new Medac::Queue(); }
 );
 
-has 'provider' => (
-	is => 'rw',
-	isa => 'Medac::Provider',
-	default => sub {
-		return new Medac::Provider();
-	}
-);
 
 sub status {
   my $self = shift @_;

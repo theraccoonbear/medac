@@ -1,10 +1,9 @@
 package Medac::Queue;
 
 use Moose;
-#use Moose::Role;
-
 
 with 'Medac::Config';
+with 'Medac::Response';
 #extends 'Medac::API';
 
 use strict;
@@ -22,12 +21,11 @@ has queued => (
 	is => 'rw',
 	isa => 'ArrayRef',
 	default => sub { return []; }
-);
-
+); 
 
 sub ensureQueueExists {
 	my $self = shift @_;
-	my $provider = shift @_; # || $self->provider;
+	my $provider = shift @_;
 	
 	my $dl_dir = $self->drill(['paths','downloads']);
 	
@@ -35,7 +33,17 @@ sub ensureQueueExists {
 		$self->error("No download path specified in config");
 	}
 	
-	my $pr_dl_dir = $dl_dir . $provider->{name} . '/';
+	my $pr_name = $provider;
+	if (defined $provider->{name}) {
+		$pr_name = $provider->{name};
+	} elsif (defined $provider->info) {
+		$pr_name = $provider->info->{name};
+	} 
+	
+	
+	$self->error("dl_dir = '$dl_dir', pr_nname = '$pr_name'");
+	
+	my $pr_dl_dir = $dl_dir . $pr_name . '/';
 	if (! -d $pr_dl_dir) {
 		mkdir $pr_dl_dir or $self->error("Can't create DL path \"$pr_dl_dir\": $!");
 		chmod(0775, $pr_dl_dir);
@@ -63,12 +71,7 @@ sub readQueue {
 	my $self = shift @_;
 	my $provider = shift @_;
 	
-	
-	
-	#$self->pr(ref $provider);
-	
-	#$self->provider($provider);
-	my $queue_file = $self->ensureQueueExists($provider); #$pr_dl_dir . 'queue.json';
+	my $queue_file = $self->queueFile($provider); #$self->ensureQueueExists($provider);
 	my $queue = [];
 	
 	if (-f $queue_file) {
@@ -87,16 +90,16 @@ sub writeQueue {
 	my $provider = shift @_ || $self->provider;
 	my $queue_data = shift @_ || $self->queued;
 	
-	my $queue_file = $self->ensureQueueExists($provider);
+	my $queue_file = $self->queueFile($provider); #$self->ensureQueueExists($provider);
 	my $dl_dir = $self->config->drill(['paths','downloads']);
 	
 	if (!$dl_dir) {
 		$self->error("No download path specified in config");
 	}
 	
-	$self->provider($provider);
+	#$self->provider($provider);
 	
-	my $pr_dl_dir = $dl_dir . $provider->{name} . '/';
+	my $pr_dl_dir = $dl_dir . $self->providerName($provider) . '/';
 	
 	if (! -d $pr_dl_dir) {
 		mkdir $pr_dl_dir, 0775 or $self->error("Can't create DL path \"$pr_dl_dir\": $!");
@@ -147,17 +150,44 @@ sub dequeue {
 
 sub queueRoot {
 	my $self = shift @_;
-	my $provider = shift @_ || $self->provider;
+	my $provider = shift @_; # || $self->provider;
 	
-	my $dl_dir = $self->config->drill(['paths','downloads']);
+	#$self->error("Debug", $self->config);
+	
+	my $dl_dir = $self->drill(['paths','downloads']);
 	
 	if (!$dl_dir) {
 		$self->error("No download path specified in config");
 	}
 	
-	my $pr_dl_dir = $dl_dir . $provider->{name} . '/';
+	my $pr_dl_dir = $dl_dir . $self->providerName($provider) . '/';
 	
 	return $pr_dl_dir;
+}
+
+sub queueFile {
+	my $self = shift @_;
+	my $provider = shift @_;
+	
+	return $self->queueRoot($self->providerName($provider)) . 'queue.json';
+	
+}
+
+sub providerName {
+	my $self = shift @_;
+	my $provider = shift @_;
+	
+	my $pr_name = $provider;
+	
+	if (ref $provider eq 'HASH' && defined $provider->{name}) {
+		$pr_name = $provider->{name};
+	} elsif (ref $provider eq 'Medac::Provider') {
+		#print "Content-Type: text/plain\n\n";
+		#print Dumper($provider); exit;
+		$pr_name = $provider->info->{name};
+	}
+	
+	return $pr_name;
 }
 
 sub inQueue {

@@ -14,6 +14,12 @@ use Medac::API;
 use Medac::Queue;
 use Medac::Provider;
 
+sub escape {
+	my $arg = shift;
+	$arg =~ s/([^a-zA-Z0-9\/])/\\$1/g;
+	return $arg;
+}
+
 my $api = new Medac::API(context => 'local');
 
 my $rsync_tag = 'MEDAC_RSYNC_ACTIVE';
@@ -76,28 +82,29 @@ if ($ps =~ m/$rsync_tag/g) {
 						my $qfile_path = $prov_queue_dir . $qfile->{path};
 						my $exists = -f $qfile_path;
 						
-						#print Dumper($pr_obj->info);
-						
 						my $pr_host_name = $pr_obj->info->{host}->{name};
 						my $pr_host_port = $pr_obj->info->{host}->{port};
 						my $pr_host_user = $pr_obj->info->{host}->{user};
 						(my $pr_host_path = $pr_obj->info->{host}->{path}) =~ s/\/$//gi;
+						my $pr_file_path = escape($pr_host_path . $qfile->{path});
+						my $pr_qfile_path = escape($qfile_path);
 						
-						my $cmd = "echo \"{$rsync_tag}\" > /dev/null && rsync -avz --progress --partial --append -e \"ssh -p $pr_host_port\" $pr_host_user\@$pr_host_name:$pr_host_path$qfile->{path} $qfile_path";
+						my $cmd = "echo \"{$rsync_tag}\" > /dev/null && rsync -avz --progress --partial --append -e \"ssh -p $pr_host_port\" $pr_host_user\@$pr_host_name:$pr_file_path $pr_qfile_path";
 						
 						logMsg("  - $cmd");
 						
 						if ($exists) {
 							my $downloaded = (stat $qfile_path)[7];
 							if ($downloaded eq $qfile->{size}) {
-								logMsg("  - Download 100% complete; dequeing: $qfile_path");
+								logMsg("  - Download 100% complete; dequeing: $provider_name/$qfile->{path}");
 								$pr_obj->queue->dequeue($qfile);
 							} else {
 								my $percent = $downloaded / $qfile->{size};
-								logMsg("  - Download $percent\% complete: $qfile_path ");
+								logMsg("  - Download $percent\% complete: /$provider_name$qfile->{path} ");
 							}
 						} else { # -f $qfile_path
-							logMsg("  - Download not started: $qfile->{path}");
+							logMsg("  - Download not started: /$provider_name$qfile->{path}");
+							#my $output = `$cmd`;
 						} # -f qfile_path
 					} # foreach (@{$queue})
 				} # empty queue?

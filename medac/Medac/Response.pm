@@ -2,6 +2,8 @@ package Medac::Response;
 
 use Moose::Role;
 
+use constant IS_CGI => exists $ENV{'GATEWAY_INTERFACE'};
+
 with 'Medac::Config';
 
 use lib '..';
@@ -18,23 +20,19 @@ use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use Cwd qw(abs_path cwd);
 use Moose::Util::TypeConstraints;
 
-enum 'ContextType', [qw(local www)];
-
-has 'context' => (
-	is => 'rw',
-	isa => 'ContextType',
-	default => 'local'
-);
 
 sub stackTrace {
 	my $self = shift @_;
 	
 	my $max_depth = 30;
-	my $i = 0;
+	my $i = 1;
 	my $stack = [];
 	
+	
+	my $cnt = 0;
 	while ((my @call_details = (caller($i++))) && ($i<$max_depth)) {
-		push @{$stack}, "$i) $call_details[1] line $call_details[2] in function $call_details[3]";
+		$cnt++;
+		push @{$stack}, "$cnt) $call_details[1] line $call_details[2] in function $call_details[3]";
 	}
 	
 	return $stack;
@@ -43,9 +41,8 @@ sub stackTrace {
 sub pr {
 	my $self = shift @_;
 	my $o = shift @_;
-	#my $max_depth = 30;
 	
-	if ($self->context eq 'www') {
+	if (IS_CGI) {
 		print "Content-Type: text/html\n\n";
 		print '<h1>Dump:</h1>';
 		print '<pre>';
@@ -53,7 +50,8 @@ sub pr {
 		print "Dump:\n";
 	}
 	print Dumper($o);
-	if ($self->context eq 'www') {
+	
+	if (IS_CGI) {
 		print '</pre>';
 		print '<h1>Stack:</h1>';
 		print '<pre>';
@@ -62,7 +60,7 @@ sub pr {
 	}
 	print join("\n", @{$self->stackTrace()});
 	
-	if ($self->context eq 'www') {
+	if (IS_CGI) {
 		print '</pre>';
 	}
 	exit;
@@ -98,8 +96,13 @@ sub json_pr {
 sub error {
 	my $self = shift @_;
 	my $msg = shift @_ || "Unknown error";
+	my $obj = shift @_;
 	
-	$self->json_pr({}, $msg, 1 == 0);
+	if (IS_CGI) {
+		$self->json_pr({stacktrace => $self->stackTrace(), object => $obj}, $msg, 1 == 0);
+	} else {
+		$self->pr("ERROR: $msg");
+	}
 }
 
 1;

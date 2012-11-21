@@ -7,7 +7,7 @@ with 'Medac::Config';
 with 'Medac::Response';
 
 use lib '..';
-#use strict;
+use strict;
 use warnings;
 use JSON::XS;
 use File::Slurp;
@@ -16,6 +16,7 @@ use Slurp;
 use CGI;
 use POSIX;
 use Medac::API::Default;
+use Medac::Provider;
 #use Medac::Config;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use Cwd qw(abs_path cwd);
@@ -46,19 +47,13 @@ has 'initialized' => (
   default => undef
 );
 
-#has 'config' => (
-#  is => 'rw',
-#  isa => 'Medac::Config',
-#  default => sub { my $cfg = new Medac::Config(); return $cfg; }
-#);
-
-#has 'provider' => (
-#	is => 'rw',
-#	isa => 'Medac::Provider',
-#	default => sub {
-#		return new Medac::Provider;
-#	}
-#);
+has 'provider' => (
+	is => 'rw',
+	isa => 'Medac::Provider',
+	default => sub {
+		return new Medac::Provider();
+	}
+);
 
 has 'q' => (
   is => 'rw',
@@ -75,123 +70,6 @@ has 'root_path' => (
 		return $path;
 	}
 );
-
-#enum 'ContextType', [qw(local www)];
-
-#has 'context' => (
-#	is => 'rw',
-#	isa => 'ContextType',
-#	default => 'local'
-#);
-
-
-
-#sub drillex {
-#	my $self = shift @_;
-#	my $obj = shift @_;
-#	my $bits = shift @_;
-#	my $default = '____________MISSING';
-#	
-#	my $val = $self->drill($obj, $bits, $default);
-#	
-#	return $val ne $default;	
-#}
-#
-#sub drill {
-#	my $self = shift @_;
-#	my $obj = shift @_;
-#	my $bits = shift @_;
-#	my $default = shift @_ || undef;
-#	
-#	foreach my $bit (@{$bits}) {
-#		if (ref $obj eq 'HASH' && defined $obj->{$bit}) {
-#			$obj = $obj->{$bit};
-#		} elsif (ref $obj eq 'ARRAY' && defined $obj->[$bit]) {
-#			$obj = $obj->[$bit];
-#		} else {
-#			$obj = $default;
-#			last;
-#		}
-#	}
-#	
-#	return $obj;
-#}
-
-#sub stackTrace {
-#	my $self = shift @_;
-#	
-#	my $max_depth = 30;
-#	my $i = 0;
-#	my $stack = [];
-#	
-#	while ((my @call_details = (caller($i++))) && ($i<$max_depth)) {
-#		push @{$stack}, "$i) $call_details[1] line $call_details[2] in function $call_details[3]";
-#	}
-#	
-#	return $stack;
-#}
-#
-#sub pr {
-#	my $self = shift @_;
-#	my $o = shift @_;
-#	#my $max_depth = 30;
-#	
-#	if ($self->context eq 'www') {
-#		print "Content-Type: text/html\n\n";
-#		print '<h1>Dump:</h1>';
-#		print '<pre>';
-#	} else {
-#		print "Dump:\n";
-#	}
-#	print Dumper($o);
-#	if ($self->context eq 'www') {
-#		print '</pre>';
-#		print '<h1>Stack:</h1>';
-#		print '<pre>';
-#	} else {
-#		print "Stack:\n";
-#	}
-#	print join("\n", @{$self->stackTrace()});
-#	
-#	if ($self->context eq 'www') {
-#		print '</pre>';
-#	}
-#	exit;
-#}
-#
-#sub json_pr {
-#	my $self = shift @_;
-#	my $o = shift @_;
-#	my $message = shift @_ || '';
-#	my $success = shift @_;
-#	
-#	if (! defined $success) {
-#		$success = 1 == 1;
-#	}
-#	
-#	if ($message eq '') {
-#		$message = $success ? 'Call successful' : 'Call failed';
-#	}
-#	$success = $success ? JSON::XS::true : JSON::XS::false;
-#	
-#	my $json = encode_json({
-#		'success' => $success,
-#		'payload' => $o,
-#		'message' => $message
-#	});
-#	
-#	# print "Content-Type: application/x-json\n\n";
-#	print "Content-Type: text/plain\n\n";
-#	print $json;
-#	exit;
-#}
-#
-#sub error {
-#	my $self = shift @_;
-#	my $msg = shift @_ || "Unknown error";
-#	
-#	$self->json_pr({}, $msg, 1 == 0);
-#}
 
 sub underscoreToCamelCase {
 	my $self = shift @_;
