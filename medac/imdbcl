@@ -1,4 +1,11 @@
 #!/usr/bin/perl
+BEGIN {
+	use Config::Auto;
+	use Cwd 'abs_path';
+	
+	#use lib(dirname(abs_path($0)));
+	push @INC, dirname(abs_path($0)) . '/Medac';
+}
 use Getopt::Long;
 use FindBin;
 use JSON::XS;
@@ -7,11 +14,9 @@ use warnings;
 use Data::Dumper;
 use File::Basename;
 use POSIX;
+
 use Config::Auto;
 use Cwd 'abs_path';
-
-#use lib(dirname(abs_path($0)));
-push @INC, dirname(abs_path($0)) . '/Medac';
 
 use Medac::Metadata::Source::IMDB;
 use Medac::Cache;
