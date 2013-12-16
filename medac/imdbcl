@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+use Getopt::Long;
 use FindBin;
 use JSON::XS;
 use strict;
@@ -7,9 +8,15 @@ use Data::Dumper;
 use File::Basename;
 use POSIX;
 use Config::Auto;
+use Cwd 'abs_path';
+
+use lib(dirname(abs_path($0)));
+
 use Medac::Metadata::Source::IMDB;
 use Medac::Cache;
-use Getopt::Long;
+
+
+exit(0);
 
 my $imdb = new Medac::Metadata::Source::IMDB();
 
