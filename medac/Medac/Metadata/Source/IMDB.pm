@@ -127,7 +127,7 @@ sub search {
 sub searchMovie {
 	my $self = shift @_;
 	my $title = shift @_;
-	return $self->search($title, 'feature');
+	return $self->search($title, 'feature,tv_movie,short');
 } # searchMovie()
 
 sub searchSeries {
@@ -135,6 +135,65 @@ sub searchSeries {
 	my $title = shift @_;
 	return $self->search($title, 'tv_series,mini_series');
 } # searchSeries()
+
+sub getMovie {
+	my $self = shift @_;
+	my $get_what = shift @_;
+	my $ret_val = {};
+	my $id = 0;
+	
+	if (!defined $get_what->{url}) {
+		if (defined $get_what->{id}) {
+			$get_what->{url} = "/title/" . $get_what->{id} . '/';
+		} else {
+			return $ret_val;
+		}
+	}
+	
+	my $url = $IMDB_BASE_URL .  $get_what->{url};
+	
+	my $cache_key = $get_what->{title};
+	
+	if ($self->show_cache->hit($cache_key)) {
+		$ret_val = $self->show_cache->retrieve($cache_key);
+		
+	} else {
+		$mech->get($url);
+		
+		die unless ($mech->success);
+		my $content = $mech->{content};
+		
+		my $details_scraper = scraper {
+			process '#img_primary a img', 'image' => '@src';
+			process '#overview-top p[itemprop="description"]', 'synopsis' => 'TEXT';
+			process 'td#overview-top div.star-box-details span[itemprop="ratingValue"]', 'rating' => 'TEXT';
+			process 'div.article .txt-block a[href^="episodes?season="]', 'seasons[]' => 'TEXT';
+			process 'div[itemprop="actors"] a', 'actors[]' => {url => '@href', 'name' => 'TEXT'};#scraper {
+			#	process '[itemprop="url"]', 'url' => '@href';
+			#	process 'span', 'name', 'TEXT';
+			#}
+		};
+		
+		
+		
+		$ret_val = $details_scraper->scrape($content);
+		my $s_list = {};
+		
+		#foreach my $s (@{$ret_val->{seasons}}) {
+		#	$s_list->{$s} = {};
+		#}
+		#$ret_val->{seasons} = $s_list;
+		
+		$ret_val->{title} = $get_what->{title};
+		$ret_val->{year} = $get_what->{year};
+		$ret_val->{id} = $get_what->{id};
+		$ret_val->{url} = $get_what->{url};
+		
+		$self->show_cache->store($cache_key, $ret_val);
+	}
+	
+	return $ret_val;
+} # getMovie()
 
 sub getShow {
 	my $self = shift @_;

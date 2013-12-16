@@ -78,7 +78,8 @@ sub hit {
   my $ret_val = 0;
   if (defined $self->cache->{$key}) {
     $ret_val = 1;
-  }  
+  }
+	return 0;
   return $ret_val;
 }
 
