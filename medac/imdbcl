@@ -2,13 +2,11 @@
 use Config::Auto;
 use Cwd 'abs_path';
 
-BEGIN {	
-	#use lib(dirname(abs_path($0)));
-	print __FILE__;
-	push @INC, dirname(abs_path($0)) . '/Medac';
-}
-use Getopt::Long;
+use Cwd qw(abs_path);
 use FindBin;
+use lib abs_path("$FindBin::Bin/medac");
+
+use Getopt::Long;
 use JSON::XS;
 use strict;
 use warnings;
