@@ -72,6 +72,7 @@ if (!$search) {
 	closedir DFH;
 	foreach my $file (@files) {
 		if (-d $file && $file !~ m/^\.{1,2}$/ && $file !~ m/\(tt\d+\)/gi) {
+			$file =~ s/\[[^\]]+\]//gi;
 			print "Searching for \"$file\"...\n";
 			if (my $movie = pickMovie($file)) {
 				#print Dumper($movie);
