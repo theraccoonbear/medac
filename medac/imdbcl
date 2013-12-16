@@ -2,11 +2,11 @@
 use Config::Auto;
 use Cwd 'abs_path';
 
-use Cwd qw(abs_path);
 use FindBin;
-use lib abs_path("$FindBin::Bin/medac");
+use lib "$FindBin::Bin/medac";
 
 use Getopt::Long;
+use FindBin;
 use JSON::XS;
 use strict;
 use warnings;
