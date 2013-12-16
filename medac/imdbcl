@@ -77,9 +77,9 @@ if (!$search) {
 			if (my $movie = pickMovie($file)) {
 				#print Dumper($movie);
 				my $movie_data = $imdb->getMovie($movie);
-				print Dumper($movie_data);
+				#print Dumper($movie_data);
 			} else {
-				print "Exiting\n";
+				print "Skipping\n";
 			}
 		}
 	}
