@@ -1,9 +1,10 @@
 #!/usr/bin/perl
-BEGIN {
-	use Config::Auto;
-	use Cwd 'abs_path';
-	
+use Config::Auto;
+use Cwd 'abs_path';
+
+BEGIN {	
 	#use lib(dirname(abs_path($0)));
+	print __FILE__;
 	push @INC, dirname(abs_path($0)) . '/Medac';
 }
 use Getopt::Long;
