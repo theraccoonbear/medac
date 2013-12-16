@@ -10,7 +10,8 @@ use POSIX;
 use Config::Auto;
 use Cwd 'abs_path';
 
-use lib(dirname(abs_path($0)));
+#use lib(dirname(abs_path($0)));
+push @INC, dirname(abs_path($0)) . '/Medac';
 
 use Medac::Metadata::Source::IMDB;
 use Medac::Cache;
