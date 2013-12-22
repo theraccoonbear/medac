@@ -73,8 +73,10 @@ sub usage {
 	msg;
 	msg "Options";
 	msg "  -s, --search      Search term for the IMDB.";
+	msg "  -m, --max         The maximum number of search results to display."
 	msg "  -d, --dir         The directory to scan, if scanning.  Defaults to the CWD.";
-	msg "       --scan       Scan directory performing IMDB searches based on folder name.  If no search term is specified this is the default action.";
+	msg "      --scan        Scan directory performing IMDB searches based on folder name.  If no search term is specified this is the default action.";
+	msg "      --rename      Rename directories during scan when a match is selected."
 	msg "  -t, --type        Type of search, either 'movie' (default) or 'tv'.";
 	msg;
 	if ($msg) {
