@@ -1,0 +1,97 @@
+#!/usr/bin/perl
+use Config::Auto;
+use Cwd 'abs_path';
+
+use FindBin;
+use lib "$FindBin::Bin/medac";
+
+use Getopt::Long;
+use FindBin;
+use JSON::XS;
+use strict;
+use warnings;
+use Data::Dumper;
+use File::Basename;
+use POSIX;
+
+use Config::Auto;
+use Cwd 'abs_path';
+
+use Medac::Metadata::Source::IMDB;
+use Medac::Cache;
+
+my $imdb = new Medac::Metadata::Source::IMDB();
+
+my $search;
+my $scan;
+
+GetOptions (
+	"search|s=s"   => \$search,
+	'scan' => \$scan
+);						
+
+
+sub pickMovie {
+	$search = shift @_;
+	my $results = $imdb->search($search,"feature,tv_movie,short");
+	
+	my $picked = 0;
+	while (!$picked) {
+		my $cnt = 0;
+		my $choices = {x => 'X', 'q' => 'Q'};
+		print "Results:\n";
+		foreach my $r (@{$results}) {
+			$cnt++;
+			my $synopsis = $r->{synopsis} || 'No synopsis';
+			$synopsis =~ s/^(.{,80}).+$/$1/gi;
+			print "    $cnt) $r->{title} ($r->{year}) - $synopsis\n";
+			$choices->{$cnt} = $r;
+		}
+		print "    X) Exit\n";
+		print "    Q) Quit Program\n";
+		print "\nChoose: ";
+		my $choice = <STDIN>;
+		chomp $choice;
+		$choice = lc($choice);
+		if ($choices->{$choice}) {
+			if ($choice eq 'x') {
+				return;
+			} elsif ($choice eq 'q') {
+				exit(0);
+			} else {
+				return $choices->{$choice};
+			}
+		}
+		
+	}
+} # pickMovie()
+
+if (!$search) {
+	opendir DFH, '.';
+	my @files = readdir DFH;
+	closedir DFH;
+	foreach my $file (@files) {
+		if (-d $file && $file !~ m/^\.{1,2}$/ && $file !~ m/\(tt\d+\)/gi) {
+			$file =~ s/\[[^\]]+\]//gi;
+			print "Searching for \"$file\"...\n";
+			if (my $movie = pickMovie($file)) {
+				#print Dumper($movie);
+				my $movie_data = $imdb->getMovie($movie);
+				#print Dumper($movie_data);
+			} else {
+				print "Skipping\n";
+			}
+		}
+	}
+	
+} else {
+	if (my $movie = pickMovie($search)) {
+		#print Dumper($movie);
+		my $movie_data = $imdb->getMovie($movie);
+		print Dumper($movie_data);
+	} else {
+		print "Exiting\n";
+	}
+	
+	#print Dumper($imdb->search("Oblivion","feature,tv_movie,short"));
+}
