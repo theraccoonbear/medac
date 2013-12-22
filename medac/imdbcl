@@ -13,6 +13,7 @@ use warnings;
 use Data::Dumper;
 use File::Basename;
 use POSIX;
+use File::Copy;
 
 use Medac::Metadata::Source::IMDB;
 use Medac::Cache;
@@ -21,11 +22,14 @@ my $scan_root = getcwd() . '/';
 
 my $imdb = new Medac::Metadata::Source::IMDB();
 
+
+my $debug_on = 0;
 my $search;
 my $search_type = 'movie';
 my $scan;
 my $rename = 0;
 my $max_results = 15;
+my $recursive = 0;
 
 GetOptions (
 	"search|s=s"   => \$search,
@@ -33,6 +37,7 @@ GetOptions (
 	'd|dir=s' => \$scan_root,
 	't|type=s' => \$search_type,
 	'rename' => \$rename,
+	'R|recursive' => \$recursive,
 	'm|max=i' => \$max_results
 );
 
@@ -52,9 +57,16 @@ sub msg {
 	print STDERR "${msg}${break}";
 }
 
-sub warn {
+sub dbg {
 	my $msg = shift @_;
-	msg STDERR "WARN: $msg";
+	if ($debug_on) {
+		msg  "DEBUG: $msg";
+	}
+}
+
+sub warning {
+	my $msg = shift @_;
+	msg "WARN: $msg";
 }
 
 sub err {
@@ -73,10 +85,11 @@ sub usage {
 	msg;
 	msg "Options";
 	msg "  -s, --search      Search term for the IMDB.";
-	msg "  -m, --max         The maximum number of search results to display."
+	msg "  -m, --max         The maximum number of search results to display.";
 	msg "  -d, --dir         The directory to scan, if scanning.  Defaults to the CWD.";
 	msg "      --scan        Scan directory performing IMDB searches based on folder name.  If no search term is specified this is the default action.";
-	msg "      --rename      Rename directories during scan when a match is selected."
+	msg "      --rename      Rename directories during scan when a match is selected.";
+	msg "  -R, --recursive   Recursively scan directories.";
 	msg "  -t, --type        Type of search, either 'movie' (default) or 'tv'.";
 	msg;
 	if ($msg) {
@@ -86,7 +99,7 @@ sub usage {
 	}
 }
 
-
+my $prev_choices = {};
 
 
 sub pickMovie {
@@ -96,90 +109,149 @@ sub pickMovie {
 	$search =~ s/^\s*([^\s])/$1/gis;
 	$search =~ s/([^\s])\s*$/$1/gis;
 	
-	my $results;
-	if ($search_type eq 'tv') {
-		#my $results = $imdb->search($search,"feature,tv_movie,short");
-		$results = $imdb->searchSeries($search);
-	} else {
-		$results = $imdb->searchMovie($search);
-	}
-	
-	if (scalar @$results < 1) {
-		return;
+	if (defined $prev_choices->{$search}) {
+		return $prev_choices->{$search};
 	} else {
 		
-		if (scalar @$results > $max_results) {
-			@$results = @$results[0..($max_results-1)];
+		
+		my $results;
+		if ($search_type eq 'tv') {
+			$results = $imdb->searchSeries($search);
+		} else {
+			$results = $imdb->searchMovie($search);
 		}
 		
-		my $picked = 0;
-		while (!$picked) {
-			my $cnt = 0;
-			my $choices = {s => 'S', 'q' => 'Q'};
-			msg "...found; results:";
-			foreach my $r (@{$results}) {
-				$cnt++;
-				my $synopsis = $r->{synopsis} || 'No synopsis';
-				$synopsis =~ s/^(.{,80}).+$/$1/gi;
-				msg "    $cnt) $r->{title} ($r->{year}) - $synopsis";
-				$choices->{$cnt} = $r;
-			}
-			msg "    S) Skip";
-			msg "    Q) Quit Program";
-			msg "\nChoose [1]: ", 1;
-			my $choice = <STDIN>;
-			chomp $choice;
-			$choice = lc($choice);
-			if ($choice eq '') {
-				$choice = 1;
-			}
+		if (scalar @$results < 1) {
+			return;
+		} else {
 			
-			if ($choices->{$choice}) {
-				if ($choice eq 's') {
-					return;
-				} elsif ($choice eq 'q') {
-					exit(0);
+			if (scalar @$results > $max_results) {
+				@$results = @$results[0..($max_results-1)];
+			}
+			my $default = 'S';
+			
+			msg "...found; choose.";
+			
+			my $picked = 0;
+			while (!$picked) {
+				my $cnt = 0;
+				my $choices = {s => 'S', 'q' => 'Q'};
+				msg '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=';
+				foreach my $r (@{$results}) {
+					$cnt++;
+					my $synopsis = $r->{synopsis} || 'No synopsis';
+					$synopsis =~ s/^(.{,80}).+$/$1/gi;
+					msg "    $cnt) $r->{title} ($r->{year}) [$r->{id}] - $synopsis";
+					$choices->{$cnt} = $r;
+				}
+				msg "    S) Skip";
+				msg "    Q) Quit Program";
+				msg "\nChoose [$default]: ", 1;
+				my $choice = <STDIN>;
+				chomp $choice;
+				if ($choice eq '') { $choice = $default; }
+				$choice = lc($choice);
+				if ($choices->{$choice}) {
+					if ($choice eq 's') {
+						return;
+					} elsif ($choice eq 'q') {
+						exit(0);
+					} else {
+						$prev_choices->{$choice} = $choices->{$choice};
+						return $prev_choices->{$choice};
+					}
+				}
+				
+			} # while()
+		}
+	} # prev_choice?
+} # pickMovie()
+
+sub fileFilter {
+	my $base = shift @_;
+	my @files = sort {uc($a) cmp uc($b) } @_;
+	
+	return map {
+		#((-d $base . $_) && ($_ !~ m/^\./) && ($_ !~ m/\btt\d+/gi) && ($_ !~ m/extrathumbs|extrafanart/gi)) ? $_ : ();
+		#((-d $base . $_ || $_ =~ m/\.(avi|mkv|mp4)$/gi) && ($_ !~ m/^\./) && ($_ !~ m/\btt\d+/gi) && ($_ !~ m/extrathumbs|extrafanart/gi)) ? $_ : ();
+		((-d $base . $_ || $_ =~ m/\.(?:avi|mkv|mp4)$/gi) && ($_ !~ m/^\./) && ($_ !~ m/\btt\d+/gi) && ($_ !~ m/^(?:extrathumbs|extrafanart|sample|subs)$/gi)) ? $_ : ();
+	} @files; 
+} # fileFilter()
+
+sub hasMedia {
+	my $dir = shift @_;
+	
+	if (! -d $dir) {
+		return;
+	}
+	
+	
+	opendir DFH, $dir;
+	my @files = readdir DFH;
+	@files = map { $_ =~ m/\.(?:mp4|mkv|avi)$/gi ? $_  : (); } @files;
+	closedir DFH;
+	
+	return scalar @files >= 1;
+}
+
+sub scanDir {
+	my $dir = shift @_;
+	if (! -d $dir) {
+		return;
+	}
+	
+	if ($dir !~ m/\/$/) {
+		$dir .= '/';
+	}
+	
+	opendir DFH, $dir;
+	my @uf_files = readdir DFH;
+	my @files = fileFilter($dir, @uf_files);
+	closedir DFH;
+	
+	if (scalar @files > 0) {
+		msg "Processing: $dir";
+		foreach my $file (@files) {
+			my $d_file = $file;
+			$d_file =~ s/\s*\[[^\]]+\]\s*//gi;
+			$d_file =~ s/\.[A-Za-z0-9]{1,4}$//gi;
+			my $file_path = $dir . $file;
+			
+			
+			if (hasMedia($file_path)) {
+				msg;
+				msg  "Searching for \"$d_file\"...    ", 1;
+				if (my $movie = pickMovie($d_file)) {
+					my $movie_data;
+					if ($search_type eq 'tv') {
+						$movie_data = $imdb->getShow($movie);
+					} else {
+						$movie_data = $imdb->getMovie($movie);
+					}
+					
+					my $new_file = "$movie_data->{title} ($movie_data->{year}) [$movie_data->{id}]";
+					my $new_path = $dir . $new_file;
+					
+					msg "...matched; renaming \"$file\" => \"$new_file\"";
+					if ($rename) {
+						move($file_path, $new_path);
+					}
+					
 				} else {
-					return $choices->{$choice};
+					msg "...unmatched; skipping.";
 				}
 			}
-			
-		} # while()
+			scanDir($file_path);
+		} # foreach $file
 	}
-} # pickMovie()
+} # scanDir()
 
 if (!$search) {
 	if (! -d $scan_root) {
 		usage "Directory \"$scan_root\" does not exist.";
-	} else {
-		msg "Scanning \"$scan_root\"...";
-	}	
-	
-	opendir DFH, $scan_root;
-	my @files = readdir DFH;
-	closedir DFH;
-	foreach my $file (@files) {
-		my $file_path = $scan_root . $file;
-		if (-d $file_path && $file !~ m/^\.{1,2}$/ && $file !~ m/\(tt\d+\)/gi) {
-			$file =~ s/\[[^\]]+\]//gi;
-			msg  "Searching for \"$file\"...    ", 1;
-			if (my $movie = pickMovie($file)) {
-				my $movie_data;
-				if ($search_type eq 'tv') {
-					$movie_data = $imdb->getShow($movie);
-				} else {
-					$movie_data = $imdb->getMovie($movie);
-				}
-				
-				
-				msg "...matched; moving.";
-				msg "  \"$file\" => \"$movie_data->{title} ($movie_data->{year}) [$movie_data->{id}]\"" . ($rename ? ' !!!' : '');
-			} else {
-				msg "...unmatched; skipping.";
-			}
-			msg;
-		}
 	}
+	
+	scanDir($scan_root);
 	
 } else {
 	if (my $movie = pickMovie($search)) {

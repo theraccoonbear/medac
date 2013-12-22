@@ -149,7 +149,6 @@ sub getMovie {
 	}
 	
 	my $url = $IMDB_BASE_URL .  $get_what->{url};
-	
 	my $cache_key = $get_what->{title};
 	
 	if ($self->show_cache->hit($cache_key)) {
