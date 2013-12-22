@@ -172,8 +172,6 @@ sub fileFilter {
 	my @files = sort {uc($a) cmp uc($b) } @_;
 	
 	return map {
-		#((-d $base . $_) && ($_ !~ m/^\./) && ($_ !~ m/\btt\d+/gi) && ($_ !~ m/extrathumbs|extrafanart/gi)) ? $_ : ();
-		#((-d $base . $_ || $_ =~ m/\.(avi|mkv|mp4)$/gi) && ($_ !~ m/^\./) && ($_ !~ m/\btt\d+/gi) && ($_ !~ m/extrathumbs|extrafanart/gi)) ? $_ : ();
 		((-d $base . $_ || $_ =~ m/\.(?:avi|mkv|mp4)$/gi) && ($_ !~ m/^\./) && ($_ !~ m/\btt\d+/gi) && ($_ !~ m/^(?:extrathumbs|extrafanart|sample|subs)$/gi)) ? $_ : ();
 	} @files; 
 } # fileFilter()
