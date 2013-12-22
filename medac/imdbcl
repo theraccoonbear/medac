@@ -14,84 +14,176 @@ use Data::Dumper;
 use File::Basename;
 use POSIX;
 
-use Config::Auto;
-use Cwd 'abs_path';
-
 use Medac::Metadata::Source::IMDB;
 use Medac::Cache;
+
+my $scan_root = getcwd() . '/';
 
 my $imdb = new Medac::Metadata::Source::IMDB();
 
 my $search;
+my $search_type = 'movie';
 my $scan;
+my $rename = 0;
+my $max_results = 15;
 
 GetOptions (
 	"search|s=s"   => \$search,
-	'scan' => \$scan
-);						
+	'scan' => \$scan,
+	'd|dir=s' => \$scan_root,
+	't|type=s' => \$search_type,
+	'rename' => \$rename,
+	'm|max=i' => \$max_results
+);
+
+if ($max_results < 1) {
+	$max_results = 1;
+}
+
+
+$search_type = lc($search_type);
+
+sub msg {
+	my $msg = shift @_ || "";
+	my $nobreak = shift @_;
+	
+	my $break = $nobreak ? "" : "\n";
+	
+	print STDERR "${msg}${break}";
+}
+
+sub warn {
+	my $msg = shift @_;
+	msg STDERR "WARN: $msg";
+}
+
+sub err {
+	my $msg = shift @_;
+	my $exit_code = shift @_ || 0;
+	msg "ERROR: $msg";
+	exit($exit_code);
+}
+
+sub usage {
+	my $msg = shift @_ || 0;
+	
+	
+	msg "imdbcl - A command line tool for searching the IMDB";
+	msg "Usage: imdbcl [OPTION]";
+	msg;
+	msg "Options";
+	msg "  -s, --search      Search term for the IMDB.";
+	msg "  -d, --dir         The directory to scan, if scanning.  Defaults to the CWD.";
+	msg "       --scan       Scan directory performing IMDB searches based on folder name.  If no search term is specified this is the default action.";
+	msg "  -t, --type        Type of search, either 'movie' (default) or 'tv'.";
+	msg;
+	if ($msg) {
+		err $msg;
+	} else {
+		exit(0);
+	}
+}
+
+
 
 
 sub pickMovie {
 	$search = shift @_;
-	my $results = $imdb->search($search,"feature,tv_movie,short");
 	
-	my $picked = 0;
-	while (!$picked) {
-		my $cnt = 0;
-		my $choices = {x => 'X', 'q' => 'Q'};
-		print "Results:\n";
-		foreach my $r (@{$results}) {
-			$cnt++;
-			my $synopsis = $r->{synopsis} || 'No synopsis';
-			$synopsis =~ s/^(.{,80}).+$/$1/gi;
-			print "    $cnt) $r->{title} ($r->{year}) - $synopsis\n";
-			$choices->{$cnt} = $r;
-		}
-		print "    X) Exit\n";
-		print "    Q) Quit Program\n";
-		print "\nChoose: ";
-		my $choice = <STDIN>;
-		chomp $choice;
-		$choice = lc($choice);
-		if ($choices->{$choice}) {
-			if ($choice eq 'x') {
-				return;
-			} elsif ($choice eq 'q') {
-				exit(0);
-			} else {
-				return $choices->{$choice};
-			}
+	$search =~ s/\((19|20)\d{2}\)//gis;
+	$search =~ s/^\s*([^\s])/$1/gis;
+	$search =~ s/([^\s])\s*$/$1/gis;
+	
+	my $results;
+	if ($search_type eq 'tv') {
+		#my $results = $imdb->search($search,"feature,tv_movie,short");
+		$results = $imdb->searchSeries($search);
+	} else {
+		$results = $imdb->searchMovie($search);
+	}
+	
+	if (scalar @$results < 1) {
+		return;
+	} else {
+		
+		if (scalar @$results > $max_results) {
+			@$results = @$results[0..($max_results-1)];
 		}
 		
+		my $picked = 0;
+		while (!$picked) {
+			my $cnt = 0;
+			my $choices = {s => 'S', 'q' => 'Q'};
+			msg "...found; results:";
+			foreach my $r (@{$results}) {
+				$cnt++;
+				my $synopsis = $r->{synopsis} || 'No synopsis';
+				$synopsis =~ s/^(.{,80}).+$/$1/gi;
+				msg "    $cnt) $r->{title} ($r->{year}) - $synopsis";
+				$choices->{$cnt} = $r;
+			}
+			msg "    S) Skip";
+			msg "    Q) Quit Program";
+			msg "\nChoose [1]: ", 1;
+			my $choice = <STDIN>;
+			chomp $choice;
+			$choice = lc($choice);
+			if ($choice eq '') {
+				$choice = 1;
+			}
+			
+			if ($choices->{$choice}) {
+				if ($choice eq 's') {
+					return;
+				} elsif ($choice eq 'q') {
+					exit(0);
+				} else {
+					return $choices->{$choice};
+				}
+			}
+			
+		} # while()
 	}
 } # pickMovie()
 
 if (!$search) {
-	opendir DFH, '.';
+	if (! -d $scan_root) {
+		usage "Directory \"$scan_root\" does not exist.";
+	} else {
+		msg "Scanning \"$scan_root\"...";
+	}	
+	
+	opendir DFH, $scan_root;
 	my @files = readdir DFH;
 	closedir DFH;
 	foreach my $file (@files) {
-		if (-d $file && $file !~ m/^\.{1,2}$/ && $file !~ m/\(tt\d+\)/gi) {
+		my $file_path = $scan_root . $file;
+		if (-d $file_path && $file !~ m/^\.{1,2}$/ && $file !~ m/\(tt\d+\)/gi) {
 			$file =~ s/\[[^\]]+\]//gi;
-			print "Searching for \"$file\"...\n";
+			msg  "Searching for \"$file\"...    ", 1;
 			if (my $movie = pickMovie($file)) {
-				#print Dumper($movie);
-				my $movie_data = $imdb->getMovie($movie);
-				#print Dumper($movie_data);
+				my $movie_data;
+				if ($search_type eq 'tv') {
+					$movie_data = $imdb->getShow($movie);
+				} else {
+					$movie_data = $imdb->getMovie($movie);
+				}
+				
+				
+				msg "...matched; moving.";
+				msg "  \"$file\" => \"$movie_data->{title} ($movie_data->{year}) [$movie_data->{id}]\"" . ($rename ? ' !!!' : '');
 			} else {
-				print "Skipping\n";
+				msg "...unmatched; skipping.";
 			}
+			msg;
 		}
 	}
 	
 } else {
 	if (my $movie = pickMovie($search)) {
-		#print Dumper($movie);
 		my $movie_data = $imdb->getMovie($movie);
-		print Dumper($movie_data);
+		msg Dumper($movie_data);
 	} else {
-		print "Exiting\n";
+		msg "Exiting\n";
 	}
-	
-	#print Dumper($imdb->search("Oblivion","feature,tv_movie,short"));
 }

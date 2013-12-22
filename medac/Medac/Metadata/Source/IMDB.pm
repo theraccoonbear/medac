@@ -83,9 +83,7 @@ sub search {
 	} else {
 		
 		$mech->add_header(Referer => 'http://www.imdb.com/search/title');
-		
-		#print Dumper($mech);
-		
+
 		$mech->get($search_url);
 		
 		
@@ -127,7 +125,7 @@ sub search {
 sub searchMovie {
 	my $self = shift @_;
 	my $title = shift @_;
-	return $self->search($title, 'feature,tv_movie,short');
+	return $self->search($title, 'feature,tv_movie,documentary,short');
 } # searchMovie()
 
 sub searchSeries {
