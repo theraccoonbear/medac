@@ -10,6 +10,7 @@ use Data::Dumper;
 use Text::Levenshtein qw(distance);
 use Mojo::DOM;
 use Medac::Cache;
+use URI::Escape;
 
 my $ua_string = "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.79 Safari/537.4";
 my $cookie_jar = HTTP::Cookies->new(); 
@@ -59,6 +60,82 @@ sub dist {
 	
 	return distance($val_1, $val_2);
 }
+
+sub find {
+	my $self = shift @_;
+	my $terms = shift @_;
+	my $search_type = shift @_ || 0;
+	
+	my $type_map = {
+		"All" => "&s=all",
+		"Name" => "&s=nm&ref_=fn_nm",
+		"Title" => "&s=tt&ref_=fn_tt",
+		"Movie" => "&s=tt&ttype=ft&ref_=fn_ft",
+		"TV" => "&s=tt&ttype=tv&ref_=fn_tv",
+		"TV Episode" => "&s=tt&ttype=ep&ref_=fn_ep",
+		"Video Game" => "&s=tt&ttype=vg&ref_=fn_vg",
+		"Character" => "&s=ch&ref_=fn_ch",
+		"Company" => "&s=co&ref_=fn_co",
+		"Keyword" => "&s=kw&ref_=fn_kw"
+	};
+	
+	$search_type = $type_map->{$search_type} ? $search_type : "All";
+	
+	my $search_filter = $type_map->{$search_type};
+	
+	my $search_url = $IMDB_BASE_URL . '/find?q=' . uri_escape($terms) . $search_filter;
+
+	my $ret_val = ();
+	my @s_results;
+	
+	if ($self->search_cache->hit($search_url)) {
+		$ret_val = $self->search_cache->retrieve($search_url);
+	} else {
+		
+		$mech->add_header(Referer => 'http://www.imdb.com/');
+
+		print "URL: $search_url\n";
+		
+		$mech->get($search_url);
+		
+		die unless ($mech->success);
+		my $content = $mech->{content};
+		
+		# SX{{width}}_CR0,0,{{width}},{{height}}_.jpg
+		# poster: http://ia.media-imdb.com/images/M/MV5BMTI4NzI5NzEwNl5BMl5BanBnXkFtZTcwNjc1NjQyMQ@@._V1_SX128_CR0,0,128,44_.jpg
+		
+		my $search_scraper = scraper {
+			process '.findSection', 'sections[]' => scraper {
+				process '.findSectionHeader', 'name' => 'text';
+				process 'findSectionHeader a', 'id' => '@name';
+				process '.findList tr', 'entries[]' => scraper {
+					process 'td.primary_photo a', 'url' => '@href';
+					process 'td.primary_photo a img', 'poster' => '@src';
+					process 'td.result_text a', 'url' => '@href', 'title' => 'TEXT';
+					process 'td.result_text', 'meta' => 'TEXT';
+					process 'td' => 'check' => sub { my $self = shift @_; return Dumper(@_); };
+				}
+			}
+		};
+		
+		
+		
+		$ret_val = $search_scraper->scrape($content);
+		
+		foreach my $sec (@{$ret_val->{sections}}) {
+			print "$sec->{name} : $sec->{id}\n";
+			foreach my $entry (@{$sec->{entries}}) {
+				print Dumper($entry);
+				#print "$sec => $sec_type->{entries}->{$sec}\n";
+			}
+		}
+		
+		$self->search_cache->store($search_url, $ret_val);
+	}
+	
+	return $ret_val;
+	
+} # find()
 
 sub search {
 	

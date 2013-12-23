@@ -14,9 +14,16 @@ my $imdb = new Medac::Metadata::Source::IMDB();
 
 my $searches = [
 	'Oblivion',
-	'3, 2, 1... Frankie Go Boom',
+	'Frankie Go Boom',
 	'Trailer Park Boys'
 ];
+
+
+foreach my $s (@$searches) {
+	print "SEARCHING: $s\n";
+	print Dumper($imdb->find($s));
+	print "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n";
+}
 
 
 #my $cache = new Medac::Cache('context'=>'TESTER');
