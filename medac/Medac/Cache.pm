@@ -73,7 +73,7 @@ sub hit {
   my $self = shift @_;
   my $name = shift @_;
   
-	return 0;
+	#return 0;
 	
   my $key = $self->keyCalc($name);
 	

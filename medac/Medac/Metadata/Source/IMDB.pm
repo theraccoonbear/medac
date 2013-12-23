@@ -84,12 +84,16 @@ sub find {
 	my $search_filter = $type_map->{$search_type};
 	
 	my $search_url = $IMDB_BASE_URL . '/find?q=' . uri_escape($terms) . $search_filter;
-
+	my $cache_key = "RESPONSE:$search_url";
+	
 	my $ret_val = ();
+	my $content = '';
 	my @s_results;
 	
-	if ($self->search_cache->hit($search_url)) {
-		$ret_val = $self->search_cache->retrieve($search_url);
+	#if ($self->search_cache->hit($search_url)) {
+		#$ret_val = $self->search_cache->retrieve($search_url);
+	if ($self->search_cache->hit($cache_key)) {
+		$content = $self->search_cache->retrieve($cache_key);
 	} else {
 		
 		$mech->add_header(Referer => 'http://www.imdb.com/');
@@ -99,39 +103,62 @@ sub find {
 		$mech->get($search_url);
 		
 		die unless ($mech->success);
-		my $content = $mech->{content};
+		$content = $mech->{content};
 		
-		# SX{{width}}_CR0,0,{{width}},{{height}}_.jpg
-		# poster: http://ia.media-imdb.com/images/M/MV5BMTI4NzI5NzEwNl5BMl5BanBnXkFtZTcwNjc1NjQyMQ@@._V1_SX128_CR0,0,128,44_.jpg
+	}
+	
+	$self->search_cache->store($cache_key, $content);
 		
-		my $search_scraper = scraper {
-			process '.findSection', 'sections[]' => scraper {
-				process '.findSectionHeader', 'name' => 'text';
-				process 'findSectionHeader a', 'id' => '@name';
-				process '.findList tr', 'entries[]' => scraper {
-					process 'td.primary_photo a', 'url' => '@href';
-					process 'td.primary_photo a img', 'poster' => '@src';
-					process 'td.result_text a', 'url' => '@href', 'title' => 'TEXT';
-					process 'td.result_text', 'meta' => 'TEXT';
-					process 'td' => 'check' => sub { my $self = shift @_; return Dumper(@_); };
-				}
-			}
-		};
-		
-		
-		
-		$ret_val = $search_scraper->scrape($content);
-		
-		foreach my $sec (@{$ret_val->{sections}}) {
-			print "$sec->{name} : $sec->{id}\n";
-			foreach my $entry (@{$sec->{entries}}) {
-				print Dumper($entry);
-				#print "$sec => $sec_type->{entries}->{$sec}\n";
+	# SX{{width}}_CR0,0,{{width}},{{height}}_.jpg
+	# poster: http://ia.media-imdb.com/images/M/MV5BMTI4NzI5NzEwNl5BMl5BanBnXkFtZTcwNjc1NjQyMQ@@._V1_SX128_CR0,0,128,44_.jpg
+	
+	my $search_scraper = scraper {
+		process '.findSection', 'sections[]' => scraper {
+			process '.findSectionHeader', 'name' => 'text';
+			process 'findSectionHeader a', 'id' => '@name';
+			process '.findList tr', 'entries[]' => scraper {
+				process 'td.primary_photo a', 'url' => '@href';
+				process 'td.primary_photo a img', 'poster' => '@src';
+				process 'td.result_text > a', 'url' => '@href', 'title' => 'TEXT';
+				process 'td.result_text small a', 'show_title' => 'TEXT', 'show_url' => '@href';
+				process 'td.result_text small', 'show_specifics' => 'TEXT';
+				process 'td.result_text', 'meta' => 'TEXT';
+				process 'td' => 'check' => sub { return '...'; };
 			}
 		}
+	};
 		
-		$self->search_cache->store($search_url, $ret_val);
+		
+		
+	$ret_val = $search_scraper->scrape($content);
+	
+	foreach my $sec (@{$ret_val->{sections}}) {
+		#print "$sec->{name} : $sec->{id}\n";
+		foreach my $entry (@{$sec->{entries}}) {
+			my $meta = $entry->{meta};
+			my $replace = $entry->{show_specifics};
+			$replace =~ s/\(/\\\(/gi;
+			$replace =~ s/\)/\\\)/gi;
+			$replace = qr($replace);
+			$meta =~ s/\s*$replace\s*//gis;
+			$entry->{year} = 0;
+			#print "$meta\n";
+			if ($meta =~ m/\((?<year>(19|20)\d{2})\)/gis) {
+				$entry->{year} = $+{year};
+			}
+			$meta =~ s/\((\d+|TV[^\)]+)\)//g;
+			$meta =~ s/\s+/ /gi;
+			$meta =~ s/^\s+//gi;
+			$meta =~ s/\s+$//gi;
+			
+			$entry->{new_meta} = $meta;
+			#print Dumper($entry);
+			#print "$sec => $sec_type->{entries}->{$sec}\n";
+		}
 	}
+	#exit(0);
+	
+	#$self->search_cache->store($search_url, $ret_val);
 	
 	return $ret_val;
 	
@@ -202,13 +229,13 @@ sub search {
 sub searchMovie {
 	my $self = shift @_;
 	my $title = shift @_;
-	return $self->search($title, 'feature,tv_movie,documentary,short');
+	return $self->search($title, 'feature,tv_movie,documentary,short,video');
 } # searchMovie()
 
 sub searchSeries {
 	my $self = shift @_;
 	my $title = shift @_;
-	return $self->search($title, 'tv_series,mini_series');
+	return $self->search($title, 'tv_series,mini_series,tv_special');
 } # searchSeries()
 
 sub getMovie {

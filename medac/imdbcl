@@ -135,7 +135,7 @@ sub pickMovie {
 			my $picked = 0;
 			while (!$picked) {
 				my $cnt = 0;
-				my $choices = {s => 'S', 'q' => 'Q'};
+				my $choices = {s => 'S', 'q' => 'Q', 'm' => 'M'};
 				msg '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=';
 				foreach my $r (@{$results}) {
 					$cnt++;
@@ -144,6 +144,7 @@ sub pickMovie {
 					msg "    $cnt) $r->{title} ($r->{year}) [$r->{id}] - $synopsis";
 					$choices->{$cnt} = $r;
 				}
+				msg "    M) Manual Search";
 				msg "    S) Skip";
 				msg "    Q) Quit Program";
 				msg "\nChoose [$default]: ", 1;
@@ -152,7 +153,19 @@ sub pickMovie {
 				if ($choice eq '') { $choice = $default; }
 				$choice = lc($choice);
 				if ($choices->{$choice}) {
-					if ($choice eq 's') {
+					if ($choice eq 'm') {
+						msg "Search? ", 1;
+						$search = <STDIN>;
+						$search =~ s/\((19|20)\d{2}\)//gis;
+						$search =~ s/^\s*([^\s])/$1/gis;
+						$search =~ s/([^\s])\s*$/$1/gis;
+						chomp($search);
+						if ($search_type eq 'tv') {
+							$results = $imdb->searchSeries($search);
+						} else {
+							$results = $imdb->searchMovie($search);
+						}
+					} elsif ($choice eq 's') {
 						return;
 					} elsif ($choice eq 'q') {
 						exit(0);
@@ -172,7 +185,7 @@ sub fileFilter {
 	my @files = sort {uc($a) cmp uc($b) } @_;
 	
 	return map {
-		((-d $base . $_ || $_ =~ m/\.(?:avi|mkv|mp4)$/gi) && ($_ !~ m/^\./) && ($_ !~ m/\btt\d+/gi) && ($_ !~ m/^(?:extrathumbs|extrafanart|sample|subs)$/gi)) ? $_ : ();
+		((-d $base . $_ || $_ =~ m/\.(?:avi|mkv|mp4|m4v)$/gi) && ($_ !~ m/^\./) && ($_ !~ m/\btt\d+/gi) && ($_ !~ m/^(?:extrathumbs|extrafanart|sample|subs)$/gi)) ? $_ : ();
 	} @files; 
 } # fileFilter()
 

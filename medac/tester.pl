@@ -9,20 +9,62 @@ use POSIX;
 use Config::Auto;
 use Medac::Metadata::Source::IMDB;
 use Medac::Cache;
+use Getopt::Long;
 
 my $imdb = new Medac::Metadata::Source::IMDB();
 
-my $searches = [
-	'Oblivion',
-	'Frankie Go Boom',
-	'Trailer Park Boys'
-];
+my $scan_dir = '.';
+
+GetOptions(
+	'd|dir=s' => \$scan_dir
+);
+
+if (! -d $scan_dir) {
+	print "Bad Dir: $scan_dir\n";
+	exit(0);
+} else {
+	print "OK: $scan_dir\n";
+}
+
+opendir DFH, $scan_dir;
+my @files = readdir DFH;
+@files = map { m/^[^\.].+\.(?:avi|mp4|mkv|mpg)$/i ? $_ : (); } @files;
+#print Dumper(@files); 
+closedir DFH;
 
 
-foreach my $s (@$searches) {
+foreach my $f (@files) {
+	my $s = $f;
+	$s =~ s/Iron Chef\s*-\s*//gis;
+	$s =~ s/\s\[.+$//gis;
+	$s =~ s/Battle//gis;
+	$s =~ s/\s+/ /gis;
+	$s =~ s/^\s+//gis;
+	$s =~ s/\s+$//gis;
+	
+	my $search = "\"Iron Chef\" $s";
+	
 	print "SEARCHING: $s\n";
-	print Dumper($imdb->find($s));
-	print "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n";
+	my $results = $imdb->find($search, 'TV Episode');
+	#print Dumper($results);
+	foreach my $sections (@{$results->{sections}}) {
+		#print Dumper($sections) . "\n";
+		if ($sections->{name} eq 'Titles') {
+			my $cnt = 0;
+			foreach my $entry (sort {$imdb->dist($a->{title}, $s) <=> $imdb->dist($b->{title}, $s) } @{$sections->{entries}}) {
+				if ($entry->{show_title} eq 'Iron Chef') {
+					$cnt++;
+					my $dist = $imdb->dist($entry->{title}, $s);
+					print Dumper($entry);
+					print "\"$s\" \"$entry->{title}\" ($dist)\n";
+					exit if $cnt == 10;
+				}
+				
+			}
+		}
+		
+	}
+	#print "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n";
 }
 
 
