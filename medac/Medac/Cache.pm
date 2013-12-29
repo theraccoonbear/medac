@@ -6,6 +6,13 @@ use JSON::XS;
 use Digest::MD5 qw(md5 md5_hex);
 use File::Slurp;
 use Cwd qw(abs_path cwd);
+use Cache::FileCache;
+
+my $cache = new Cache::FileCache({
+	'namespace' => 'Plex',
+	'default_expires_in' => 600
+});
+
 
 has 'context' => (
 	'is' => 'rw',
@@ -13,12 +20,24 @@ has 'context' => (
 	'default' => 'basic'
 );
 
+#has 'cache' => (
+#  'is' => 'rw',
+#	'isa' => 'HashRef',
+#	'default' => sub {
+#		my $self = shift @_;
+#		my $d_cache = $self->readDiskCache();
+#		return $d_cache;
+#	}
+#);
+
 has 'cache' => (
   'is' => 'rw',
-	'isa' => 'HashRef',
+	'isa' => 'Cache::FileCache',
 	'default' => sub {
 		my $self = shift @_;
-		my $d_cache = $self->readDiskCache();
+		my $d_cache = new Cache::FileCache({
+			'namespace' => 'Medac'
+		});
 		return $d_cache;
 	}
 );
@@ -31,71 +50,99 @@ sub keyCalc {
   return md5_hex($name);
 }
 
-sub cacheFile() {
-	my $self = shift @_;
-	my $mod_path = abs_path(__FILE__);
-	$mod_path =~ s/\/[^\/]+$//gi;
-	
-	my $path = $mod_path . '/Cache/' . $self->keyCalc($self->context) . '.dat';
-	return $path;
-}
-
-sub readDiskCache() {
-	my $self = shift @_;
-	my $cache_file = shift @_ || $self->cacheFile(); #'Cache/' . $self->keyCalc($ctxt) . '.dat';
-	my $ret_val = {};
-	if (-f $cache_file) {
-		$ret_val = decode_json(read_file($cache_file));
-	}
-	
-	return $ret_val
-}
-
-sub writeDiskCache() {
-	my $self = shift @_;
-	#my $ctxt = $self->context;
-	my $cache_file = shift @_ || $self->cacheFile(); #'Cache/' . $self->keyCalc($ctxt) . '.dat';
-	write_file($cache_file, encode_json($self->cache));
-	return 1;
-}
-
-sub setVal {
-  my $self = shift @_;
-  my $name = shift @_;
-  my $val = shift @_;
-  my $key = $self->keyCalc($name);
-  
-  $self->cache->{$key} = $val;
-  $self->writeDiskCache();
-}
+#sub cacheFile() {
+#	my $self = shift @_;
+#	my $mod_path = abs_path(__FILE__);
+#	$mod_path =~ s/\/[^\/]+$//gi;
+#	
+#	my $path = $mod_path . '/Cache/' . $self->keyCalc($self->context) . '.dat';
+#	return $path;
+#}
+#
+#sub readDiskCache() {
+#	my $self = shift @_;
+#	my $cache_file = shift @_ || $self->cacheFile(); #'Cache/' . $self->keyCalc($ctxt) . '.dat';
+#	my $ret_val = {};
+#	if (-f $cache_file) {
+#		$ret_val = decode_json(read_file($cache_file));
+#	}
+#	
+#	return $ret_val
+#}
+#
+#sub writeDiskCache() {
+#	my $self = shift @_;
+#	#my $ctxt = $self->context;
+#	my $cache_file = shift @_ || $self->cacheFile(); #'Cache/' . $self->keyCalc($ctxt) . '.dat';
+#	write_file($cache_file, encode_json($self->cache));
+#	return 1;
+#}
+#
+#sub setVal {
+#  my $self = shift @_;
+#  my $name = shift @_;
+#  my $val = shift @_;
+#  my $key = $self->keyCalc($name);
+#  
+#  $self->cache->{$key} = $val;
+#  $self->writeDiskCache();
+#}
+#
+#sub hit {
+#  my $self = shift @_;
+#  my $name = shift @_;
+#  
+#	#return 0;
+#	
+#  my $key = $self->keyCalc($name);
+#	
+#  my $ret_val = 0;
+#  if (defined $self->cache->{$key}) {
+#    $ret_val = 1;
+#  }
+#  return $ret_val;
+#}
 
 sub hit {
   my $self = shift @_;
   my $name = shift @_;
   
-	#return 0;
-	
-  my $key = $self->keyCalc($name);
-	
-  my $ret_val = 0;
-  if (defined $self->cache->{$key}) {
-    $ret_val = 1;
-  }
-  return $ret_val;
+	return defined $self->cache->get($name);
 }
+
+#
+#sub getVal {
+#  my $self = shift @_;
+#  
+#  my $name = shift @_;
+#  my $key = $self->keyCalc($name);
+#  
+#  return $self->cache->{$key};
+#}
 
 sub getVal {
-  my $self = shift @_;
-  
-  my $name = shift @_;
-  my $key = $self->keyCalc($name);
-  
-  return $self->cache->{$key};
+	my $self = shift @_;
+	my $name = shift @_;
+	
+	return $self->cache->get($name);
 }
 
+#
+#sub retrieve {
+#  my $self = shift @_;
+#  
+#  my $name = shift @_;
+#  
+#  if ($self->hit($name)) {
+#    return $self->getVal($name);
+#  } else {
+#    return {};
+#  }
+#}
+
+
 sub retrieve {
-  my $self = shift @_;
-  
+  my $self = shift @_;  
   my $name = shift @_;
   
   if ($self->hit($name)) {
@@ -105,21 +152,35 @@ sub retrieve {
   }
 }
 
+
+
+#
+#sub store {
+#  my $self = shift @_;
+#  
+#  my $name = shift @_;
+#  my $value = shift @_;
+#  
+#  my $key = $self->keyCalc($name);
+#
+#  $self->setVal($key, $value);
+#}
+
+
 sub store {
   my $self = shift @_;
   
   my $name = shift @_;
   my $value = shift @_;
-  
-  my $key = $self->keyCalc($name);
 
-  $self->setVal($key, $value);
+  $self->cache->set($name, $value);
 }
 
-sub dump {
-  my $self = shift @_;
-  print Dumper($self->cache);
-  return;
-}
+#
+#sub dump {
+#  my $self = shift @_;
+#  print Dumper($self->cache);
+#  return;
+#}
 
 1;
