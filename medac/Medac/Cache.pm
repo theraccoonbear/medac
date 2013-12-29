@@ -46,8 +46,8 @@ sub keyCalc {
   my $self = shift @_;
   my $name = shift @_;
 
-  return $name;  
-  return md5_hex($name);
+  return $self->context . '::' . $name;  
+  #return md5_hex($name);
 }
 
 #sub cacheFile() {
@@ -106,8 +106,8 @@ sub keyCalc {
 sub hit {
   my $self = shift @_;
   my $name = shift @_;
-  
-	return defined $self->cache->get($name);
+  my $key = $self->keyCalc($name);
+	return defined $self->cache->get($key);
 }
 
 #
@@ -123,8 +123,8 @@ sub hit {
 sub getVal {
 	my $self = shift @_;
 	my $name = shift @_;
-	
-	return $self->cache->get($name);
+	my $key = $self->keyCalc($name);
+	return $self->cache->get($key);
 }
 
 #
@@ -144,9 +144,10 @@ sub getVal {
 sub retrieve {
   my $self = shift @_;  
   my $name = shift @_;
-  
+  my $key = $self->keyCalc($name);
+	
   if ($self->hit($name)) {
-    return $self->getVal($name);
+    return $self->getVal($key);
   } else {
     return {};
   }
@@ -172,8 +173,9 @@ sub store {
   
   my $name = shift @_;
   my $value = shift @_;
+	my $key = $self->keyCalc($name);
 
-  $self->cache->set($name, $value);
+  $self->cache->set($key, $value);
 }
 
 #

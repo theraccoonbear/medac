@@ -3,6 +3,8 @@ use lib '../../..';
 
 use Moose;
 
+extends 'Medac::Metadata::Source';
+
 use WWW::Mechanize;
 use Web::Scraper;
 use HTTP::Cookies;
@@ -12,10 +14,10 @@ use Mojo::DOM;
 use Medac::Cache;
 use URI::Escape;
 
-my $ua_string = "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.79 Safari/537.4";
-my $cookie_jar = HTTP::Cookies->new(); 
-my $mech = WWW::Mechanize->new();
-$mech->agent($ua_string);
+#my $ua_string = "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.79 Safari/537.4";
+#my $cookie_jar = HTTP::Cookies->new(); 
+#my $mech = WWW::Mechanize->new();
+#$mech->agent($ua_string);
 
 my $IMDB_BASE_URL = 'http://www.imdb.com';
 

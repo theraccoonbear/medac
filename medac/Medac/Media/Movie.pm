@@ -1,6 +1,7 @@
-package Medac::Movie;
-
+package Medac::Media::Movie;
 use Moose;
+
+extends 'Medac::Media';
 
 
 1;
