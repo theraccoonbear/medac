@@ -16,8 +16,8 @@ use URI::Escape;
 
 #my $ua_string = "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.79 Safari/537.4";
 #my $cookie_jar = HTTP::Cookies->new(); 
-#my $mech = WWW::Mechanize->new();
-#$mech->agent($ua_string);
+#my $self->mech() = WWW::Mechanize->new();
+#$self->mech()->agent($ua_string);
 
 my $IMDB_BASE_URL = 'http://www.imdb.com';
 
@@ -94,20 +94,25 @@ sub find {
 	
 	#if ($self->search_cache->hit($search_url)) {
 		#$ret_val = $self->search_cache->retrieve($search_url);
-	if ($self->search_cache->hit($cache_key)) {
+	if (0 && $self->search_cache->hit($cache_key)) {
+		
 		$content = $self->search_cache->retrieve($cache_key);
+		#print $content; 
+		#print "\n\nCACHE HIT!\n";
 	} else {
 		
-		$mech->add_header(Referer => 'http://www.imdb.com/');
+		$self->mech()->add_header(Referer => 'http://www.imdb.com/');
 
-		print "URL: $search_url\n";
+		#print "URL: $search_url\n";
 		
-		$mech->get($search_url);
+		$self->mech()->get($search_url);
 		
-		die unless ($mech->success);
-		$content = $mech->{content};
-		
+		die unless ($self->mech()->success);
+		$content = $self->mech()->{content};
+		#print $content;
+		#print "\n\nCACHE MISS!\n";
 	}
+	#exit(0);
 	
 	$self->search_cache->store($cache_key, $content);
 		
@@ -138,7 +143,7 @@ sub find {
 		#print "$sec->{name} : $sec->{id}\n";
 		foreach my $entry (@{$sec->{entries}}) {
 			my $meta = $entry->{meta};
-			my $replace = $entry->{show_specifics};
+			my $replace = $entry->{show_specifics} || '';
 			$replace =~ s/\(/\\\(/gi;
 			$replace =~ s/\)/\\\)/gi;
 			$replace = qr($replace);
@@ -188,14 +193,14 @@ sub search {
 		$ret_val = $self->search_cache->retrieve($search_url);
 	} else {
 		
-		$mech->add_header(Referer => 'http://www.imdb.com/search/title');
+		$self->mech()->add_header(Referer => 'http://www.imdb.com/search/title');
 
-		$mech->get($search_url);
+		$self->mech()->get($search_url);
 		
 		
 		
-		die unless ($mech->success);
-		my $content = $mech->{content};
+		die unless ($self->mech()->success);
+		my $content = $self->mech()->{content};
 		
 		my $search_scraper = scraper {
 			process 'table.results tr td.title', 'entries[]' => scraper {
@@ -261,10 +266,10 @@ sub getMovie {
 		$ret_val = $self->show_cache->retrieve($cache_key);
 		
 	} else {
-		$mech->get($url);
+		$self->mech()->get($url);
 		
-		die unless ($mech->success);
-		my $content = $mech->{content};
+		die unless ($self->mech()->success);
+		my $content = $self->mech()->{content};
 		
 		my $details_scraper = scraper {
 			process '#img_primary a img', 'image' => '@src';
@@ -320,10 +325,10 @@ sub getShow {
 		$ret_val = $self->show_cache->retrieve($cache_key);
 		
 	} else {
-		$mech->get($url);
+		$self->mech()->get($url);
 		
-		die unless ($mech->success);
-		my $content = $mech->{content};
+		die unless ($self->mech()->success);
+		my $content = $self->mech()->{content};
 		
 		my $details_scraper = scraper {
 			process '#img_primary a img', 'image' => '@src';
@@ -374,11 +379,11 @@ sub getSeason {
 		if ($self->season_cache->hit($cache_key)) {
 			$ret_val = $self->season_cache->retrieve($cache_key);
 		} else {
-			#$mech->add_header(Referer => $referer);
-			$mech->get($url);
+			#$self->mech()->add_header(Referer => $referer);
+			$self->mech()->get($url);
 		
-			die unless ($mech->success);
-			my $content = $mech->{content};
+			die unless ($self->mech()->success);
+			my $content = $self->mech()->{content};
 			
 			
 			

@@ -107,7 +107,7 @@ sub hit {
   my $self = shift @_;
   my $name = shift @_;
   my $key = $self->keyCalc($name);
-	return defined $self->cache->get($key);
+	return defined $self->cache->get($key) ? 1 : 0;
 }
 
 #

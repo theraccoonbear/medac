@@ -144,6 +144,8 @@ sub getNodeGen {
 		$self->depth + 1
 	);
 	
+	my $now = time;
+	
 	my $url = $self->baseURL() . '/' . (join('/', @$keys));
 	
 	my $nodes = [];
@@ -168,6 +170,7 @@ sub getNodeGen {
 					my $elem = $obj->{$key};
 					if (&$decider($key, $elem)) {
 						$elem->{key} = $key;
+						$elem->{age} = $now - $elem->{addedAt};
 					  push @$nodes, $elem;
 					} # decider?
 				} # foreach()
@@ -189,6 +192,7 @@ sub loadSections {
 		#my $sections = [];
 		foreach my $sec_key (keys %{$node->{obj}}) {
 			my $sec = $node->{obj}->{$sec_key};
+			
 			if (defined $agents->{$sec->{agent}}) {
 				$sec->{key} = $sec_key;
 				$sec->{mediaCategory} = $agents->{$sec->{agent}};
