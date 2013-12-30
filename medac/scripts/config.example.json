@@ -1,0 +1,12 @@
+{
+	"from_email": "the gmail account to send notices from",
+	"mail_pass": "the gmail account's password",
+	"to_email": "who to send notices to (a google group?)",
+	"subject": "email subject",
+	"image_base": "base url for images in email",
+	"max_days": 5,
+	"hostname": "the Plex server's hostname or IP",
+	"port": 32400,
+	"username": "plex username",
+	"password": "plex password"
+}
