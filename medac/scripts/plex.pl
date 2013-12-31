@@ -27,6 +27,7 @@ use Email::Send;
 use Email::Send::Gmail;
 use Email::Simple::Markdown;
 use POSIX;
+use Encode;
 
 my $now = time();
 
@@ -139,7 +140,7 @@ sub trim {
 my $recent_movies = $plex->recentMovies();
 my $recent_episodes = $plex->recentEpisodes();
 
-
+my $max_posters = 5;
 my $movie_poster_count = 0;
 my $used = {};
 my $movie_posters = [];
@@ -164,7 +165,9 @@ foreach my $show (sort { $a->{age} <=> $b->{age} } @$recent_episodes) {
 		}
 	}
 	
-	if ($tv_poster_count > 6) {
+	if ($tv_poster_count >= $max_posters) {
+		my $more = (scalar @$recent_episodes) - $max_posters; 
+		push @$tv_posters, " plus $more more";
 		last;
 	}
 }
@@ -189,7 +192,9 @@ foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
 		}
 	}
 	
-	if ($movie_poster_count > 6) {
+	if ($movie_poster_count >= $max_posters) {
+		my $more = (scalar @$recent_movies) - $max_posters;
+		push @$movie_posters, " plus $more more";
 		last;
 	}
 }
@@ -263,14 +268,21 @@ msg $footer;
 
 if (scalar @$recent_episodes > 0 || scalar @$recent_movies > 0) {
 	my $email_msg = getMessage();
-
+	my $email_bytes = encode('utf8', $email_msg);
+  
+	
 	my $email = Email::Simple::Markdown->create(
 		header => [
 			From    => $config->{from_email},
 			To      => $config->{to_email},
 			Subject => $config->{subject},
 		],
-		body => $email_msg,
+		attributes => {
+			charset  => 'utf8',
+		},
+		#body => $email_msg,
+		charset => 'utf8',
+    body => $email_bytes,
 	);
 	
 	my $sender = Email::Send->new(
