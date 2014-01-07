@@ -57,7 +57,7 @@ GetOptions(
 );
 
 if ($config_file && -f $config_file) {
-  my $file_data = read_file($config_file);
+	my $file_data = read_file($config_file);
 	$config = decode_json($file_data);
 	
 	$max_days = $config->{max_days} || $max_days;
@@ -215,7 +215,7 @@ $t_posters
 __MSG
 
 msg $header;
-msg "## Recent Movies:";
+msg "## Recent Movies";
 msg;
 
 if (scalar @$recent_movies > 0) {
@@ -240,7 +240,7 @@ if (scalar @$recent_movies > 0) {
 
 msg;
 
-msg "## Recent TV Episodes:";
+msg "## Recent TV";
 msg;
 
 
@@ -252,7 +252,7 @@ if (scalar @$recent_episodes > 0) {
 		msg "  * $notice**$episode->{title}** s$episode->{season}e$episode->{episode} of *$episode->{grandparentTitle}*";
 	}
 } else {
-	msg "  * No recent TV episodes";
+	msg "  * No recent episodes";
 }
 
 
