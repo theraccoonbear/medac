@@ -110,6 +110,11 @@ my $plex = new Medac::Metadata::Source::Plex(
 	maxage => $max_days * 60 * 60 * 24
 );
 
+sub dbg {
+	my $dbg = shift @_ || ' ';
+	print STDERR Dumper($dbg) . "\n";
+}
+
 sub msg {
 	my $m = shift @_ || ' ';
 	
@@ -248,7 +253,7 @@ if (scalar @$recent_episodes > 0) {
 	foreach my $episode (sort { $a->{age} <=> $b->{age} } @{$recent_episodes}) {
 		$episode->{season} = sprintf('%02d', $episode->{parentIndex});
 		$episode->{episode} = sprintf('%02d', $episode->{index});
-		my $notice = $episode->{age} <= 60 * 60 * 24 ? "![NEW]($config->{image_base}/images/new-email.gif \"NEW\") " : '';
+		my $notice = $episode->{age} <= 60 * 60 * 24 ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
 		msg "  * $notice**$episode->{title}** s$episode->{season}e$episode->{episode} of *$episode->{grandparentTitle}*";
 	}
 } else {
