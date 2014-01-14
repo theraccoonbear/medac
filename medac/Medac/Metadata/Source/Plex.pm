@@ -182,7 +182,7 @@ sub getNodeGen {
 	$self->depth($self->depth - 1);
 	
 	return $nodes;
-}
+} # getNodeGen()
 
 sub loadSections {
 	my $self = shift @_;
@@ -231,6 +231,7 @@ sub loadRecent {
 sub recentMovies {
 	my $self = shift @_;
 	my $secs = $self->loadSections();
+	
 	my $recent = [];
 	foreach my $skey (@$secs) {
 		#my $s = $secs->{$skey};

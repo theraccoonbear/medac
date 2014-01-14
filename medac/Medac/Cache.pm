@@ -36,8 +36,10 @@ has 'cache' => (
 	'default' => sub {
 		my $self = shift @_;
 		my $d_cache = new Cache::FileCache({
-			'namespace' => 'Medac'
+			'namespace' => 'Medac',
+			'default_expires_in' => 600
 		});
+		$d_cache->clear();
 		return $d_cache;
 	}
 );
@@ -107,6 +109,7 @@ sub hit {
   my $self = shift @_;
   my $name = shift @_;
   my $key = $self->keyCalc($name);
+	return 0;
 	return defined $self->cache->get($key) ? 1 : 0;
 }
 
