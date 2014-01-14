@@ -54,7 +54,9 @@ has 'maxage' => (
 has 'cache' => (
 	'is' => 'rw',
 	'isa' => 'Medac::Cache',
-	'default' => sub { return new Medac::Cache('context'=>'Plex'); }
+	'default' => sub {
+		return new Medac::Cache('context'=>'Plex');
+	}
 );
 
 has 'depth' => (

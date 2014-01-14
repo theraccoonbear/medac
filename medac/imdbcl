@@ -121,7 +121,7 @@ sub pickMovie {
 			$results = $imdb->searchMovie($search);
 		}
 		
-		if ($results && scalar @$results < 1) {
+		if (!$results || scalar @$results < 1) {
 			return;
 		} else {
 			
