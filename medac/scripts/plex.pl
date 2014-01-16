@@ -112,7 +112,7 @@ my $plex = new Medac::Metadata::Source::Plex(
 
 sub dbg {
 	my $dbg = shift @_ || ' ';
-	print STDERR Dumper($dbg) . "\n";
+	print STDERR "DEBUG: " . ($dbg) . "\n";
 }
 
 sub msg {
