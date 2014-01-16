@@ -142,8 +142,12 @@ sub trim {
 	return $s;
 }
 
+dbg "Getting recent plex movies...";
 my $recent_movies = $plex->recentMovies();
+dbg "Done.";
+dbg "Getting recent plex TV...";
 my $recent_episodes = $plex->recentEpisodes();
+dbg "Done.";
 
 my $max_posters = 5;
 my $movie_poster_count = 0;
@@ -154,7 +158,10 @@ my $tv_poster_count = 0;
 my $tv_posters = [];
 
 foreach my $show (sort { $a->{age} <=> $b->{age} } @$recent_episodes) {
-	my $results = $imdb->find($show->{grandparentTitle}, 'TV');
+	my $show_title = $show->{grandparentTitle};
+	dbg "Loading IMDB metadata for TV \"$show_title\"...";
+	my $results = $imdb->find($show_title, 'TV');
+	dbg "Done.";
 	$results = $results->{sections};
 	$results =  $results->[0];
 	$results =  $results->{entries};
@@ -180,7 +187,10 @@ foreach my $show (sort { $a->{age} <=> $b->{age} } @$recent_episodes) {
 $used = {};
 
 foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
-	my $results = $imdb->find($movie->{title}, 'Movie');
+	my $movie_title = $movie->{title};
+	dbg "Loading IMDB metadata for movie \"$movie_title\"...";
+	my $results = $imdb->find($movie_title, 'Movie');
+	dbg "Done.";
 	$results = $results->{sections};
 	$results =  $results->[0];
 	$results =  $results->{entries};
@@ -271,7 +281,10 @@ msg $footer;
 
 
 
+
 if (scalar @$recent_episodes > 0 || scalar @$recent_movies > 0) {
+	dbg "Sending email  to $config->{to_email}...";
+	
 	my $email_msg = getMessage();
 	my $email_bytes = encode('utf8', $email_msg);
   
@@ -302,4 +315,5 @@ if (scalar @$recent_episodes > 0 || scalar @$recent_movies > 0) {
 		
 	eval { $sender->send($email) };
 	die "Error sending email: $@" if $@;
+	dbg "Done.";
 }
