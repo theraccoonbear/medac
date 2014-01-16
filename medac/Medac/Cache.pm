@@ -73,7 +73,7 @@ sub retrieve {
   my $key = $self->keyCalc($name);
 	
   if ($self->hit($name)) {
-    return $self->getVal($key);
+    return $self->getVal($name);
   } else {
     return {};
   }

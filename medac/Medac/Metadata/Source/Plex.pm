@@ -94,7 +94,7 @@ sub getNode {
 	my $cache_key = 'XML::' . $url;
 	
 	my $page = {};
-	if ($self->cache()->hit($cache_key)) {
+	if (0 || $self->cache()->hit($cache_key)) {
 		$page = $self->cache()->getVal($cache_key);
 	} else {	
 		$page = $self->pullURL($url);
@@ -155,7 +155,7 @@ sub getNodeGen {
 	my $cache_key = 'XML::' . $url;
 	
 	my $page = {};
-	if ($self->cache()->hit($cache_key)) {
+	if (0 || $self->cache()->hit($cache_key)) {
 		$page = $self->cache()->getVal($cache_key);
 	} else {	
 		$page = $self->pullURL($url);
