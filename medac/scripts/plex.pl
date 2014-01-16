@@ -110,9 +110,20 @@ my $plex = new Medac::Metadata::Source::Plex(
 	maxage => $max_days * 60 * 60 * 24
 );
 
+my $action_started;
+
 sub dbg {
 	my $dbg = shift @_ || ' ';
-	print STDERR "DEBUG: " . ($dbg) . "\n";
+	my $timing = shift @_ ? 1 : 0;
+	print STDERR "DEBUG: " . ($dbg);
+	my $now = time();
+	if ($timing && defined $action_started) {
+		my $elap = $now - $action_started;
+		print " ($elap seconds)";
+	}
+	$action_started = $now;
+	
+	print "\n";
 }
 
 sub msg {
@@ -144,10 +155,10 @@ sub trim {
 
 dbg "Getting recent plex movies...";
 my $recent_movies = $plex->recentMovies();
-dbg "Done.";
+dbg "Done.", 1;
 dbg "Getting recent plex TV...";
 my $recent_episodes = $plex->recentEpisodes();
-dbg "Done.";
+dbg "Done.", 1;
 
 my $max_posters = 5;
 my $movie_poster_count = 0;
@@ -161,7 +172,7 @@ foreach my $show (sort { $a->{age} <=> $b->{age} } @$recent_episodes) {
 	my $show_title = $show->{grandparentTitle};
 	dbg "Loading IMDB metadata for TV \"$show_title\"...";
 	my $results = $imdb->find($show_title, 'TV');
-	dbg "Done.";
+	dbg "Done.", 1;
 	$results = $results->{sections};
 	$results =  $results->[0];
 	$results =  $results->{entries};
@@ -190,7 +201,7 @@ foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
 	my $movie_title = $movie->{title};
 	dbg "Loading IMDB metadata for movie \"$movie_title\"...";
 	my $results = $imdb->find($movie_title, 'Movie');
-	dbg "Done.";
+	dbg "Done.", 1;
 	$results = $results->{sections};
 	$results =  $results->[0];
 	$results =  $results->{entries};
@@ -315,5 +326,5 @@ if (scalar @$recent_episodes > 0 || scalar @$recent_movies > 0) {
 		
 	eval { $sender->send($email) };
 	die "Error sending email: $@" if $@;
-	dbg "Done.";
+	dbg "Done.", 1;
 }
