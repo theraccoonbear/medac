@@ -51,6 +51,8 @@ my $config_file = 0;
 #my $subject = 0;
 #my $email_pass;
 
+my $script_started = time();
+my $action_started;
 
 GetOptions(
 	'config=s' => \$config_file
@@ -110,7 +112,7 @@ my $plex = new Medac::Metadata::Source::Plex(
 	maxage => $max_days * 60 * 60 * 24
 );
 
-my $action_started;
+
 
 sub dbg {
 	my $dbg = shift @_ || ' ';
@@ -331,3 +333,5 @@ if (scalar @$recent_episodes > 0 || scalar @$recent_movies > 0) {
 	die "Error sending email: $@" if $@;
 	dbg "Done.", 1;
 }
+
+dbg "" . (time() - $script_started) . " second(s) elapsed in total.";
