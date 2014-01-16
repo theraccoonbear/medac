@@ -94,7 +94,7 @@ sub find {
 	
 	#if ($self->search_cache->hit($search_url)) {
 		#$ret_val = $self->search_cache->retrieve($search_url);
-	if (0 && $self->search_cache->hit($cache_key)) {
+	if ($self->search_cache->hit($cache_key)) {
 		
 		$content = $self->search_cache->retrieve($cache_key);
 		#print $content; 
