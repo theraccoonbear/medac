@@ -177,7 +177,10 @@ foreach my $show (sort { $a->{age} <=> $b->{age} } @$recent_episodes) {
 	$results =  $results->[0];
 	$results =  $results->{entries};
 	
-	if (scalar @$results > 0) {
+	
+	#print Dumper(scalar @$results); exit(0);
+	my $count = scalar @$results;
+	if (scalar $count > 0) {
 		my $imdb_tv = $results->[0];
 		my $poster_url = $imdb_tv->{poster};
 		$poster_url =~ s/S[XY]\d+_CR.+_\.jpg/SX100_CR0,0,100,150_.jpg/gi;
