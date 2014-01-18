@@ -1,6 +1,5 @@
 package Medac::Metadata::Source::IMDB;
 use lib '../../..';
-
 use Moose;
 
 extends 'Medac::Metadata::Source';
@@ -45,23 +44,7 @@ has 'season_cache' => (
 #my $show_cache = {};
 #my $season_cache = {};
 
-sub dist {
-	my $self = shift @_;
-	my $val_1 = shift @_;
-	my $val_2 = shift @_;
-	
-	# normalize...
-	$val_1 = lc($val_1);
-	$val_2 = lc($val_2);
-	$val_1 =~ s/\&/and/gi;
-	$val_2 =~ s/\&/and/gi;
-	$val_1 =~ s/^\s*(.+?)\s*$/$1/gi;
-	$val_2 =~ s/^\s*(.+?)\s*$/$1/gi;
-	$val_1 =~ s/\s{2,}/ /gi;
-	$val_2 =~ s/\s{2,}/ /gi;
-	
-	return distance($val_1, $val_2);
-}
+
 
 sub find {
 	my $self = shift @_;

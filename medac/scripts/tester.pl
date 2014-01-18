@@ -1,13 +1,19 @@
 #!/usr/bin/perl
+use Cwd 'abs_path';
+
+use FindBin;
+use lib "$FindBin::Bin/..";
+
 use FindBin;
 use JSON::XS;
 use strict;
 use warnings;
 use Data::Dumper;
 use File::Basename;
+use File::Slurp;
 use POSIX;
 use Config::Auto;
-use Medac::Metadata::Source::IMDB;
+#use Medac::Metadata::Source::IM4DB;
 use Medac::Metadata::Source::Plex;
 use Medac::Cache;
 use Getopt::Long;
@@ -15,12 +21,14 @@ use Getopt::Long;
 
 # Config
 
+my $config_file = 0;
+
 my $config = {};
 my $host_name = 0;
 my $port = 32400;
 my $username = 0;
 my $password = 0;
-my $config_file = 0;
+
 
 #my $image_base = 0;
 #my $from_email = 0;
@@ -45,7 +53,6 @@ if ($config_file && -f $config_file) {
 	$password = $config->{password} || $password;
 } else {
 	GetOptions(
-		'm|max|maxdays=i' => \$max_days,
 		'h|host|hostname=s' => \$host_name,
 		'p|port' => \$port,
 		'u|user|username=s' => \$username,
@@ -56,7 +63,7 @@ if ($config_file && -f $config_file) {
 # End Config
 
 
-my $imdb = new Medac::Metadata::Source::IMDB();
+#my $imdb = new Medac::Metadata::Source::IMDB();
 
 
 my $plex = new Medac::Metadata::Source::Plex(
@@ -64,6 +71,8 @@ my $plex = new Medac::Metadata::Source::Plex(
 	port => $port,
 	username => $username,
 	password => $password,
-	maxage => $max_days * 60 * 60 * 24
+	maxage => 10 * 60 * 60 * 24
 );
+
+print $plex->nowPlaying();
 

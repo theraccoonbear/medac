@@ -261,5 +261,36 @@ sub recentEpisodes {
 	return $recent;
 }
 
+sub nowPlaying {
+	my $self = shift @_;
+
+	my $now_playing = $self->getNodeGen({
+		'keys' => ['status', 'sessions'],
+		'decider' => sub {
+			return 1;
+		}
+	});
+	
+	my $playing = [];
+	
+	foreach my $stream (@$now_playing) {
+		my $nice_stream = {
+			season => $stream->{parentIndex},
+			episode => $stream->{index},
+			year => $stream->{year},
+			title => $stream->{title},
+			show => $stream->{grandparentTitle},
+			summary => $stream->{summary},
+			duration => $stream->{duration} / 1000,
+			viewed => ($stream->{duration} - $stream->{viewOffset}) / 1000,
+			username => $stream->{User}->{title},
+			user_id => $stream->{User}->{id}
+		};
+		
+		push @$playing, $nice_stream;
+	}
+	
+	return Dumper($playing);
+}
 
 1;
