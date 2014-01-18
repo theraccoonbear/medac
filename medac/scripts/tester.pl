@@ -15,6 +15,7 @@ use POSIX;
 use Config::Auto;
 #use Medac::Metadata::Source::IM4DB;
 use Medac::Metadata::Source::Plex;
+use Medac::Metadata::Source::CouchPotato;
 use Medac::Cache;
 use Getopt::Long;
 
@@ -28,7 +29,6 @@ my $host_name = 0;
 my $port = 32400;
 my $username = 0;
 my $password = 0;
-
 
 #my $image_base = 0;
 #my $from_email = 0;
@@ -66,13 +66,31 @@ if ($config_file && -f $config_file) {
 #my $imdb = new Medac::Metadata::Source::IMDB();
 
 
-my $plex = new Medac::Metadata::Source::Plex(
-	hostname => $host_name,
-	port => $port,
-	username => $username,
-	password => $password,
-	maxage => 10 * 60 * 60 * 24
+#my $plex = new Medac::Metadata::Source::Plex(
+#	hostname => $host_name,
+#	port => $port,
+#	username => $username,
+#	password => $password,
+#	maxage => 10 * 60 * 60 * 24
+#);
+#
+#print $plex->nowPlaying();
+
+my $couchPotato = new Medac::Metadata::Source::CouchPotato(
+	hostname => $config->{couchPotato}->{hostname},
+	port => $config->{couchPotato}->{port},
+	apiKey => $config->{couchPotato}->{apiKey},
+	protocol => $config->{couchPotato}->{protocol},
+	username => $config->{couchPotato}->{username},
+	password => $config->{couchPotato}->{password}
 );
 
-print $plex->nowPlaying();
+my $movies = $couchPotato->managedMovies();
+
+#print Dumper($movies);
+
+foreach my $movie (@$movies) {
+	$movie = $movie->{library};
+	print "$movie->{info}->{titles}->[0] ($movie->{info}->{year}) [$movie->{info}->{imdb}]\n";
+}
 

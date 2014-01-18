@@ -3,13 +3,15 @@ use lib '../..';
 
 use Moose;
 
-use WWW::Mechanize;
+use IO::Socket::SSL qw();
+use WWW::Mechanize qw();
 use Web::Scraper;
 use HTTP::Cookies;
 use Data::Dumper;
 use Text::Levenshtein qw(distance);
 use Mojo::DOM;
 use Medac::Cache;
+use JSON::XS;
 use URI::Escape;
 
 has 'mech' => (
@@ -20,7 +22,13 @@ has 'mech' => (
 		my $cookie_jar = HTTP::Cookies->new();
 		$cookie_jar->clear();
 		my $www_mech = WWW::Mechanize->new(
-			cookie_jar => $cookie_jar
+			cookie_jar => $cookie_jar,
+			SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_NONE,
+			PERL_LWP_SSL_VERIFY_HOSTNAME => 0,
+			verify_hostname => 0,
+			ssl_opts => {
+				verify_hostname => 0
+			}
 		);
 		$www_mech->agent($ua_string);
 		return $www_mech;
