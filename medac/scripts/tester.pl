@@ -16,13 +16,14 @@ use Config::Auto;
 #use Medac::Metadata::Source::IM4DB;
 use Medac::Metadata::Source::Plex;
 use Medac::Metadata::Source::CouchPotato;
+use Medac::Search::NZB::OMGWTFNZBS;
 use Medac::Cache;
 use Getopt::Long;
 
 
 # Config
 
-my $config_file = 0;
+my $config_file = 'test-config.json';
 
 my $config = {};
 my $host_name = 0;
@@ -63,6 +64,20 @@ if ($config_file && -f $config_file) {
 # End Config
 
 
+my $omg_cfg = $config->{'omgwtfnzbs.org'};
+
+my $omg = new Medac::Search::NZB::OMGWTFNZBS(
+	username => $omg_cfg->{username},
+	password => $omg_cfg->{password},
+	apiKey => $omg_cfg->{apiKey},
+);
+
+my $nova_shows = $omg->search('grace');
+foreach my $show (reverse @$nova_shows) {
+	print Dumper($show);
+}
+;
+
 #my $imdb = new Medac::Metadata::Source::IMDB();
 
 
@@ -76,21 +91,21 @@ if ($config_file && -f $config_file) {
 #
 #print $plex->nowPlaying();
 
-my $couchPotato = new Medac::Metadata::Source::CouchPotato(
-	hostname => $config->{couchPotato}->{hostname},
-	port => $config->{couchPotato}->{port},
-	apiKey => $config->{couchPotato}->{apiKey},
-	protocol => $config->{couchPotato}->{protocol},
-	username => $config->{couchPotato}->{username},
-	password => $config->{couchPotato}->{password}
-);
-
-my $movies = $couchPotato->managedMovies();
-
-#print Dumper($movies);
-
-foreach my $movie (@$movies) {
-	$movie = $movie->{library};
-	print "$movie->{info}->{titles}->[0] ($movie->{info}->{year}) [$movie->{info}->{imdb}]\n";
-}
-
+#my $couchPotato = new Medac::Metadata::Source::CouchPotato(
+#	hostname => $config->{couchPotato}->{hostname},
+#	port => $config->{couchPotato}->{port},
+#	apiKey => $config->{couchPotato}->{apiKey},
+#	protocol => $config->{couchPotato}->{protocol},
+#	username => $config->{couchPotato}->{username},
+#	password => $config->{couchPotato}->{password}
+#);
+#
+#my $movies = $couchPotato->managedMovies();
+#
+##print Dumper($movies);
+#
+#foreach my $movie (@$movies) {
+#	$movie = $movie->{library};
+#	print "$movie->{info}->{titles}->[0] ($movie->{info}->{year}) [$movie->{info}->{imdb}]\n";
+#}
+#

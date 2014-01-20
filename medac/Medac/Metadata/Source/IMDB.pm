@@ -7,7 +7,7 @@ extends 'Medac::Metadata::Source';
 use WWW::Mechanize;
 use Web::Scraper;
 use HTTP::Cookies;
-use Data::Dumper
+use Data::Dumper;
 use Mojo::DOM;
 use Medac::Cache;
 use URI::Escape;
