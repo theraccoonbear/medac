@@ -40,6 +40,42 @@ has 'apiKey' => (
 	isa => 'Str'
 );
 
+has '+cache_context' => (
+	'is' => 'rw',
+	'isa' => 'Str',
+	'default' => sub {
+		return __PACKAGE__;
+	}
+);
+
+sub searchMusic {
+	my $self = shift @_;
+	my $params = shift @_;
+	my $terms = $params->{terms} or die "No search term";
+	my $retention = $params->{retention} || 1600;
+	my $filter = $params->{filter} || undef;
+	
+	my $results = $self->search($terms, '7', $retention);
+	
+	foreach my $nzb (@$results) {
+		$nzb->{season} = 0;
+		$nzb->{episode} = 0;
+		print Dumper($nzb);
+	}
+	
+	if ($filter) {
+		my $nr = [];
+		foreach my $nzb (@$results) {
+			if (&$filter($nzb)) {
+				push @$nr, $nzb;
+			}
+		}
+		$results = $nr;
+	}
+	
+	
+	return $results;
+}
 
 sub searchTV {
 	my $self = shift @_;
@@ -48,13 +84,30 @@ sub searchTV {
 	my $retention = $params->{retention} || 1600;
 	my $filter = $params->{filter} || undef;
 	
-	my $results = $self->search($terms, '19,20', $retention);
+	my $results = $self->search($terms, '19,20,21', $retention);
+	
+	my $now = time;
 	
 	foreach my $nzb (@$results) {
 		$nzb->{season} = 0;
 		$nzb->{episode} = 0;
 		$nzb->{video_quality} = 'unknown';
 		$nzb->{video_codec} = 'unknown';
+		$nzb->{audio} = 'unknown';
+		$nzb->{repack} = 0;
+		$nzb->{age} = $now - ($nzb->{usenetage} * 1);
+		$nzb->{age_days} = $nzb->{age} / 60 / 60 / 24;
+		#my $parser = DateTime::Format::Strptime->new(
+		#	pattern => '%a %b %d %H:%M:%S %Y'
+		#);
+		#
+		#my $dt = $parser->parse_datetime('Mon Apr 25 17:47:19 2011');
+		#print $dt->strftime('%a %b %d %I:%M%p %Y'), "\n";
+		
+		if ($nzb->{release} =~ m/(?<audio>DD5.1)/) {
+			$nzb->{audio} = $+{audio};
+		}
+		
 		
 		if ($nzb->{release} =~ m/s(?<season>\d{1,2})e(?<episode>\d{1,2})/i) {
 			$nzb->{season} = $+{season} * 1;
@@ -64,6 +117,16 @@ sub searchTV {
 		if ($nzb->{release} =~ m/(?<videoquality>((720|1080)[pi])|HDTV|WEB-DL|SDTV)/) {
 			$nzb->{video_quality} = $+{videoquality};
 		}
+		
+		if ($nzb->{release} =~ m/(?<videocodec>x264)/) {
+			$nzb->{video_codec} = $+{videocodec};
+		}
+		
+		if ($nzb->{release} =~ m/REPACK/) {
+			$nzb->{repack} = 1;
+		}
+		
+		
 	}
 	
 	if ($filter) {
@@ -83,7 +146,7 @@ sub searchTV {
 sub search {
 	my $self = shift @_;
 	my $terms = shift @_;
-	my $category = shift @_ || '19,20';
+	my $category = shift @_ || '19,20,21';
 	my $retention = shift @_ || 1600;
 	
 	my $params = {

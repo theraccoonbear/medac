@@ -13,6 +13,27 @@ use Mojo::DOM;
 use Medac::Cache;
 use JSON::XS;
 use URI::Escape;
+use DateTime;
+#use DateTime::Format::Strptime;
+
+has cache_age => (
+	'is' => 'rw',
+	'isa' => 'Str',
+	'default' => '1 hour'
+);
+
+has 'cache' => (
+	'is' => 'rw',
+	'isa' => 'Medac::Cache'
+);
+
+has 'cache_context' => (
+	'is' => 'rw',
+	'isa' => 'Str',
+	'default' => sub {
+		return __PACKAGE__;
+	}
+);
 
 has 'mech' => (
 	'is' => 'rw',
@@ -34,6 +55,15 @@ has 'mech' => (
 		return $www_mech;
 	}
 );
+
+sub BUILD {
+	my $self = shift @_;
+	
+	$self->cache(new Medac::Cache(
+		'context'=> $self->cache_context,
+		'cache_age' => $self->cache_age
+	));
+}
 
 sub pullURL {
 	my $self = shift @_;

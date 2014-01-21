@@ -164,6 +164,7 @@ sub getNodeGen {
 	
 	if ($page->{success}) {
 		my $ref = XMLin($page->{content});
+		print Dumper($ref);
 		if ($self->depth > 10) { exit 0; }
 		
 		if ($ref) {
@@ -284,7 +285,8 @@ sub nowPlaying {
 			duration => $stream->{duration} / 1000,
 			viewed => ($stream->{duration} - $stream->{viewOffset}) / 1000,
 			username => $stream->{User}->{title},
-			user_id => $stream->{User}->{id}
+			user_id => $stream->{User}->{id},
+			original => $stream
 		};
 		
 		push @$playing, $nice_stream;

@@ -48,31 +48,31 @@ if ($config_file && -f $config_file) {
 # End Config
 
 my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.org'});
-
 my $sab = new Medac::Downloader::Sabnzbd($config->{'sabnzbd'});
 
-my $nova_shows = $omg->searchTV({
-	terms => 'NOVA',
+my $my_shows = $omg->searchTV({
+	terms => 'Frontline.US',
 	filter => sub {
 		my $n = shift @_;
-		return
-			$n->{season} == 41 &&
-			$n->{episode} =~ m/^(10|11)$/ &&
-			$n->{release} =~ m/NOVA/ &&
-			$n->{video_quality} eq '720p'
-		;
+			$n->{season} >= 30 &&
+			#$n->{episode} == 12 &&
+			$n->{video_quality} =~ m/(720p|HDTV)/ && 
+			#$n->{group} eq 'alt.binaries.teevee'
+		1;
 	}
 });
 
-#print Dumper($nova_shows);
-
-foreach my $show (reverse @$nova_shows) {
-	#print Dumper($show);
-	my $show_info = "NOVA s$show->{season}e$show->{episode}";
-	if ($sab->queueDownload($show->{getnzb}, $show->{release}, 'tv')) {
-		print "$show_info queued in sabnzbd\n";
-	} else {
-		print "$show_info couldn't be queued\n";
+if (scalar @$my_shows < 1) {
+	print "No matches";
+} else {
+	foreach my $show (sort {$a->{usenetage} <=> $b->{usenetage}} @$my_shows) {
+		print Dumper($show);
+		my $show_info = "NOVA s$show->{season}e$show->{episode}";
+		#if ($sab->queueDownload($show->{getnzb}, $show->{release}, 'tv')) {
+		#	print "$show_info queued in sabnzbd\n";
+		#} else {
+		#	print "$show_info couldn't be queued\n";
+		#}
+		#print $show->{release};
 	}
-	#print $show->{release};
 }

@@ -13,7 +13,7 @@ use File::Basename;
 use File::Slurp;
 use POSIX;
 use Config::Auto;
-#use Medac::Metadata::Source::IM4DB;
+use Medac::Metadata::Source::IMDB;
 use Medac::Metadata::Source::Plex;
 use Medac::Metadata::Source::CouchPotato;
 use Medac::Search::NZB::OMGWTFNZBS;
@@ -64,32 +64,31 @@ if ($config_file && -f $config_file) {
 # End Config
 
 
-my $omg_cfg = $config->{'omgwtfnzbs.org'};
-
-my $omg = new Medac::Search::NZB::OMGWTFNZBS(
-	username => $omg_cfg->{username},
-	password => $omg_cfg->{password},
-	apiKey => $omg_cfg->{apiKey},
-);
-
-my $nova_shows = $omg->search('grace');
-foreach my $show (reverse @$nova_shows) {
-	print Dumper($show);
-}
-;
+#my $omg_cfg = $config->{'omgwtfnzbs.org'};
+#
+#my $omg = new Medac::Search::NZB::OMGWTFNZBS(
+#	username => $omg_cfg->{username},
+#	password => $omg_cfg->{password},
+#	apiKey => $omg_cfg->{apiKey},
+#);
+#
+#my $nova_shows = $omg->search('grace');
+#foreach my $show (reverse @$nova_shows) {
+#	print Dumper($show);
+#}
 
 #my $imdb = new Medac::Metadata::Source::IMDB();
 
 
-#my $plex = new Medac::Metadata::Source::Plex(
-#	hostname => $host_name,
-#	port => $port,
-#	username => $username,
-#	password => $password,
-#	maxage => 10 * 60 * 60 * 24
-#);
-#
-#print $plex->nowPlaying();
+my $plex = new Medac::Metadata::Source::Plex(
+	hostname => $host_name,
+	port => $port,
+	username => $username,
+	password => $password,
+	maxage => 10 * 60 * 60 * 24
+);
+
+print $plex->nowPlaying();
 
 #my $couchPotato = new Medac::Metadata::Source::CouchPotato(
 #	hostname => $config->{couchPotato}->{hostname},

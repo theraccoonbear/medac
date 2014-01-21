@@ -48,6 +48,14 @@ has 'apiKey' => (
 	isa => 'Str'
 );
 
+has '+cache_context' => (
+	'is' => 'rw',
+	'isa' => 'Str',
+	'default' => sub {
+		return __PACKAGE__;
+	}
+);
+
 
 sub baseURL() {
 	my $self = shift @_;
