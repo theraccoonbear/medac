@@ -51,11 +51,11 @@ my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.org'});
 my $sab = new Medac::Downloader::Sabnzbd($config->{'sabnzbd'});
 
 my $my_shows = $omg->searchTV({
-	terms => 'Frontline.US',
+	terms => 'NOVA',
 	filter => sub {
 		my $n = shift @_;
-			$n->{season} >= 30 &&
-			#$n->{episode} == 12 &&
+			$n->{season} >= 41 &&
+			$n->{episode} == 12 &&
 			$n->{video_quality} =~ m/(720p|HDTV)/ && 
 			#$n->{group} eq 'alt.binaries.teevee'
 		1;

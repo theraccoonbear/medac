@@ -17,7 +17,7 @@ my $cache = new Cache::FileCache({
 has 'context' => (
 	'is' => 'rw',
 	'isa' => 'Str',
-	'default' => 'basic'
+	'default' => 'Medac'
 );
 
 has 'cache_age' => (
@@ -34,16 +34,22 @@ has 'cache' => (
 sub BUILD {
 	my $self = shift @_;
 	$self->cache(new Cache::FileCache({
-		'namespace' => 'Medac',
+		'namespace' => $self->context,
 		'default_expires_in' => $self->cache_age
 	}));
 } # BUILD
 
+sub clear {
+	my $self = shift @_;
+	
+	$self->cache->clear();
+}
+
 sub keyCalc {
   my $self = shift @_;
   my $name = shift @_;
-
-  return $self->context . '::' . $name;  
+	return $name;
+  #return $self->context . '::' . $name;  
   #return md5_hex($name);
 }
 
