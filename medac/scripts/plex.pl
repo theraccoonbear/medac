@@ -28,11 +28,15 @@ use Email::Send::Gmail;
 use Email::Simple::Markdown;
 use POSIX;
 use Encode;
+use IO::Handle;
+
+STDERR->autoflush(1);
+STDOUT->autoflush(1);
 
 my $now = time();
 
 # Disable output buffering
-select((select(STDOUT), $|=1)[0]);
+#select((select(STDOUT), $|=1)[0]);
 
 my $ua_string = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.13 (KHTML, like Gecko) Chrome/0.A.B.C Safari/525.13";
 
@@ -43,7 +47,7 @@ my $host_name = 0;
 my $port = 32400;
 my $username = 0;
 my $password = 0;
-my $config_file = 0;
+my $config_file = 'test-config.json';
 
 #my $image_base = 0;
 #my $from_email = 0;
@@ -121,11 +125,11 @@ sub dbg {
 	my $now = time();
 	if ($timing && defined $action_started) {
 		my $elap = $now - $action_started;
-		print " ($elap seconds)";
+		print STDERR " ($elap seconds)";
 	}
 	$action_started = $now;
 	
-	print "\n";
+	print STDERR "\n";
 }
 
 sub msg {
@@ -213,6 +217,8 @@ foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
 
 	if (scalar @$results > 0) {
 		my $imdb_movie = $results->[0];
+		
+		print Dumper($imdb_movie); exit(0);
 		my $poster_url = $imdb_movie->{poster};
 		$poster_url =~ s/S[XY]\d+_CR.+_\.jpg/SX100_CR0,0,100,150_.jpg/gi;
 		#http://ia.media-imdb.com/images/M/MV5BMTQzMzMwNDExMV5BMl5BanBnXkFtZTcwMzE5MjU3OQ@@._V1_SX100_CR0,0,100,150_.jpg
@@ -253,15 +259,17 @@ if (scalar @$recent_movies > 0) {
 	foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
 		$movie->{summary} = trim($movie->{summary});
 		$movie->{shortSummary} = trim(length $movie->{summary} > 100 ? substr($movie->{summary}, 0, 100) : $movie->{summary});
-		my $disp_dur = '';
+		my $disp_dur = 'unknown duration';
 		if ($movie->{duration}) {
 			my $dur_minutes = ceil($movie->{duration} / 1000 / 60);
-			$disp_dur = " [$dur_minutes minutes]"
+			$disp_dur = "$dur_minutes minutes"
 		}
 		
 		my $notice = $movie->{age} <= 60 * 60 * 24 ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
 		
-		msg "  * $notice**$movie->{title}** ($movie->{year})$disp_dur";
+		my $trailer_search = 'https://www.youtube.com/results?search_query=' . uri_escape('"' . $movie->{title} . ' ' . $movie->{year} . '" HD trailer');
+		
+		msg "  * $notice**$movie->{title}** ($movie->{year}) / $disp_dur / [YouTube Trailer]($trailer_search) ";
 		msg "    : *$movie->{summary}*";
 		#print Dumper($movie);
 	}
@@ -281,6 +289,10 @@ if (scalar @$recent_episodes > 0) {
 		$episode->{episode} = sprintf('%02d', $episode->{index});
 		my $notice = $episode->{age} <= 60 * 60 * 24 ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
 		msg "  * $notice**$episode->{title}** s$episode->{season}e$episode->{episode} of *$episode->{grandparentTitle}*";
+		if (length($episode->{summary}) > 0) {
+			msg "    : *$episode->{summary}*";
+		}
+		
 	}
 } else {
 	msg "  * No recent episodes";

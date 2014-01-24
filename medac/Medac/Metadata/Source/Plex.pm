@@ -155,7 +155,7 @@ sub getNodeGen {
 	my $cache_key = 'XML::' . $url;
 	
 	my $page = {};
-	if (0 || $self->cache()->hit($cache_key)) {
+	if ($self->cache()->hit($cache_key)) {
 		$page = $self->cache()->getVal($cache_key);
 	} else {	
 		$page = $self->pullURL($url);
@@ -164,7 +164,7 @@ sub getNodeGen {
 	
 	if ($page->{success}) {
 		my $ref = XMLin($page->{content});
-		print Dumper($ref);
+		#print Dumper($ref);
 		if ($self->depth > 10) { exit 0; }
 		
 		if ($ref) {
