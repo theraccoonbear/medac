@@ -174,33 +174,39 @@ my $movie_posters = [];
 my $tv_poster_count = 0;
 my $tv_posters = [];
 
+my $imdb_shows_loaded = {};
+
 foreach my $show (sort { $a->{age} <=> $b->{age} } @$recent_episodes) {
 	my $show_title = $show->{grandparentTitle};
-	dbg "Loading IMDB metadata for TV \"$show_title\"...";
-	my $results = $imdb->find($show_title, 'TV');
-	dbg "Done.", 1;
-	$results = $results->{sections};
-	$results =  $results->[0];
-	$results =  $results->{entries};
-	
-	
-	#print Dumper(scalar @$results); exit(0);
-	my $count = scalar @$results;
-	if (scalar $count > 0) {
-		my $imdb_tv = $results->[0];
-		my $poster_url = $imdb_tv->{poster};
-		$poster_url =~ s/S[XY]\d+_CR.+_\.jpg/SX100_CR0,0,100,150_.jpg/gi;
-		if (!$used->{$poster_url}) {
-			push @$tv_posters, "![$show->{grandparentTitle}]($poster_url \"$show->{grandparentTitle}\")";
-			$used->{$poster_url} = 1;
-			$tv_poster_count++;
+	if (!$imdb_shows_loaded->{$show_title}) {
+		dbg "Loading IMDB metadata for TV \"$show_title\"...";
+		my $results = $imdb->find($show_title, 'TV');
+		dbg "Done.", 1;
+		$results = $results->{sections};
+		$results =  $results->[0];
+		$results =  $results->{entries};
+		
+		
+		#print Dumper(scalar @$results); exit(0);
+		my $count = scalar @$results;
+		if (scalar $count > 0) {
+			my $imdb_tv = $results->[0];
+			my $poster_url = $imdb_tv->{poster};
+			$poster_url =~ s/S[XY]\d+_CR.+_\.jpg/SX100_CR0,0,100,150_.jpg/gi;
+			if (!$used->{$poster_url}) {
+				push @$tv_posters, "![$show->{grandparentTitle}]($poster_url \"$show->{grandparentTitle}\")";
+				$used->{$poster_url} = 1;
+				$tv_poster_count++;
+			}
 		}
-	}
-	
-	if ($tv_poster_count >= $max_posters) {
-		my $more = (scalar @$recent_episodes) - $max_posters; 
-		push @$tv_posters, " plus $more more";
-		last;
+		
+		if ($tv_poster_count > $max_posters) {
+			my $more = (scalar @$recent_episodes) - $max_posters; 
+			push @$tv_posters, " plus $more more";
+			last;
+		}
+		
+		$imdb_shows_loaded->{$show_title} = 1;
 	}
 }
 
@@ -218,8 +224,8 @@ foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
 	if (scalar @$results > 0) {
 		my $imdb_movie = $results->[0];
 		
-		print Dumper($imdb_movie); exit(0);
 		my $poster_url = $imdb_movie->{poster};
+		$movie->{imdb_url} = 'http://www.imdb.com' . $imdb_movie->{url};
 		$poster_url =~ s/S[XY]\d+_CR.+_\.jpg/SX100_CR0,0,100,150_.jpg/gi;
 		#http://ia.media-imdb.com/images/M/MV5BMTQzMzMwNDExMV5BMl5BanBnXkFtZTcwMzE5MjU3OQ@@._V1_SX100_CR0,0,100,150_.jpg
 		if (!$used->{$poster_url}) {
@@ -229,7 +235,7 @@ foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
 		}
 	}
 	
-	if ($movie_poster_count >= $max_posters) {
+	if ($movie_poster_count > $max_posters) {
 		my $more = (scalar @$recent_movies) - $max_posters;
 		push @$movie_posters, " plus $more more";
 		last;
@@ -267,9 +273,9 @@ if (scalar @$recent_movies > 0) {
 		
 		my $notice = $movie->{age} <= 60 * 60 * 24 ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
 		
-		my $trailer_search = 'https://www.youtube.com/results?search_query=' . uri_escape('"' . $movie->{title} . ' ' . $movie->{year} . '" HD trailer');
+		my $trailer_search = 'https://www.youtube.com/results?search_query=' . uri_escape('"' . $movie->{title} . '" ' . $movie->{year} . ' HD trailer');
 		
-		msg "  * $notice**$movie->{title}** ($movie->{year}) / $disp_dur / [YouTube Trailer]($trailer_search) ";
+		msg "  * $notice**$movie->{title}** ($movie->{year}) / $disp_dur / [YouTube Trailer]($trailer_search) / [IMDB]($movie->{imdb_url})";
 		msg "    : *$movie->{summary}*";
 		#print Dumper($movie);
 	}
