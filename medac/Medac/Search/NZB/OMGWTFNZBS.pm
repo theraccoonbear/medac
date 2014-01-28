@@ -114,7 +114,7 @@ sub searchTV {
 			$nzb->{episode} = $+{episode} * 1;
 		}
 		
-		if ($nzb->{release} =~ m/(?<videoquality>((720|1080)[pi])|HDTV|WEB-DL|SDTV)/) {
+		if ($nzb->{release} =~ m/(?<videoquality>((720|1080)[pi])|HDTV|WEB-DL|SDTV|DVD|PDTV)/) {
 			$nzb->{video_quality} = $+{videoquality};
 		}
 		
@@ -160,9 +160,9 @@ sub search {
 	
 	my $url = $self->baseURL() . '/json/?' . $self->encodeParams($params);
 	
-	print "Pulling $url\n";
+	#print "Pulling $url\n";
 	my $page = $self->pullURL($url);
-	print "done.\n";
+	#print "done.\n";
 	
 	my $results = [];
 	

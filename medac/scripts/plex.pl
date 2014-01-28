@@ -200,9 +200,11 @@ foreach my $show (sort { $a->{age} <=> $b->{age} } @$recent_episodes) {
 			}
 		}
 		
-		if ($tv_poster_count > $max_posters) {
-			my $more = (scalar @$recent_episodes) - $max_posters; 
-			push @$tv_posters, " plus $more more";
+		if ($tv_poster_count >= $max_posters) {
+			my $more = (scalar @$recent_episodes) - $max_posters;
+			if ($more != 0) {
+				push @$tv_posters, " plus $more more";
+			}
 			last;
 		}
 		
@@ -235,9 +237,11 @@ foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
 		}
 	}
 	
-	if ($movie_poster_count > $max_posters) {
+	if ($movie_poster_count >= $max_posters) {
 		my $more = (scalar @$recent_movies) - $max_posters;
-		push @$movie_posters, " plus $more more";
+		if ($more > 0) {
+			push @$movie_posters, " plus $more more";
+		}
 		last;
 	}
 }
@@ -276,6 +280,9 @@ if (scalar @$recent_movies > 0) {
 		my $trailer_search = 'https://www.youtube.com/results?search_query=' . uri_escape('"' . $movie->{title} . '" ' . $movie->{year} . ' HD trailer');
 		
 		msg "  * $notice**$movie->{title}** ($movie->{year}) / $disp_dur / [YouTube Trailer]($trailer_search) / [IMDB]($movie->{imdb_url})";
+		$movie->{summary} =~ s/\n/ /gi;
+		$movie->{summary} =~ s/^[\s\n\r\l]+//gi;
+		$movie->{summary} =~ s/[\s\n\r\l]+$//gi;
 		msg "    : *$movie->{summary}*";
 		#print Dumper($movie);
 	}
@@ -296,6 +303,9 @@ if (scalar @$recent_episodes > 0) {
 		my $notice = $episode->{age} <= 60 * 60 * 24 ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
 		msg "  * $notice**$episode->{title}** s$episode->{season}e$episode->{episode} of *$episode->{grandparentTitle}*";
 		if (length($episode->{summary}) > 0) {
+			$episode->{summary} =~ s/\n/ /gi;
+			$episode->{summary} =~ s/^[\s\n\r\l]+//gi;
+			$episode->{summary} =~ s/[\s\n\r\l]+$//gi;
 			msg "    : *$episode->{summary}*";
 		}
 		

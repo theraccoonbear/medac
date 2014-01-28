@@ -76,7 +76,7 @@ sub retrieve {
   if ($self->hit($name)) {
     return $self->getVal($name);
   } else {
-    return {};
+    return '';
   }
 }
 
