@@ -109,7 +109,7 @@ sub searchTV {
 		}
 		
 		
-		if ($nzb->{release} =~ m/s(?<season>\d{1,2})e(?<episode>\d{1,2})/i) {
+		if ($nzb->{release} =~ m/s(?<season>\d{1,4})e(?<episode>\d{1,2})/i) {
 			$nzb->{season} = $+{season} * 1;
 			$nzb->{episode} = $+{episode} * 1;
 		}
