@@ -8,5 +8,38 @@
 	"hostname": "the Plex server's hostname or IP",
 	"port": 32400,
 	"username": "plex username",
-	"password": "plex password"
+	"password": "plex password",
+	"sickbeard": {
+		"apiKey": "Your Sickbeard API Key",
+		"hostname": "The hostname or IP for your Sickbeard server",
+		"port": 8081,
+		"protocol": "http",
+		"username": "Your sickbeard username",
+		"password": "Your sickebeard password"
+	},
+	"couchPotato": {
+		"apiKey": "Your CouchPotatoServer API Key",
+		"hostname": "The hostname or IP for your CouchPotato server",
+		"port": 5050,
+		"protocol": "https",
+		"username": "Your CouchPotato username",
+		"password": "Your CouchPotato password"
+	},
+	"omgwtfnzbs.org": {
+		"apiKey": "Your API Key",
+		"hostname": "api.omgwtfnzbs.org",
+		"port": 443,
+		"protocol": "https",
+		"username": "Your username",
+		"password": "Your password",
+		"cache_age": "3 hours"
+	},
+	"sabnzbd": {
+		"apiKey": "Your SABNZBd API Key",
+		"hostname": "The hostname or IP for you SABNZBd server",
+		"port": 9090,
+		"protocol": "https",
+		"username": "Your SABNZBd username",
+		"password": "Your SABNZBd password"
+	}
 }
