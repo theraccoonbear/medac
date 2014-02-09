@@ -91,9 +91,9 @@ sub searchTV {
 	foreach my $nzb (@$results) {
 		$nzb->{season} = 0;
 		$nzb->{episode} = 0;
-		$nzb->{video_quality} = 'unknown';
-		$nzb->{video_codec} = 'unknown';
-		$nzb->{audio} = 'unknown';
+		$nzb->{video_quality} = '????';
+		$nzb->{video_codec} = '????';
+		$nzb->{audio} = '????';
 		$nzb->{repack} = 0;
 		$nzb->{age} = $now - ($nzb->{usenetage} * 1);
 		$nzb->{age_days} = $nzb->{age} / 60 / 60 / 24;
@@ -114,11 +114,11 @@ sub searchTV {
 			$nzb->{episode} = $+{episode} * 1;
 		}
 		
-		if ($nzb->{release} =~ m/(?<videoquality>((720|1080)[pi])|HDTV|WEB-DL|SDTV|DVD|PDTV)/) {
+		if ($nzb->{release} =~ m/(?<videoquality>((480|720|1080)[pi])|HDTV|WEB-DL|SDTV|DVD|PDTV)/) {
 			$nzb->{video_quality} = $+{videoquality};
 		}
 		
-		if ($nzb->{release} =~ m/(?<videocodec>x264)/) {
+		if ($nzb->{release} =~ m/(?<videocodec>(xvid|x264))/i) {
 			$nzb->{video_codec} = $+{videocodec};
 		}
 		

@@ -22,6 +22,20 @@ sub baseURL {
 	return $url;
 }
 
+sub getCategories {
+	my $self = shift @_;
+	my $params = {
+		mode => 'get_cats',
+		output => 'json',
+		apikey => '470de9b72ee542337629b7c3c87d51d4'
+	};
+	
+	my $url = $self->baseURL() . $self->encodeParams($params);
+	my $resp = $self->pullURL($url);
+	my $json = decode_json($resp->{content});
+	return $json->{categories} ? $json->{categories} : [];
+}
+
 sub queueDownload {
 	my $self = shift @_;
 	my $url = shift @_;
@@ -33,17 +47,18 @@ sub queueDownload {
 		name => $url,
 		nzbname => $name,
 		apikey => $self->apiKey,
-		cat => $cat
+		cat => $cat,
+		output => 'json'
 	};
 	
 	my $sab_url = $self->baseURL() . $self->encodeParams($params);
 	my $resp = $self->pullURL($sab_url);
-	return $resp->{content} =~ m/ok/i;
-	#print "$sab_url\n";
-	#print $resp->{content};
-	#print "\n\n\n";
-	#print "$sab_url\n\n";
-	# http://localhost:8080/sabnzbd/api?mode=addurl&name=http://www.example.com/example.nzb&nzbname=NiceName
+	my $json = decode_json($resp->{content});
+	#print Dumper($json);
+	#print Dumper($json->{status});
+	#print Dumper($json->{status} ? 'Y' : 'N');
+	#exit(0);
+	return $json->{status} ? 1 : 0;
 }
 
 1;

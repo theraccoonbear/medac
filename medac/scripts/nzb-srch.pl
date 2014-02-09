@@ -19,9 +19,9 @@ use Number::Bytes::Human qw(format_bytes);
 use Medac::Cache;
 use Medac::Search::NZB::OMGWTFNZBS;
 use Medac::Downloader::Sabnzbd;
+use Medac::Misc::Menu;
 
 my $cache = new Medac::Cache(context => 'nzb-srch');
-
 my $previous_fh = select(STDOUT); $| = 1; select($previous_fh);
 
 # Config
@@ -35,6 +35,7 @@ my $username = 0;
 my $password = 0;
 my $script_started = time();
 my $action_started;
+my $category = 'tv';
 
 GetOptions(
 	'config=s' => \$config_file
@@ -73,8 +74,24 @@ sub prompt {
 		chomp($answer);
 		$is_acceptable = ($answer =~ m/$acceptable/gi);
 	}
-	return $answer;
+	return lc($answer);
 } # prompt()
+
+sub setCategory {
+	my $cat_menu = new Medac::Misc::Menu(title => 'Set Download Category (current: ' . $category . ')');
+	my $cats = $sab->getCategories();
+	my $idx = 0;
+	foreach my $cat (sort @$cats) {
+		if ($cat =~ m/^[A-Za-z]+$/) {
+			$idx++;
+			$cat_menu->addItem(new Medac::Misc::Menu::Item(key => $idx, label => $cat, returns => $cat));
+		}
+	}
+	my $new_cat = $cat_menu->display();
+	if ($new_cat ne 'x') {
+		$category = $new_cat;
+	}
+}
 
 sub startSearch {
 	
@@ -132,49 +149,60 @@ sub startSearch {
 my $resp = '';
 my $queued = $cache->retrieve('queue') || {};
 
+
+
+
+my $my_shows;
+
 while ($resp !~ m/^X$/i) {
-		
-	my $my_shows = startSearch();
-	$resp = '';
-	while ($resp !~ m/^X$/i) {
-		my $menu = "Choose NZB?\n";
-		my $idx = 0;
-		my $entries = {};
-		my $opts = ();
-		
-		foreach my $show (sort {$b->{usenetage} <=> $a->{usenetage}} @{$my_shows->{results}}) {
-			my $season = sprintf('%02d', $show->{season});
-			my $episode = sprintf('%02d', $show->{episode});
-			my $release = $show->{release};
-			my $quality = sprintf('%-5s', $show->{video_quality});
-			my $size = sprintf('%5s', format_bytes($show->{sizebytes}));
-			my $daysOld = commify(ceil((time - $show->{usenetage}) / 60 / 60 / 24));
-			$idx++;
-			my $didx = sprintf('%2s', $idx);
-			$show->{fmtseason} = $season;
-			$show->{fmtepisode} = $episode;
-			$entries->{$idx} = $show;
-			push @$opts, $idx;
-			my $leading = $queued->{$show->{getnzb}} ? '*' : ' ';
-			$menu .= $leading . "   $didx) s${season}e${episode} - $quality - $size - $daysOld day(s) old - $release\n";
-		}
-		push @$opts, 'X'; push @$opts, 'x';
-		$menu .= "     X) Exit\n\n* indicates NZB has been queued in Sab.\n\nQueue which NZB in Sab:";
-		
-		$resp = prompt($menu, '(' . join('|', @$opts) . ')');
-		if ($resp =~ m/^\d+$/) {
-			my $show = $entries->{$resp};
-			if ($sab->queueDownload($show->{getnzb}, $show->{release}, 'tv')) {
-				$queued->{$show->{getnzb}} = $show;
-				$cache->store('queue', $queued);
-				print "Queued in sabnzbd\n";
-			} else {
-				print "Couldn't be queued!\n";
+	my $main_menu = new Medac::Misc::Menu(title => 'Actions:');
+	$main_menu->addItem(new Medac::Misc::Menu::Item(key => 'S', label => 'Search'));
+	$main_menu->addItem(new Medac::Misc::Menu::Item(key => 'C', label => 'Change SABNZBd Download Category (current: ' . $category . ')'));
+
+	$resp = $main_menu->display();
+	my $show_resp = '';
+	if ($resp eq 's') {
+		$show_resp = '';
+		$my_shows = startSearch();
+		while ($show_resp !~ m/^X$/i) {
+			my $choose_menu = new Medac::Misc::Menu(title => 'Choose NZB', post => '* indicates NZB has been queued in Sab.');
+			my $idx = 0;
+			my $entries = {};
+			my $opts = ();
+			
+			foreach my $show (sort {$b->{usenetage} <=> $a->{usenetage}} @{$my_shows->{results}}) {
+				my $season = sprintf('%02d', $show->{season});
+				my $episode = sprintf('%02d', $show->{episode});
+				my $release = $show->{release};
+				my $quality = sprintf('%-5s', $show->{video_quality});
+				my $size = sprintf('%5s', format_bytes($show->{sizebytes}));
+				my $daysOld = commify(ceil((time - $show->{usenetage}) / 60 / 60 / 24));
+				$idx++;
+				my $didx = sprintf('%2s', $idx);
+				$show->{fmtseason} = $season;
+				$show->{fmtepisode} = $episode;
+				$entries->{$idx} = $show;
+				#my $leading = $queued->{$show->{getnzb}} ? '*' : ' ';
+				#my $label = $leading . "s${season}e${episode} - $quality - $size - $daysOld day(s) old - $release";
+				my $label = "s${season}e${episode} - $quality - $size - $daysOld day(s) old - $release";
+				$choose_menu->addItem(new Medac::Misc::Menu::Item(key => $didx, label => $label, prefix => $queued->{$show->{getnzb}} ? '*' : ''));
+			}
+			
+			$show_resp = $choose_menu->display();
+			if ($show_resp =~ m/^\d+$/) {
+				my $show = $entries->{$show_resp};
+				if ($sab->queueDownload($show->{getnzb}, $show->{release}, $category)) {
+					$queued->{$show->{getnzb}} = $show;
+					$cache->store('queue', $queued);
+					print "Queued in sabnzbd\n";
+				} else {
+					print "Couldn't be queued!\n";
+				}
 			}
 		}
+	} elsif ($resp eq 'c') {
+		setCategory();
 	}
-	
-	$resp = prompt("Actions:\n    S) Search\n    X) Exit\n\nAction?", '^[SsXx]$');
 }
 
 print "\n\nGoodbye!\n";
