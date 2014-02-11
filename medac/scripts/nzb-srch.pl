@@ -15,6 +15,8 @@ use File::Slurp;
 use POSIX;
 
 use Number::Bytes::Human qw(format_bytes);
+use Term::ANSIColor::Markup;
+
 
 use Medac::Cache;
 use Medac::Search::NZB::OMGWTFNZBS;
@@ -36,6 +38,13 @@ my $password = 0;
 my $script_started = time();
 my $action_started;
 my $category = 'tv';
+
+my $parser = new Term::ANSIColor::Markup();
+
+sub colorize {
+	my $text = shift @_;
+	return Term::ANSIColor::Markup->colorize($text);
+}
 
 GetOptions(
 	'config=s' => \$config_file
@@ -176,7 +185,7 @@ while ($resp !~ m/^X$/i) {
 				my $release = $show->{release};
 				my $quality = sprintf('%-5s', $show->{video_quality});
 				my $size = sprintf('%5s', format_bytes($show->{sizebytes}));
-				my $daysOld = commify(ceil((time - $show->{usenetage}) / 60 / 60 / 24));
+				my $daysOld = sprintf('%4s', commify(ceil((time - $show->{usenetage}) / 60 / 60 / 24)));
 				$idx++;
 				my $didx = sprintf('%2s', $idx);
 				$show->{fmtseason} = $season;
@@ -184,7 +193,7 @@ while ($resp !~ m/^X$/i) {
 				$entries->{$idx} = $show;
 				#my $leading = $queued->{$show->{getnzb}} ? '*' : ' ';
 				#my $label = $leading . "s${season}e${episode} - $quality - $size - $daysOld day(s) old - $release";
-				my $label = "s${season}e${episode} - $quality - $size - $daysOld day(s) old - $release";
+				my $label = colorize("<yellow>s</yellow><white>${season}</white><yellow>e</yellow><white>${episode}</white> - <blue>$quality</blue> - <yellow>$size</yellow> - <red>$daysOld day(s) old</red> - <cyan>$release</cyan>");
 				$choose_menu->addItem(new Medac::Misc::Menu::Item(key => $didx, label => $label, prefix => $queued->{$show->{getnzb}} ? '*' : ''));
 			}
 			
