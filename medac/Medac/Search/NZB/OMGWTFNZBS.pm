@@ -86,6 +86,8 @@ sub searchTV {
 	
 	my $results = $self->search($terms, '19,20,21', $retention);
 	
+	#print Dumper($results); exit(0);
+	
 	my $now = time;
 	
 	foreach my $nzb (@$results) {
@@ -166,6 +168,7 @@ sub search {
 		$results = decode_json($page->{content})
 	}
 	
+	$results = $results->{notice} ? [] : $results;
 	
 	return $results;
 } # search()
