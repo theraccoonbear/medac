@@ -22,13 +22,14 @@ use Medac::Cache;
 use Medac::Search::NZB::OMGWTFNZBS;
 use Medac::Downloader::Sabnzbd;
 use Medac::Misc::Menu;
+use Cwd 'abs_path';
+use File::Basename;
 
 my $cache = new Medac::Cache(context => 'nzb-srch');
 my $previous_fh = select(STDOUT); $| = 1; select($previous_fh);
 
 # Config
-
-my $config_file = 'test-config.json';
+my $config_file = dirname(abs_path($0)) . "/test-config.json";
 
 my $config = {};
 my $host_name = 0;
@@ -196,6 +197,8 @@ while ($resp !~ m/^X$/i) {
 				my $label = colorize("<yellow>s</yellow><white>${season}</white><yellow>e</yellow><white>${episode}</white> - <blue>$quality</blue> - <yellow>$size</yellow> - <red>$daysOld day(s) old</red> - <cyan>$release</cyan>");
 				$choose_menu->addItem(new Medac::Misc::Menu::Item(key => $didx, label => $label, prefix => $queued->{$show->{getnzb}} ? '*' : ''));
 			}
+			
+			$choose_menu->addItem(new Medac::Misc::Menu::Item(key => 'F', label => 'Filter Results'));
 			
 			$show_resp = $choose_menu->display();
 			if ($show_resp =~ m/^\d+$/) {

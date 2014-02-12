@@ -97,12 +97,6 @@ sub searchTV {
 		$nzb->{repack} = 0;
 		$nzb->{age} = $now - ($nzb->{usenetage} * 1);
 		$nzb->{age_days} = $nzb->{age} / 60 / 60 / 24;
-		#my $parser = DateTime::Format::Strptime->new(
-		#	pattern => '%a %b %d %H:%M:%S %Y'
-		#);
-		#
-		#my $dt = $parser->parse_datetime('Mon Apr 25 17:47:19 2011');
-		#print $dt->strftime('%a %b %d %I:%M%p %Y'), "\n";
 		
 		if ($nzb->{release} =~ m/(?<audio>DD5.1)/) {
 			$nzb->{audio} = $+{audio};
