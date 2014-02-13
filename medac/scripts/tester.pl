@@ -16,16 +16,16 @@ use Config::Auto;
 use Medac::Metadata::Source::IMDB;
 use Medac::Metadata::Source::Plex;
 use Medac::Metadata::Source::CouchPotato;
-use Medac::Search::NZB::OMGWTFNZBS;
+use Medac::Search::NZB::Womble;
 use Medac::Cache;
 use Getopt::Long;
 use Medac::Misc::Menu;
 use Medac::Misc::Menu::Item;
 
+
+my $womble = new Medac::Search::NZB::Womble(port => 80, protocol => 'http');
+my $results = $womble->search('NOVA');
+print Dumper($results);
+
 my $menu = new Medac::Misc::Menu(title => "My Menu!");
-
-
-$menu->addItem(new Medac::Misc::Menu::Item(key => 1, label => "My item"));
-$menu->addItem(new Medac::Misc::Menu::Item(key => 2, label => "My other item"));
-
 print $menu->getMenu();

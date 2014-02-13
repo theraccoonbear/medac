@@ -86,43 +86,10 @@ sub searchTV {
 	
 	my $results = $self->search($terms, '19,20,21', $retention);
 	
-	#print Dumper($results); exit(0);
-	
 	my $now = time;
 	
 	foreach my $nzb (@$results) {
-		$nzb->{season} = 0;
-		$nzb->{episode} = 0;
-		$nzb->{video_quality} = '????';
-		$nzb->{video_codec} = '????';
-		$nzb->{audio} = '????';
-		$nzb->{repack} = 0;
-		$nzb->{age} = $now - ($nzb->{usenetage} * 1);
-		$nzb->{age_days} = $nzb->{age} / 60 / 60 / 24;
-		
-		if ($nzb->{release} =~ m/(?<audio>DD5.1)/) {
-			$nzb->{audio} = $+{audio};
-		}
-		
-		
-		if ($nzb->{release} =~ m/s(?<season>\d{1,4})e(?<episode>\d{1,2})/i) {
-			$nzb->{season} = $+{season} * 1;
-			$nzb->{episode} = $+{episode} * 1;
-		}
-		
-		if ($nzb->{release} =~ m/(?<videoquality>((480|720|1080)[pi])|HDTV|WEB-DL|SDTV|DVD|PDTV)/) {
-			$nzb->{video_quality} = $+{videoquality};
-		}
-		
-		if ($nzb->{release} =~ m/(?<videocodec>(xvid|x264))/i) {
-			$nzb->{video_codec} = $+{videocodec};
-		}
-		
-		if ($nzb->{release} =~ m/REPACK/) {
-			$nzb->{repack} = 1;
-		}
-		
-		
+		$nzb = $self->parseRelease($nzb);
 	}
 	
 	if ($filter) {
@@ -168,10 +135,9 @@ sub search {
 		$results = decode_json($page->{content})
 	}
 	
-	$results = $results->{notice} ? [] : $results;
+	$results = ref $results eq ref {} && $results->{notice} ? [] : $results;
 	
 	return $results;
 } # search()
 
 1;
-#https://api.omgwtfnzbs.org/json/?search=NOVA.S41E11&catid=19%2C20&eng=1&api=088e4af3aedbb5d99ecdf23197f2fe69&user=medac&retention=1600

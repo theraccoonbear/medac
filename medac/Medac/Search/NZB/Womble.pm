@@ -1,0 +1,100 @@
+package Medac::Search::NZB::Womble;
+use lib '../../..';
+
+use Moose;
+
+extends 'Medac::Search::NZB';
+
+use IO::Socket::SSL qw();
+use WWW::Mechanize qw();
+use Web::Scraper;
+use HTTP::Cookies;
+use Data::Dumper;
+use Text::Levenshtein qw(distance);
+use Mojo::DOM;
+use Medac::Cache;
+use JSON::XS;
+use URI::Escape;
+use Web::Scraper;
+
+has '+hostname' => (
+	is => 'rw',
+	isa => 'Str',
+	default => 'www.newshost.co.za'
+);
+
+has '+port' => (
+	is => 'rw',
+	isa => 'Int',
+	default => 80
+);
+
+
+has '+protocol' => (
+	is => 'rw',
+	isa => 'Str',
+	default => 'http'
+);
+
+
+has '+cache_context' => (
+	'is' => 'rw',
+	'isa' => 'Str',
+	'default' => sub {
+		return __PACKAGE__;
+	}
+);
+
+
+sub search {
+	my $self = shift @_;
+	my $terms = shift @_;
+	my $section = shift @_ || 'TV';
+	my $retention = shift @_ || 1600;
+	
+	my $params = {
+		s => $terms
+	};
+	
+	my $url = $self->baseURL() . '/?' . $self->encodeParams($params);
+	
+	my $page = $self->pullURL($url);
+	
+	my $results = [];
+	
+	if ($page->{success}) {
+		my $content = $page->{content};
+		
+		my $scraper = scraper {
+			process 'tr', 'entries[]' => scraper {
+				process 'td:nth-child(1)', 'released' => 'TEXT';
+				process 'td:nth-child(2)', 'size' => 'TEXT';
+				process 'td:nth-child(3)', 'section' => 'TEXT';
+				process 'td:nth-child(4) a:nth-child(1)', 'nzb' => '@href';
+				process 'td:nth-child(4) a:nth-child(2)', 'nfo' => '@href';
+				process 'td:nth-child(5)', 'days_old' => 'TEXT';
+				process 'td:nth-child(6)', 'release' => 'TEXT';
+			};
+		};
+		
+		my $scr_rslt = $scraper->scrape($content);
+		
+		foreach my $nzb (@{$scr_rslt->{entries}}) {
+			if ($nzb->{nzb}) {
+				$nzb->{nzb} = $self->baseURL() . '/' . $nzb->{nzb};
+				if ($nzb->{nfo}) {
+					$nzb->{nfo} = $self->baseURL() . '/' . $nzb->{nfo};
+				}
+				$nzb = $self->parseRelease($nzb);
+				push @$results, $nzb;
+			}
+		}
+		
+	}
+	
+	
+	return $results;
+} # search()
+
+1;
+#https://api.omgwtfnzbs.org/json/?search=NOVA.S41E11&catid=19%2C20&eng=1&api=088e4af3aedbb5d99ecdf23197f2fe69&user=medac&retention=1600
