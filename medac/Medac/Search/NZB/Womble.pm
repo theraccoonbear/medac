@@ -94,6 +94,22 @@ sub search {
 					$nzb->{nfo} = $self->baseURL() . '/' . $nzb->{nfo};
 				}
 				($nzb->{section}, $nzb->{subsection}) = split(/-/, $nzb->{section} . '-');
+				$nzb->{usenetage} = 0;
+				if ($nzb->{days_old} =~ m/^(?<num>[\d,]+)(?<unit>[dhm])$/) {
+					my $num = $+{num};
+					my $unit = $+{unit};
+					$num =~ s/[^\d]+//;
+					if ($unit eq 'd') {
+						$num = $num * 60 * 60 * 24;
+					} elsif ($unit eq 'h') {
+						$num = $num * 60 * 24;
+					} else {
+						$num = $num * 60;
+					}
+					$nzb->{usenetage} = $num;
+				}
+				
+				
 				$nzb = $self->parseRelease($nzb);
 				push @$results, $nzb;
 			}
