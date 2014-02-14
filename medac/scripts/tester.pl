@@ -19,13 +19,13 @@ use Medac::Metadata::Source::CouchPotato;
 use Medac::Search::NZB::Womble;
 use Medac::Cache;
 use Getopt::Long;
-use Medac::Misc::Menu;
-use Medac::Misc::Menu::Item;
+use Medac::Console::Menu;
+use Medac::Console::Menu::Item;
 
 
 my $womble = new Medac::Search::NZB::Womble(port => 80, protocol => 'http');
 my $results = $womble->search('NOVA');
 print Dumper($results);
 
-my $menu = new Medac::Misc::Menu(title => "My Menu!");
+my $menu = new Medac::Console::Menu(title => "My Menu!");
 print $menu->getMenu();

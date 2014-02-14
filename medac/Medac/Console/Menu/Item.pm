@@ -1,4 +1,4 @@
-package Medac::Misc::Menu::Item;
+package Medac::Console::Menu::Item;
 use lib '../../..';
 
 use Moose;
@@ -25,8 +25,8 @@ has 'returns' => (
 
 has 'menu' => (
 	is => 'rw',
-	isa => 'Medac::Misc::Menu',
-	default => sub { return new Medac::Misc::Menu(); }
+	isa => 'Medac::Console::Menu',
+	default => sub { return new Medac::Console::Menu(); }
 );
 
 has 'action' => (

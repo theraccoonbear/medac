@@ -21,7 +21,7 @@ use Term::ANSIColor::Markup;
 use Medac::Cache;
 use Medac::Search::NZB::OMGWTFNZBS;
 use Medac::Downloader::Sabnzbd;
-use Medac::Misc::Menu;
+use Medac::Console::Menu;
 use Cwd 'abs_path';
 use File::Basename;
 
@@ -88,13 +88,13 @@ sub prompt {
 } # prompt()
 
 sub setCategory {
-	my $cat_menu = new Medac::Misc::Menu(title => 'Set Download Category (current: ' . $category . ')');
+	my $cat_menu = new Medac::Console::Menu(title => 'Set Download Category (current: ' . $category . ')');
 	my $cats = $sab->getCategories();
 	my $idx = 0;
 	foreach my $cat (sort @$cats) {
 		if ($cat =~ m/^[A-Za-z]+$/) {
 			$idx++;
-			$cat_menu->addItem(new Medac::Misc::Menu::Item(key => $idx, label => $cat, returns => $cat));
+			$cat_menu->addItem(new Medac::Console::Menu::Item(key => $idx, label => $cat, returns => $cat));
 		}
 	}
 	my $new_cat = $cat_menu->display();
@@ -165,9 +165,9 @@ my $queued = $cache->retrieve('queue') || {};
 my $my_shows;
 
 while ($resp !~ m/^X$/i) {
-	my $main_menu = new Medac::Misc::Menu(title => 'Actions:');
-	$main_menu->addItem(new Medac::Misc::Menu::Item(key => 'S', label => 'Search'));
-	$main_menu->addItem(new Medac::Misc::Menu::Item(key => 'C', label => 'Change SABNZBd Download Category (current: ' . $category . ')'));
+	my $main_menu = new Medac::Console::Menu(title => 'Actions:');
+	$main_menu->addItem(new Medac::Console::Menu::Item(key => 'S', label => 'Search'));
+	$main_menu->addItem(new Medac::Console::Menu::Item(key => 'C', label => 'Change SABNZBd Download Category (current: ' . $category . ')'));
 
 	$resp = $main_menu->display();
 	my $show_resp = '';
@@ -175,7 +175,7 @@ while ($resp !~ m/^X$/i) {
 		$show_resp = '';
 		$my_shows = startSearch();
 		while ($show_resp !~ m/^X$/i) {
-			my $choose_menu = new Medac::Misc::Menu(title => 'Choose NZB', post => '* indicates NZB has been queued in Sab.');
+			my $choose_menu = new Medac::Console::Menu(title => 'Choose NZB', post => '* indicates NZB has been queued in Sab.');
 			my $idx = 0;
 			my $entries = {};
 			my $opts = ();
@@ -195,10 +195,10 @@ while ($resp !~ m/^X$/i) {
 				#my $leading = $queued->{$show->{getnzb}} ? '*' : ' ';
 				#my $label = $leading . "s${season}e${episode} - $quality - $size - $daysOld day(s) old - $release";
 				my $label = colorize("<yellow>s</yellow><white>${season}</white><yellow>e</yellow><white>${episode}</white> - <blue>$quality</blue> - <yellow>$size</yellow> - <red>$daysOld day(s) old</red> - <cyan>$release</cyan>");
-				$choose_menu->addItem(new Medac::Misc::Menu::Item(key => $didx, label => $label, prefix => $queued->{$show->{getnzb}} ? '*' : ''));
+				$choose_menu->addItem(new Medac::Console::Menu::Item(key => $didx, label => $label, prefix => $queued->{$show->{getnzb}} ? '*' : ''));
 			}
 			
-			$choose_menu->addItem(new Medac::Misc::Menu::Item(key => 'F', label => 'Filter Results'));
+			$choose_menu->addItem(new Medac::Console::Menu::Item(key => 'F', label => 'Filter Results'));
 			
 			$show_resp = $choose_menu->display();
 			if ($show_resp =~ m/^\d+$/) {

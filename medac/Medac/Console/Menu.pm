@@ -1,9 +1,9 @@
-package Medac::Misc::Menu;
+package Medac::Console::Menu;
 use lib '../..';
 
 use Moose;
 
-use Medac::Misc::Menu::Item;
+use Medac::Console::Menu::Item;
 use strict;
 use warnings;
 use Data::Dumper;
@@ -61,7 +61,7 @@ has 'maxLength' => (
 sub BUILD {
 	my $self = shift @_;
 	if (!$self->no_exit) {
-		$self->addItem(new Medac::Misc::Menu::Item(key => 'X', label => 'Exit', menu => $self));
+		$self->addItem(new Medac::Console::Menu::Item(key => 'X', label => 'Exit', menu => $self));
 	}
 }
 
