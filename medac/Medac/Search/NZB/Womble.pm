@@ -45,6 +45,14 @@ has '+cache_context' => (
 	}
 );
 
+has 'exclude_section' => (
+	'is' => 'rw',
+	'isa' => 'ArrayRef',
+	default => sub {
+		return [];
+	}
+);
+
 
 sub search {
 	my $self = shift @_;
@@ -85,6 +93,7 @@ sub search {
 				if ($nzb->{nfo}) {
 					$nzb->{nfo} = $self->baseURL() . '/' . $nzb->{nfo};
 				}
+				($nzb->{section}, $nzb->{subsection}) = split(/-/, $nzb->{section} . '-');
 				$nzb = $self->parseRelease($nzb);
 				push @$results, $nzb;
 			}
