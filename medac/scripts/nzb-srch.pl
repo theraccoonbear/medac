@@ -4,7 +4,12 @@ use warnings;
 
 #use Cwd 'abs_path';
 use FindBin;
-use lib "$FindBin::Bin/..";
+use Cwd 'abs_path';
+use File::Basename;
+
+#use lib "$FindBin::Bin/..";
+
+use lib dirname(abs_path($0)) . '/..';
 
 use JSON::XS;
 use Getopt::Long;
@@ -22,8 +27,6 @@ use Medac::Cache;
 use Medac::Search::NZB::OMGWTFNZBS;
 use Medac::Downloader::Sabnzbd;
 use Medac::Console::Menu;
-use Cwd 'abs_path';
-use File::Basename;
 
 my $cache = new Medac::Cache(context => 'nzb-srch');
 my $previous_fh = select(STDOUT); $| = 1; select($previous_fh);
