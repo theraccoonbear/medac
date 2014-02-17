@@ -198,7 +198,7 @@ while ($resp !~ m/^X$/i) {
 				#my $leading = $queued->{$show->{getnzb}} ? '*' : ' ';
 				#my $label = $leading . "s${season}e${episode} - $quality - $size - $daysOld day(s) old - $release";
 				my $label = colorize("<yellow>s</yellow><white>${season}</white><yellow>e</yellow><white>${episode}</white> - <blue>$quality</blue> - <yellow>$size</yellow> - <red>$daysOld day(s) old</red> - <cyan>$release</cyan>");
-				$choose_menu->addItem(new Medac::Console::Menu::Item(key => $didx, label => $label, prefix => $queued->{$show->{getnzb}} ? '*' : ''));
+				$choose_menu->addItem(new Medac::Console::Menu::Item(key => $idx, label => $label, prefix => $queued->{$show->{getnzb}} ? '*' : ''));
 			}
 			
 			$choose_menu->addItem(new Medac::Console::Menu::Item(key => 'F', label => 'Filter Results'));

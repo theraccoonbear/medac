@@ -109,8 +109,9 @@ sub getMenu {
 sub display {
 	my $self = shift @_;
 	
-	my $accept_opts = join('', map {$_->key =~ m/[A-Za-z]/ ? uc($_->key) . lc($_->key) : $_->key;} @{$self->items});
-	my $acceptable = '^[' . $accept_opts . ']$';
+	#my $accept_opts = join('|', map {$_->key =~ m/[A-Za-z]/ ? '(' . uc($_->key) . lc($_->key) : $_->key;} @{$self->items});
+	my $accept_opts = join('|', map { $_->key; } @{$self->items});
+	my $acceptable = '^(' . $accept_opts . ')$';
 	
 	my $is_acceptable = 0;
 	my $answer = '';
