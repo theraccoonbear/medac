@@ -166,6 +166,7 @@ dbg "Getting recent plex TV...";
 my $recent_episodes = $plex->recentEpisodes();
 dbg "Done.", 1;
 
+my $new_count = 0;
 my $max_posters = 5;
 my $movie_poster_count = 0;
 my $used = {};
@@ -178,7 +179,9 @@ my $imdb_shows_loaded = {};
 
 foreach my $show (sort { $a->{age} <=> $b->{age} } @$recent_episodes) {
 	my $show_title = $show->{grandparentTitle};
-	if (!$imdb_shows_loaded->{$show_title}) {
+	my $is_new = $show->{age} <= 60 * 60 * 24;
+	if ($is_new && !$imdb_shows_loaded->{$show_title}) {
+		
 		dbg "Loading IMDB metadata for TV \"$show_title\"...";
 		my $results = $imdb->find($show_title, 'TV');
 		dbg "Done.", 1;
@@ -200,13 +203,13 @@ foreach my $show (sort { $a->{age} <=> $b->{age} } @$recent_episodes) {
 			}
 		}
 		
-		if ($tv_poster_count >= $max_posters) {
-			my $more = (scalar @$recent_episodes) - $max_posters;
-			if ($more != 0) {
-				push @$tv_posters, " plus $more more";
-			}
-			last;
-		}
+		#if ($tv_poster_count >= $max_posters) {
+		#	my $more = (scalar @$recent_episodes) - $max_posters;
+		#	if ($more != 0) {
+		#		push @$tv_posters, " plus $more more";
+		#	}
+		#	last;
+		#}
 		
 		$imdb_shows_loaded->{$show_title} = 1;
 	}
@@ -216,34 +219,36 @@ $used = {};
 
 foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
 	my $movie_title = $movie->{title};
-	dbg "Loading IMDB metadata for movie \"$movie_title\"...";
-	my $results = $imdb->find($movie_title, 'Movie');
-	dbg "Done.", 1;
-	$results = $results->{sections};
-	$results =  $results->[0];
-	$results =  $results->{entries};
-
-	if (scalar @$results > 0) {
-		my $imdb_movie = $results->[0];
-		
-		my $poster_url = $imdb_movie->{poster};
-		$movie->{imdb_url} = 'http://www.imdb.com' . $imdb_movie->{url};
-		$poster_url =~ s/S[XY]\d+_CR.+_\.jpg/SX100_CR0,0,100,150_.jpg/gi;
-		#http://ia.media-imdb.com/images/M/MV5BMTQzMzMwNDExMV5BMl5BanBnXkFtZTcwMzE5MjU3OQ@@._V1_SX100_CR0,0,100,150_.jpg
-		if (!$used->{$poster_url}) {
-			push @$movie_posters, "![$movie->{title}]($poster_url \"$movie->{title}\")";
-			$used->{$poster_url} = 1;
-			$movie_poster_count++;
-		}
-	}
+	my $is_new = $movie->{age} <= 60 * 60 * 24;
+	if ($is_new) {
+		dbg "Loading IMDB metadata for movie \"$movie_title\"...";
+		my $results = $imdb->find($movie_title, 'Movie');
+		dbg "Done.", 1;
+		$results = $results->{sections};
+		$results =  $results->[0];
+		$results =  $results->{entries};
 	
-	if ($movie_poster_count >= $max_posters) {
-		my $more = (scalar @$recent_movies) - $max_posters;
-		if ($more > 0) {
-			push @$movie_posters, " plus $more more";
+		if (scalar @$results > 0) {
+			my $imdb_movie = $results->[0];
+			
+			my $poster_url = $imdb_movie->{poster};
+			$movie->{imdb_url} = 'http://www.imdb.com' . $imdb_movie->{url};
+			$poster_url =~ s/S[XY]\d+_CR.+_\.jpg/SX100_CR0,0,100,150_.jpg/gi;
+			#http://ia.media-imdb.com/images/M/MV5BMTQzMzMwNDExMV5BMl5BanBnXkFtZTcwMzE5MjU3OQ@@._V1_SX100_CR0,0,100,150_.jpg
+			if (!$used->{$poster_url}) {
+				push @$movie_posters, "![$movie->{title}]($poster_url \"$movie->{title}\")";
+				$used->{$poster_url} = 1;
+				$movie_poster_count++;
+			}
 		}
-		last;
 	}
+	#if ($movie_poster_count >= $max_posters) {
+	#	my $more = (scalar @$recent_movies) - $max_posters;
+	#	if ($more > 0) {
+	#		push @$movie_posters, " plus $more more";
+	#	}
+	#	last;
+	#}
 }
 
 my $m_posters = join(' ' , @$movie_posters);
@@ -274,16 +279,20 @@ if (scalar @$recent_movies > 0) {
 			my $dur_minutes = ceil($movie->{duration} / 1000 / 60);
 			$disp_dur = "$dur_minutes minutes"
 		}
+		my $is_new = $movie->{age} <= 60 * 60 * 24;
+		$new_count += $is_new ? 1 : 0;
+		my $notice = $is_new ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
 		
-		my $notice = $movie->{age} <= 60 * 60 * 24 ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
 		
-		my $trailer_search = 'https://www.youtube.com/results?search_query=' . uri_escape('"' . $movie->{title} . '" ' . $movie->{year} . ' HD trailer');
+		my $trailer_search = 'https://www.youtube.com/results?search_query=' . uri_escape_utf8('"' . $movie->{title} . '" ' . $movie->{year} . ' HD trailer');
 		
-		msg "  * $notice**$movie->{title}** ($movie->{year}) / $disp_dur / [YouTube Trailer]($trailer_search) / [IMDB]($movie->{imdb_url})";
-		$movie->{summary} =~ s/\n/ /gi;
-		$movie->{summary} =~ s/^[\s\n\r\l]+//gi;
-		$movie->{summary} =~ s/[\s\n\r\l]+$//gi;
-		msg "    : *$movie->{summary}*";
+		if ($is_new) {
+			msg "  * $notice**$movie->{title}** ($movie->{year}) / $disp_dur / [YouTube Trailer]($trailer_search) / [IMDB]($movie->{imdb_url})";
+			$movie->{summary} =~ s/\n/ /gi;
+			$movie->{summary} =~ s/^[\s\n\r\l]+//gi;
+			$movie->{summary} =~ s/[\s\n\r\l]+$//gi;
+			msg "    : *$movie->{summary}*";
+		}
 		#print Dumper($movie);
 	}
 } else {
@@ -300,15 +309,20 @@ if (scalar @$recent_episodes > 0) {
 	foreach my $episode (sort { $a->{age} <=> $b->{age} } @{$recent_episodes}) {
 		$episode->{season} = sprintf('%02d', $episode->{parentIndex});
 		$episode->{episode} = sprintf('%02d', $episode->{index});
-		my $notice = $episode->{age} <= 60 * 60 * 24 ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
-		msg "  * $notice**$episode->{title}** s$episode->{season}e$episode->{episode} of *$episode->{grandparentTitle}*";
-		if (length($episode->{summary}) > 0) {
-			$episode->{summary} =~ s/\n/ /gi;
-			$episode->{summary} =~ s/^[\s\n\r\l]+//gi;
-			$episode->{summary} =~ s/[\s\n\r\l]+$//gi;
-			msg "    : *$episode->{summary}*";
-		}
 		
+		my $is_new = $episode->{age} <= 60 * 60 * 24;
+		$new_count += $is_new ? 1 : 0;
+		my $notice = $is_new ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
+		
+		if ($is_new) {
+			msg "  * $notice**$episode->{title}** s$episode->{season}e$episode->{episode} of *$episode->{grandparentTitle}*";
+			if (length($episode->{summary}) > 0) {
+				$episode->{summary} =~ s/\n/ /gi;
+				$episode->{summary} =~ s/^[\s\n\r\l]+//gi;
+				$episode->{summary} =~ s/[\s\n\r\l]+$//gi;
+				msg "    : *$episode->{summary}*";
+			}
+		} # is new?
 	}
 } else {
 	msg "  * No recent episodes";

@@ -67,7 +67,7 @@ sub find {
 	
 	my $search_filter = $type_map->{$search_type};
 	
-	my $search_url = $IMDB_BASE_URL . '/find?q=' . uri_escape($terms) . $search_filter;
+	my $search_url = $IMDB_BASE_URL . '/find?q=' . uri_escape_utf8($terms) . $search_filter;
 	my $cache_key = "RESPONSE:$search_url";
 	
 	my $ret_val = ();
