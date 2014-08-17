@@ -111,7 +111,7 @@ sub setCategory {
 sub startSearch {
 	my $ret_val = {};
 	if ($category eq 'tv') {
-		$ret_val = tvSeach();
+		$ret_val = tvSearch();
 	} elsif ($category eq 'movie') {
 		$ret_val = movieSearch();
 	}
@@ -128,7 +128,7 @@ sub movieSearch {
 	my $quality = prompt("Quality [enter for \"" . ($default_quality || 'any quality') . "\", e.g. 720p, HDTV|SDTV, etc]?");
 	
 	$movie_name = $movie_name =~ m/.+/ ? $movie_name : $default_movie_name;
-	$movie_year = $movie_year =~ m/.+/ ? $movie_year : $default_movie_year;
+	$movie_year = $movie_year =~ m/.+[\+-]?/ ? $movie_year : $default_movie_year;
 	$quality = $quality=~ m/.+/ ? $quality: $default_quality;
 	
 	$cache->store('default-movie-name', $movie_name);
@@ -148,7 +148,15 @@ sub movieSearch {
 			my $n = shift @_;
 			my $match = 1;
 			
-			if ($movie_year =~ m/^((19|20)\d{2})$/) { $match = $match && $n->{year} == $movie_year; }
+			if ($movie_year =~ m/^(?<year>(19|20)\d{2})(?<modifier>[\+-])?$/) {
+				if ($+{modifier} eq '+') {
+					$match = $match && ($n->{year} eq '????' || $n->{year} >= $+{year});
+				} elsif ($+{modifier} eq '-') {
+					$match = $match && ($n->{year} eq '????' || $n->{year} <= $+{year});
+				}
+			} else {
+				$match = $match && $n->{year} == $movie_year;
+			}
 			if ($quality =~ m/^.+$/) { $match = $match && $n->{video_quality} =~ m/($quality)/gi; }
 			
 			return $match;
