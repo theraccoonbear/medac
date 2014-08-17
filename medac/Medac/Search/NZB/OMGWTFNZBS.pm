@@ -77,6 +77,35 @@ sub searchMusic {
 	return $results;
 }
 
+sub searchMovies {
+	my $self = shift @_;
+	my $params = shift @_;
+	my $terms = $params->{terms} or die "No search term";
+	my $retention = $params->{retention} || 1600;
+	my $filter = $params->{filter} || undef;
+	
+	my $results = $self->search($terms, '15,16,17,18', $retention);
+	
+	my $now = time;
+	
+	foreach my $nzb (@$results) {
+		$nzb = $self->parseRelease($nzb);
+	}
+	
+	if ($filter) {
+		my $nr = [];
+		foreach my $nzb (@$results) {
+			if (&$filter($nzb)) {
+				push @$nr, $nzb;
+			}
+		}
+		$results = $nr;
+	}
+	
+	
+	return $results;
+}
+
 sub searchTV {
 	my $self = shift @_;
 	my $params = shift @_;

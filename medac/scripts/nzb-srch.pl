@@ -35,10 +35,10 @@ my $previous_fh = select(STDOUT); $| = 1; select($previous_fh);
 my $config_file = dirname(abs_path($0)) . "/test-config.json";
 
 my $config = {};
-my $host_name = 0;
-my $port = 32400;
-my $username = 0;
-my $password = 0;
+#my $host_name = 0;
+#my $port = 32400;
+#my $username = 0;
+#my $password = 0;
 my $script_started = time();
 my $action_started;
 my $category = 'tv';
@@ -58,10 +58,10 @@ if ($config_file && -f $config_file) {
 	my $file_data = read_file($config_file);
 	$config = decode_json($file_data);
 	
-	$host_name = $config->{hostname} || $host_name;
-	$port =  $config->{port} || $port;
-	$username = $config->{username} || $username;
-	$password = $config->{password} || $password;
+	#$host_name = $config->{hostname} || $host_name;
+	#$port =  $config->{port} || $port;
+	#$username = $config->{username} || $username;
+	#$password = $config->{password} || $password;
 } else {
 	die "No config file specified";
 }
@@ -69,11 +69,12 @@ if ($config_file && -f $config_file) {
 my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.org'});
 my $sab = new Medac::Downloader::Sabnzbd($config->{'sabnzbd'});
 
-sub commify {
+sub commafy {
    my $input = shift;
-   $input = reverse $input;
-   $input =~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1,/g;
-   return reverse $input;
+   my $output = reverse $input;
+   $output =~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1,/g;
+	 $output = reverse $output;
+   return $output;
 }
 
 sub prompt {
@@ -106,17 +107,72 @@ sub setCategory {
 	}
 }
 
+
 sub startSearch {
+	my $ret_val = {};
+	if ($category eq 'tv') {
+		$ret_val = tvSeach();
+	} elsif ($category eq 'movie') {
+		$ret_val = movieSearch();
+	}
 	
+}
+
+sub movieSearch {
+	my $default_movie_name = $cache->retrieve('default-movie-name');
+	my $default_movie_year = $cache->retrieve('default-movie-year');
+	my $default_quality = $cache->retrieve('default-quality');
+	
+	my $movie_name = prompt("Movie name [enter for \"" . ($default_movie_name || 'no name') . "\"]?");
+	my $movie_year = prompt("Year [enter for \"" . ($default_movie_year || 'any year') . "\"]?");
+	my $quality = prompt("Quality [enter for \"" . ($default_quality || 'any quality') . "\", e.g. 720p, HDTV|SDTV, etc]?");
+	
+	$movie_name = $movie_name =~ m/.+/ ? $movie_name : $default_movie_name;
+	$movie_year = $movie_year =~ m/.+/ ? $movie_year : $default_movie_year;
+	$quality = $quality=~ m/.+/ ? $quality: $default_quality;
+	
+	$cache->store('default-movie-name', $movie_name);
+	$cache->store('default-movie-year', $movie_year);
+	$cache->store('default-quality', $quality);
+	
+	my $result = {
+		movie_name => $movie_name,
+		movie_year => $movie_year,
+		quality => $quality,
+		results => []
+	};
+	
+	my $movies = my $my_movies = $omg->searchMovies({
+		terms => $movie_name,
+		filter => sub {
+			my $n = shift @_;
+			my $match = 1;
+			
+			if ($movie_year =~ m/^((19|20)\d{2})$/) { $match = $match && $n->{year} == $movie_year; }
+			if ($quality =~ m/^.+$/) { $match = $match && $n->{video_quality} =~ m/($quality)/gi; }
+			
+			return $match;
+		}
+	});
+	
+	if (scalar @$movies >= 1) {
+		$result->{results} = $movies;
+	}
+	
+	return $result;
+	#return $shows;
+} # startSearch()
+
+sub tvSearch {
 	my $default_show_name = $cache->retrieve('default-show-name');
 	my $default_season = $cache->retrieve('default-season');
 	my $default_episode = $cache->retrieve('default-episode');
 	my $default_quality = $cache->retrieve('default-quality');
 	
 	my $show_name = prompt("Show name [enter for \"" . ($default_show_name || 'no name') . "\"]?");
-	my $season = prompt("Season No. [enter for \"" . ($default_season || 'no season') . "\"]?");
-	my $episode = prompt("Episode No. [enter for \"" . ($default_episode || 'no episode') . "\"]?");
-	my $quality = prompt("Quality [enter for \"" . ($default_quality || 'no quality') . "\", e.g. 720p, HDTV|SDTV, etc]?");
+	my $season = prompt("Season No. [enter for \"" . ($default_season || 'any season') . "\"]?");
+	my $episode = prompt("Episode No. [enter for \"" . ($default_episode || 'any episode') . "\"]?");
+	my $quality = prompt("Quality [enter for \"" . ($default_quality || 'any quality') . "\", e.g. 720p, HDTV|SDTV, etc]?");
 	
 	$show_name = $show_name =~ m/.+/ ? $show_name : $default_show_name;
 	$season = $season =~ m/.+/ ? $season : $default_season;
@@ -136,7 +192,7 @@ sub startSearch {
 		results => []
 	};
 	
-	my $shows = my $my_shows = $omg->searchTV({
+	my $shows = my $my_content = $omg->searchTV({
 		terms => $show_name,
 		filter => sub {
 			my $n = shift @_;
@@ -165,7 +221,7 @@ my $queued = $cache->retrieve('queue') || {};
 
 
 
-my $my_shows;
+my $my_content;
 
 while ($resp !~ m/^X$/i) {
 	my $main_menu = new Medac::Console::Menu(title => 'Actions:');
@@ -176,32 +232,68 @@ while ($resp !~ m/^X$/i) {
 	my $show_resp = '';
 	if ($resp eq 's') {
 		$show_resp = '';
-		$my_shows = startSearch();
+		$my_content = startSearch();
 		while ($show_resp !~ m/^X$/i) {
 			my $choose_menu = new Medac::Console::Menu(title => 'Choose NZB', post => '* indicates NZB has been queued in Sab.');
 			my $idx = 0;
 			my $entries = {};
 			my $opts = ();
 			
-			foreach my $show (sort {$b->{usenetage} <=> $a->{usenetage}} @{$my_shows->{results}}) {
-				my $season = sprintf('%02d', $show->{season});
-				my $episode = sprintf('%02d', $show->{episode});
-				my $release = $show->{release};
-				my $quality = sprintf('%-5s', $show->{video_quality});
-				my $size = sprintf('%5s', format_bytes($show->{sizebytes}));
-				my $daysOld = sprintf('%4s', commify(ceil((time - $show->{usenetage}) / 60 / 60 / 24)));
+			foreach my $content (sort {$b->{usenetage} <=> $a->{usenetage}} @{$my_content->{results}}) {
+				my $season = sprintf('%02d', $content->{season});
+				my $episode = sprintf('%02d', $content->{episode});
+				my $year = $content->{year} =~ m/^\d{4}$/ ? sprintf('%04d', $content->{year}) : '    ';
+				my $release = $content->{release};
+				my $quality = sprintf('%-5s', $content->{video_quality});
+				my $size = sprintf('%5s', format_bytes($content->{sizebytes}));
+				#my $daysOld = sprintf('%4s', commafy(ceil((time - $content->{usenetage}) / 60 / 60 / 24)));
+				my $daysOld = commafy(ceil((time - $content->{usenetage}) / 60 / 60 / 24));
+				$daysOld = (' ' x (4 - length($daysOld))) . $daysOld;
 				$idx++;
 				my $didx = sprintf('%2s', $idx);
-				$show->{fmtseason} = $season;
-				$show->{fmtepisode} = $episode;
-				$entries->{$idx} = $show;
-				#my $leading = $queued->{$show->{getnzb}} ? '*' : ' ';
-				#my $label = $leading . "s${season}e${episode} - $quality - $size - $daysOld day(s) old - $release";
-				my $label = colorize("<yellow>s</yellow><white>${season}</white><yellow>e</yellow><white>${episode}</white> - <blue>$quality</blue> - <yellow>$size</yellow> - <red>$daysOld day(s) old</red> - <cyan>$release</cyan>");
-				$choose_menu->addItem(new Medac::Console::Menu::Item(key => $idx, label => $label, prefix => $queued->{$show->{getnzb}} ? '*' : ''));
+				$content->{fmtseason} = $season;
+				$content->{fmtepisode} = $episode;
+				$entries->{$idx} = $content;
+				my $entry_str = '';
+				
+				if ($category eq 'tv') {
+						
+					$entry_str .= "<yellow>s</yellow><white>${season}</white><yellow>e</yellow><white>${episode}</white>";
+					$entry_str .= ' - ';
+					$entry_str .= "<blue>$quality</blue>";
+					$entry_str .= ' - ';
+					$entry_str .= "<yellow>$size</yellow>";
+					$entry_str .= ' - ';
+					$entry_str .= "<red>$daysOld day(s) old</red>";
+					$entry_str .= ' - ';
+					$entry_str .= "<cyan>$release</cyan>";
+				} elsif ($category eq 'movie') {
+					$entry_str .= "<yellow>$year</yellow>";
+					$entry_str .= ' - ';
+					$entry_str .= "<blue>$quality</blue>";
+					$entry_str .= ' - ';
+					$entry_str .= "<yellow>$size</yellow>";
+					$entry_str .= ' - ';
+					$entry_str .= "<red>$daysOld day(s) old</red>";
+					$entry_str .= ' - ';
+					$entry_str .= "<cyan>$release</cyan>";
+				}
+				my $label = colorize($entry_str);
+				$choose_menu->addItem(
+					new Medac::Console::Menu::Item(
+						key => $idx,
+						label => $label,
+						prefix => $queued->{$content->{getnzb}} ? '*' : ''
+					)
+				);
 			}
 			
-			$choose_menu->addItem(new Medac::Console::Menu::Item(key => 'F', label => 'Filter Results'));
+			$choose_menu->addItem(
+				new Medac::Console::Menu::Item(
+					key => 'F',
+					label => 'Filter Results'
+				)
+			);
 			
 			$show_resp = $choose_menu->display();
 			if ($show_resp =~ m/^\d+$/) {

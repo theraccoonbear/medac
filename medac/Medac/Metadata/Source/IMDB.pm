@@ -39,6 +39,12 @@ has 'season_cache' => (
 	'default' => sub { return new Medac::Cache('context'=>'IMDBSeason'); }
 );
 
+has 'movie_cache' => (
+	'is' => 'rw',
+	'isa' => 'Medac::Cache',
+	'default' => sub { return new Medac::Cache('context'=>'IMDBMovie'); }
+);
+
 #my $search_cache = {};
 #my $show_cache = {};
 #my $season_cache = {};

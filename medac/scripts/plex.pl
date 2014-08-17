@@ -57,6 +57,8 @@ my $config_file = 'test-config.json';
 
 my $script_started = time();
 my $action_started;
+my $tv_disp_count = 0;
+my $movie_disp_count = 0;
 
 GetOptions(
 	'config=s' => \$config_file
@@ -241,6 +243,7 @@ foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
 				$movie_poster_count++;
 			}
 		}
+		$movie_disp_count++;
 	}
 	#if ($movie_poster_count >= $max_posters) {
 	#	my $more = (scalar @$recent_movies) - $max_posters;
@@ -270,32 +273,32 @@ msg $header;
 msg "## Recent Movies";
 msg;
 
-if (scalar @$recent_movies > 0) {
-	foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
-		$movie->{summary} = trim($movie->{summary});
-		$movie->{shortSummary} = trim(length $movie->{summary} > 100 ? substr($movie->{summary}, 0, 100) : $movie->{summary});
-		my $disp_dur = 'unknown duration';
-		if ($movie->{duration}) {
-			my $dur_minutes = ceil($movie->{duration} / 1000 / 60);
-			$disp_dur = "$dur_minutes minutes"
-		}
-		my $is_new = $movie->{age} <= 60 * 60 * 24;
-		$new_count += $is_new ? 1 : 0;
-		my $notice = $is_new ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
-		
-		
-		my $trailer_search = 'https://www.youtube.com/results?search_query=' . uri_escape_utf8('"' . $movie->{title} . '" ' . $movie->{year} . ' HD trailer');
-		
-		if ($is_new) {
-			msg "  * $notice**$movie->{title}** ($movie->{year}) / $disp_dur / [YouTube Trailer]($trailer_search) / [IMDB]($movie->{imdb_url})";
-			$movie->{summary} =~ s/\n/ /gi;
-			$movie->{summary} =~ s/^[\s\n\r\l]+//gi;
-			$movie->{summary} =~ s/[\s\n\r\l]+$//gi;
-			msg "    : *$movie->{summary}*";
-		}
-		#print Dumper($movie);
+
+foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
+	$movie->{summary} = trim($movie->{summary});
+	$movie->{shortSummary} = trim(length $movie->{summary} > 100 ? substr($movie->{summary}, 0, 100) : $movie->{summary});
+	my $disp_dur = 'unknown duration';
+	if ($movie->{duration}) {
+		my $dur_minutes = ceil($movie->{duration} / 1000 / 60);
+		$disp_dur = "$dur_minutes minutes"
 	}
-} else {
+	my $is_new = $movie->{age} <= 60 * 60 * 24;
+	$new_count += $is_new ? 1 : 0;
+	my $notice = $is_new ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
+	
+	
+	my $trailer_search = 'https://www.youtube.com/results?search_query=' . uri_escape_utf8('"' . $movie->{title} . '" ' . $movie->{year} . ' HD trailer');
+	
+	if ($is_new) {
+		msg "  * $notice**$movie->{title}** ($movie->{year}) / $disp_dur / [YouTube Trailer]($trailer_search) / [IMDB]($movie->{imdb_url})";
+		$movie->{summary} =~ s/\n/ /gi;
+		$movie->{summary} =~ s/^[\s\n\r\l]+//gi;
+		$movie->{summary} =~ s/[\s\n\r\l]+$//gi;
+		msg "    : *$movie->{summary}*";
+	}
+	#print Dumper($movie);
+}
+if ($movie_disp_count == 0) {
 	msg "  * No recent movies";
 }
 
@@ -305,26 +308,28 @@ msg "## Recent TV";
 msg;
 
 
-if (scalar @$recent_episodes > 0) {
-	foreach my $episode (sort { $a->{age} <=> $b->{age} } @{$recent_episodes}) {
-		$episode->{season} = sprintf('%02d', $episode->{parentIndex});
-		$episode->{episode} = sprintf('%02d', $episode->{index});
-		
-		my $is_new = $episode->{age} <= 60 * 60 * 24;
-		$new_count += $is_new ? 1 : 0;
-		my $notice = $is_new ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
-		
-		if ($is_new) {
-			msg "  * $notice**$episode->{title}** s$episode->{season}e$episode->{episode} of *$episode->{grandparentTitle}*";
-			if (length($episode->{summary}) > 0) {
-				$episode->{summary} =~ s/\n/ /gi;
-				$episode->{summary} =~ s/^[\s\n\r\l]+//gi;
-				$episode->{summary} =~ s/[\s\n\r\l]+$//gi;
-				msg "    : *$episode->{summary}*";
-			}
-		} # is new?
-	}
-} else {
+
+foreach my $episode (sort { $a->{age} <=> $b->{age} } @{$recent_episodes}) {
+	$episode->{season} = sprintf('%02d', $episode->{parentIndex});
+	$episode->{episode} = sprintf('%02d', $episode->{index});
+	
+	my $is_new = $episode->{age} <= 60 * 60 * 24;
+	$new_count += $is_new ? 1 : 0;
+	my $notice = $is_new ? "![Downloaded in the last 24 hours]($config->{image_base}/images/new-email.gif \"Downloaded in the last 24 hours\") " : '';
+	
+	if ($is_new) {
+		msg "  * $notice**$episode->{title}** s$episode->{season}e$episode->{episode} of *$episode->{grandparentTitle}*";
+		if (length($episode->{summary}) > 0) {
+			$episode->{summary} =~ s/\n/ /gi;
+			$episode->{summary} =~ s/^[\s\n\r\l]+//gi;
+			$episode->{summary} =~ s/[\s\n\r\l]+$//gi;
+			msg "    : *$episode->{summary}*";
+		}
+		$tv_disp_count++;
+	} # is new?
+}
+
+if ($tv_disp_count == 0) {
 	msg "  * No recent episodes";
 }
 
@@ -340,7 +345,8 @@ msg $footer;
 
 
 
-if (scalar @$recent_episodes > 0 || scalar @$recent_movies > 0) {
+#if (scalar @$recent_episodes > 0 || scalar @$recent_movies > 0) {
+if ($tv_disp_count > 0 || $movie_disp_count > 0) {
 	dbg "Sending email  to $config->{to_email}...";
 	
 	my $email_msg = getMessage();
@@ -374,6 +380,8 @@ if (scalar @$recent_episodes > 0 || scalar @$recent_movies > 0) {
 	eval { $sender->send($email) };
 	die "Error sending email: $@" if $@;
 	dbg "Done.", 1;
+} else {
+	dbg "No new content.  Skipping email."
 }
 
 dbg "" . (time() - $script_started) . " second(s) elapsed in total.";
