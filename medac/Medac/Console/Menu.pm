@@ -76,6 +76,19 @@ sub addItem {
 	
 } # addOption()
 
+sub getItem {
+	my $self = shift @_;
+	my $key = shift @_;
+	
+	foreach my $item (@{$self->items}) {
+		if (lc($item->key) eq lc($key)) {
+			return $item;
+		}
+	}
+	
+	return 0;
+}
+
 sub maxLen {
 	my $self = shift @_;
 	return $self->maxLength;
@@ -127,6 +140,11 @@ sub display {
 			print "Please choose from the list! \"$answer\"\n";
 		} 
 	}
+	my $item = $self->getItem($answer);
+	&{$item->action}();
+	
+	#print Dumper($item);
+	
 	my $ret_val = defined $self->return_vals()->{$answer} ? $self->return_vals()->{$answer} : lc($answer);
 	return $ret_val;
 } # display()

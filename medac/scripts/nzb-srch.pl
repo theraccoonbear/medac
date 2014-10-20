@@ -241,6 +241,9 @@ while ($resp !~ m/^X$/i) {
 	if ($resp eq 's') {
 		$show_resp = '';
 		$my_content = startSearch();
+		my $unfiltered = {%$my_content};
+		my $filters = [];
+		my $filtering = 0;
 		while ($show_resp !~ m/^X$/i) {
 			my $choose_menu = new Medac::Console::Menu(title => 'Choose NZB', post => '* indicates NZB has been queued in Sab.');
 			my $idx = 0;
@@ -299,9 +302,39 @@ while ($resp !~ m/^X$/i) {
 			$choose_menu->addItem(
 				new Medac::Console::Menu::Item(
 					key => 'F',
-					label => 'Filter Results'
+					label => 'Filter Results',
+					action => sub {
+								print "Filter Regex: ";
+								my $rgx_filter = <STDIN>;
+								chomp($rgx_filter);
+								push @$filters, $rgx_filter;
+								my $new_content = [];
+								foreach my $c (@{$my_content->{results}}) {
+												if ($c->{release} =~ /$rgx_filter/) {
+																push @$new_content, $c;
+												}
+												
+								}
+								$filtering = 1;
+								$my_content->{results} = $new_content;
+					}
 				)
 			);
+			
+			if ($filtering) {
+				$choose_menu->addItem(
+				new Medac::Console::Menu::Item(
+					key => 'C',
+					label => 'Clear Filters ("' . join('", "', @$filters) . '")',
+					action => sub {
+								$filtering = 0;
+								$filters = [];
+								$my_content->{results} = $unfiltered->{results};
+					}
+				)
+			);
+			}
+			
 			
 			$show_resp = $choose_menu->display();
 			if ($show_resp =~ m/^\d+$/) {

@@ -40,6 +40,17 @@ has 'prefix' => (
 	default => ''
 );
 
+has 'action' => (
+	is => 'rw',
+	isa => 'Any',
+	default => sub {
+		my $s = sub {
+			print STDERR "action!\n";
+		};
+		return $s;
+	}
+);
+
 sub getEntry {
 	my $self = shift @_;
 	my $indent = shift @_ || $self->menu->indent;
