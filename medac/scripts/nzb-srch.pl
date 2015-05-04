@@ -155,7 +155,7 @@ sub movieSearch {
 					$match = $match && ($n->{year} eq '????' || $n->{year} <= $+{year});
 				}
 			} else {
-				$match = $match && $n->{year} == $movie_year;
+				$match = $match && $n->{year} eq $movie_year;
 			}
 			if ($quality =~ m/^.+$/) { $match = $match && $n->{video_quality} =~ m/($quality)/gi; }
 			
