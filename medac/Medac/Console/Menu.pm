@@ -8,6 +8,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use List::Util qw(reduce);
+use Term::ANSIColor::Markup qw(colorize);
 
 has 'title' => (
 	is => 'rw',
@@ -24,7 +25,7 @@ has 'post' => (
 has 'prompt' => (
 	is => 'rw',
 	isa => 'Str',
-	default => 'Choose: '
+	default => '<white>Choose</white><yellow>:</yellow> '
 );
 
 has 'no_exit' => (
@@ -65,6 +66,12 @@ sub BUILD {
 	}
 }
 
+sub colorize {
+	my $self = shift @_;
+	my $text = shift @_;
+	return Term::ANSIColor::Markup->colorize($text);
+}
+
 sub addItem {
 	my $self = shift @_;
 	my $o = shift @_;
@@ -99,8 +106,9 @@ sub getMenu {
 	my $self = shift @_;
 	
 	my $mnu = '';
-	$mnu .= $self->title . "\n";
-	$mnu .= "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";
+	$mnu .= $self->colorize('<white>' . $self->title . '</white>') . "\n";
+	$mnu .= "<yellow>-</yellow><blue>=</blue>" x 40;
+	$mnu .= "\n";
 	my $exit_item = 0;
 	foreach my $item (@{$self->items}) {
 		if (lc($item->key) ne 'x') {
@@ -116,7 +124,7 @@ sub getMenu {
 	
 	$mnu .= $self->post() ? "\n" . $self->post() . "\n" : '';
 	
-	return $mnu;
+	return $self->colorize($mnu);
 } # getMenu()
 
 sub display {
@@ -131,7 +139,7 @@ sub display {
 	while (!$is_acceptable) {
 		print $self->getMenu();
 		print "\n";
-		print $self->prompt();
+		print $self->colorize($self->prompt());
 		$answer = lc(<STDIN>);
 		chomp($answer);
 		

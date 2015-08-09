@@ -10,6 +10,7 @@ use WWW::Mechanize qw();
 use Web::Scraper;
 use HTTP::Cookies;
 use Data::Dumper;
+use Data::Printer;
 use Text::Levenshtein qw(distance);
 use Mojo::DOM;
 use Medac::Cache;
@@ -160,7 +161,9 @@ sub search {
 	
 	if ($page->{success}) {
 		# peculiar this
+		#p($page); exit(0);
 		$page->{content} =~ s/\].*?$/\]/gis;
+		$page->{content} =~ s/^\s*//gis;
 		$results = decode_json($page->{content})
 	}
 	

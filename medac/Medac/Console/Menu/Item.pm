@@ -7,6 +7,9 @@ use strict;
 use warnings;
 use Data::Dumper;
 
+use Term::ANSIColor::Markup;
+
+
 has 'label' => (
 	is => 'rw',
 	isa => 'Str'
@@ -45,11 +48,17 @@ has 'action' => (
 	isa => 'Any',
 	default => sub {
 		my $s = sub {
-			print STDERR "action!\n";
+			#print STDERR "action!\n";
 		};
 		return $s;
 	}
 );
+
+sub colorize {
+	my $self = shift @_;
+	my $text = shift @_;
+	return Term::ANSIColor::Markup->colorize($text);
+}
 
 sub getEntry {
 	my $self = shift @_;
@@ -57,7 +66,7 @@ sub getEntry {
 	my $max_len = $self->menu->maxLen() ;
 	my $max = (length($max_len) > 0 ? $max_len : 1) + $indent - length($self->prefix);
 	my $fmt = '%' . $max . 's';
-	return $self->prefix . sprintf($fmt, $self->key) . ') ' . $self->label;
+	return $self->prefix . $self->colorize('<yellow>' . sprintf($fmt, $self->key) . '</yellow><cyan>)</cyan> ') . $self->label;
 }
 
 

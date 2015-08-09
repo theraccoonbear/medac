@@ -78,7 +78,7 @@ sub commafy {
 }
 
 sub prompt {
-	my $msg = shift @_;
+	my $msg = colorize(shift @_);
 	my $acceptable = shift @_ || '.*?';
 	my $is_acceptable = 0;
 	my $answer = '';
@@ -123,9 +123,9 @@ sub movieSearch {
 	my $default_movie_year = $cache->retrieve('default-movie-year');
 	my $default_quality = $cache->retrieve('default-quality');
 	
-	my $movie_name = prompt("Movie name [enter for \"" . ($default_movie_name || 'no name') . "\"]?");
-	my $movie_year = prompt("Year [enter for \"" . ($default_movie_year || 'any year') . "\"]?");
-	my $quality = prompt("Quality [enter for \"" . ($default_quality || 'any quality') . "\", e.g. 720p, HDTV|SDTV, etc]?");
+	my $movie_name = prompt("Movie <yellow>name</yellow> [enter for <cyan>\"</cyan><white>" . ($default_movie_name || 'no name') . "</white><cyan>\"</cyan>]?");
+	my $movie_year = prompt("Movie <yellow>year</yellow> [enter for <cyan>\"</cyan><white>" . ($default_movie_year || 'any year') . "</white><cyan>\"</cyan>]?");
+	my $quality = prompt("Movie <yellow>quality</yellow> [enter for <cyan>\"</cyan><white>" . ($default_quality || 'any quality') . "</white><cyan>\"</cyan>, e.g. 720p, HDTV|SDTV, etc]?");
 	
 	$movie_name = $movie_name =~ m/.+/ ? $movie_name : $default_movie_name;
 	$movie_year = $movie_year =~ m/.+[\+-]?/ ? $movie_year : $default_movie_year;
@@ -177,10 +177,10 @@ sub tvSearch {
 	my $default_episode = $cache->retrieve('default-episode');
 	my $default_quality = $cache->retrieve('default-quality');
 	
-	my $show_name = prompt("Show name [enter for \"" . ($default_show_name || 'no name') . "\"]?");
-	my $season = prompt("Season No. [enter for \"" . ($default_season || 'any season') . "\"]?");
-	my $episode = prompt("Episode No. [enter for \"" . ($default_episode || 'any episode') . "\"]?");
-	my $quality = prompt("Quality [enter for \"" . ($default_quality || 'any quality') . "\", e.g. 720p, HDTV|SDTV, etc]?");
+	my $show_name = prompt("Show <yellow>Name</yellow> [enter for <cyan>\"</cyan><white>" . ($default_show_name || 'no name') . "</white><cyan>\"</cyan>]?");
+	my $season = prompt("Show <yellow>Season No.</yellow> [enter for <cyan>\"</cyan><white>" . ($default_season || 'any season') . "</white><cyan>\"</cyan>]?");
+	my $episode = prompt("Show <yellow>Episode No.</yellow> [enter for <cyan>\"</cyan><white>" . ($default_episode || 'any episode') . "</white><cyan>\"</cyan>]?");
+	my $quality = prompt("Show <yellow>Quality</yellow> [enter for <cyan>\"</cyan><white>" . ($default_quality || 'any quality') . "</white><cyan>\"</cyan>, e.g. 720p, HDTV|SDTV, etc]?");
 	
 	$show_name = $show_name =~ m/.+/ ? $show_name : $default_show_name;
 	$season = $season =~ m/.+/ ? $season : $default_season;
@@ -234,7 +234,7 @@ my $my_content;
 while ($resp !~ m/^X$/i) {
 	my $main_menu = new Medac::Console::Menu(title => 'Actions:');
 	$main_menu->addItem(new Medac::Console::Menu::Item(key => 'S', label => 'Search'));
-	$main_menu->addItem(new Medac::Console::Menu::Item(key => 'C', label => 'Change SABNZBd Download Category (current: ' . $category . ')'));
+	$main_menu->addItem(new Medac::Console::Menu::Item(key => 'C', label => colorize('Change SABNZBd Download Category (current: <yellow>' . $category . '</yellow>)')));
 
 	$resp = $main_menu->display();
 	my $show_resp = '';
@@ -250,7 +250,7 @@ while ($resp !~ m/^X$/i) {
 			my $entries = {};
 			my $opts = ();
 			
-			foreach my $content (sort {$b->{usenetage} <=> $a->{usenetage}} @{$my_content->{results}}) {
+			foreach my $content (sort {$a->{usenetage} <=> $b->{usenetage}} @{$my_content->{results}}) {
 				my $season = sprintf('%02d', $content->{season});
 				my $episode = sprintf('%02d', $content->{episode});
 				my $year = $content->{year} =~ m/^\d{4}$/ ? sprintf('%04d', $content->{year}) : '    ';
@@ -268,7 +268,6 @@ while ($resp !~ m/^X$/i) {
 				my $entry_str = '';
 				
 				if ($category eq 'tv') {
-						
 					$entry_str .= "<yellow>s</yellow><white>${season}</white><yellow>e</yellow><white>${episode}</white>";
 					$entry_str .= ' - ';
 					$entry_str .= "<blue>$quality</blue>";
@@ -292,7 +291,7 @@ while ($resp !~ m/^X$/i) {
 				my $label = colorize($entry_str);
 				$choose_menu->addItem(
 					new Medac::Console::Menu::Item(
-						key => $idx,
+						key => (scalar(@{$my_content->{results}}) - $idx) + 1,
 						label => $label,
 						prefix => $queued->{$content->{getnzb}} ? '*' : ''
 					)
@@ -310,7 +309,7 @@ while ($resp !~ m/^X$/i) {
 								push @$filters, $rgx_filter;
 								my $new_content = [];
 								foreach my $c (@{$my_content->{results}}) {
-												if ($c->{release} =~ /$rgx_filter/) {
+												if ($c->{release} =~ /$rgx_filter/i) {
 																push @$new_content, $c;
 												}
 												
@@ -325,7 +324,7 @@ while ($resp !~ m/^X$/i) {
 				$choose_menu->addItem(
 				new Medac::Console::Menu::Item(
 					key => 'C',
-					label => 'Clear Filters ("' . join('", "', @$filters) . '")',
+					label => colorize('Clear Filters ("<yellow>' . join('</yellow>", "<yellow>', @$filters) . '</yellow>")'),
 					action => sub {
 								$filtering = 0;
 								$filters = [];
