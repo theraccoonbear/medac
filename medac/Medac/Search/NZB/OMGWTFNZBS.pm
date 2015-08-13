@@ -153,9 +153,7 @@ sub search {
 	
 	my $url = $self->baseURL() . '/json/?' . $self->encodeParams($params);
 	
-	#print "Pulling $url\n";
 	my $page = $self->pullURL($url);
-	#print "done.\n";
 	
 	my $results = [];
 	
@@ -167,7 +165,12 @@ sub search {
 		$results = decode_json($page->{content})
 	}
 	
-	$results = ref $results eq ref {} && $results->{notice} ? [] : $results;
+	
+	
+	
+	#$results = ref $results eq ref {} && $results->{notice} ? [] : $results;
+	#$results = ref $results eq 'ARRAY' ? [] : $results;
+	#exit(0);
 	
 	return $results;
 } # search()

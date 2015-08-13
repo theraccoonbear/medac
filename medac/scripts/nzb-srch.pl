@@ -15,6 +15,7 @@ use JSON::XS;
 use Getopt::Long;
 
 use Data::Dumper;
+use Data::Printer;
 use File::Slurp;
 
 use POSIX;
@@ -119,9 +120,9 @@ sub startSearch {
 }
 
 sub movieSearch {
-	my $default_movie_name = $cache->retrieve('default-movie-name');
-	my $default_movie_year = $cache->retrieve('default-movie-year');
-	my $default_quality = $cache->retrieve('default-quality');
+	my $default_movie_name = $cache->retrieve('default-movie-name') || undef;
+	my $default_movie_year = $cache->retrieve('default-movie-year') || undef;
+	my $default_quality = $cache->retrieve('default-quality') || undef;
 	
 	my $movie_name = prompt("Movie <yellow>name</yellow> [enter for <cyan>\"</cyan><white>" . ($default_movie_name || 'no name') . "</white><cyan>\"</cyan>]?");
 	my $movie_year = prompt("Movie <yellow>year</yellow> [enter for <cyan>\"</cyan><white>" . ($default_movie_year || 'any year') . "</white><cyan>\"</cyan>]?");
@@ -142,22 +143,26 @@ sub movieSearch {
 		results => []
 	};
 	
+	
 	my $movies = my $my_movies = $omg->searchMovies({
 		terms => $movie_name,
 		filter => sub {
 			my $n = shift @_;
 			my $match = 1;
 			
-			if ($movie_year =~ m/^(?<year>(19|20)\d{2})(?<modifier>[\+-])?$/) {
-				if ($+{modifier} eq '+') {
-					$match = $match && ($n->{year} eq '????' || $n->{year} >= $+{year});
-				} elsif ($+{modifier} eq '-') {
-					$match = $match && ($n->{year} eq '????' || $n->{year} <= $+{year});
+			if ($movie_year) {
+				if ($movie_year =~ m/^(?<year>(19|20)\d{2})(?<modifier>[\+-])?$/) {
+					if ($+{modifier} eq '+') {
+						$match = $match && ($n->{year} eq '????' || $n->{year} >= $+{year});
+					} elsif ($+{modifier} eq '-') {
+						$match = $match && ($n->{year} eq '????' || $n->{year} <= $+{year});
+					}
+				} else {
+					$match = $match && $n->{year} eq $movie_year;
 				}
-			} else {
-				$match = $match && $n->{year} eq $movie_year;
 			}
-			if ($quality =~ m/^.+$/) { $match = $match && $n->{video_quality} =~ m/($quality)/gi; }
+			
+			if ($quality && $quality =~ m/^.+$/) { $match = $match && $n->{video_quality} =~ m/($quality)/gi; }
 			
 			return $match;
 		}
@@ -169,7 +174,7 @@ sub movieSearch {
 	
 	return $result;
 	#return $shows;
-} # startSearch()
+} # movieSearch()
 
 sub tvSearch {
 	my $default_show_name = $cache->retrieve('default-show-name');
@@ -234,7 +239,11 @@ my $my_content;
 while ($resp !~ m/^X$/i) {
 	my $main_menu = new Medac::Console::Menu(title => 'Actions:');
 	$main_menu->addItem(new Medac::Console::Menu::Item(key => 'S', label => 'Search'));
-	$main_menu->addItem(new Medac::Console::Menu::Item(key => 'C', label => colorize('Change SABNZBd Download Category (current: <yellow>' . $category . '</yellow>)')));
+	$main_menu->addItem(new Medac::Console::Menu::Item(
+		key => 'C',
+		label => colorize('Change SABNZBd Download Category (current: <yellow>' . $category . '</yellow>)'),
+		action => \&setCategory
+	));
 
 	$resp = $main_menu->display();
 	my $show_resp = '';
@@ -347,8 +356,6 @@ while ($resp !~ m/^X$/i) {
 				}
 			}
 		}
-	} elsif ($resp eq 'c') {
-		setCategory();
 	}
 }
 
