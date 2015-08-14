@@ -101,13 +101,21 @@ sub maxLen {
 	return $self->maxLength;
 }
 
+sub hr {
+	my $len = shift @_;
+	if ($len !~ m/^\d+$/) {
+		$len = 40;
+	}
+	
+	return Medac::Console::Menu->colorize("<yellow>-</yellow><blue>=</blue>" x $len);
+}
 
 sub getMenu {
 	my $self = shift @_;
 	
 	my $mnu = '';
 	$mnu .= $self->colorize('<white>' . $self->title . '</white>') . "\n";
-	$mnu .= "<yellow>-</yellow><blue>=</blue>" x 40;
+	$mnu .= Medac::Console::Menu->hr();
 	$mnu .= "\n";
 	my $exit_item = 0;
 	foreach my $item (@{$self->items}) {

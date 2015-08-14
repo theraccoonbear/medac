@@ -17,7 +17,8 @@ use Getopt::Long;
 use Data::Dumper;
 use Data::Printer;
 use File::Slurp;
-
+use Term::ReadKey;
+use Time::HiRes qw(gettimeofday);
 use POSIX;
 
 use Number::Bytes::Human qw(format_bytes);
@@ -36,10 +37,6 @@ my $previous_fh = select(STDOUT); $| = 1; select($previous_fh);
 my $config_file = dirname(abs_path($0)) . "/test-config.json";
 
 my $config = {};
-#my $host_name = 0;
-#my $port = 32400;
-#my $username = 0;
-#my $password = 0;
 my $script_started = time();
 my $action_started;
 my $category = 'tv';
@@ -58,11 +55,6 @@ GetOptions(
 if ($config_file && -f $config_file) {
 	my $file_data = read_file($config_file);
 	$config = decode_json($file_data);
-	
-	#$host_name = $config->{hostname} || $host_name;
-	#$port =  $config->{port} || $port;
-	#$username = $config->{username} || $username;
-	#$password = $config->{password} || $password;
 } else {
 	die "No config file specified";
 }
@@ -117,6 +109,42 @@ sub startSearch {
 		$ret_val = movieSearch();
 	}
 	
+}
+
+sub viewStatus() {
+
+	ReadMode 4; # Turn off controls keys
+	my $key;
+	my $ticks = 0;
+	my $tick_delay = $cache->retrieve('tick-delay') || 1;
+	my $last_disp = 0;
+	while (not defined ($key = ReadKey(-1))) {
+		my $now = gettimeofday();
+		if ($now - $last_disp > $tick_delay) {
+			my $downloads = $sab->getStatus();
+			print colorize("<white>SABNZBd Queue Status</white>") . "\n";
+			print Medac::Console::Menu->hr() . "\n";
+			my $max_len = $downloads->{meta}->{title_length};
+			foreach my $dl (@{$downloads->{queue}}) {
+				my $entry = '';
+				$entry .= "    <red>" . ($dl->{status} eq 'Paused' ? '||' : '|>') . "<red> ";
+				$entry .= "<cyan>" . sprintf('%-' . $max_len . 's', $dl->{name}) . "</cyan> ";
+				$entry .= "<white>-</white> ";
+				$entry .= "<yellow>" . sprintf('%-5s', format_bytes($dl->{bytes_downloaded})) . '</yellow>';
+				$entry .= "<white>of</white> ";
+				$entry .= "<yellow>" . sprintf('%-5s', format_bytes($dl->{bytes})) . '</yellow>';
+				$entry .= "<white>(</white><yellow>" . sprintf('%0.2f', $dl->{percent_complete}) . '%</yellow><white>)</white>';
+				print colorize($entry) . "\n";
+			}
+			print Medac::Console::Menu->hr() . "\n";
+			print colorize("<white>Press any key to exit...</white>\n");
+			$last_disp = $now;
+			$ticks++;
+		}
+	}
+	#print "Pressed: $key after $ticks ticks\n";
+	print "\n\n\n";
+	ReadMode 0;
 }
 
 sub movieSearch {
@@ -238,12 +266,23 @@ my $my_content;
 
 while ($resp !~ m/^X$/i) {
 	my $main_menu = new Medac::Console::Menu(title => 'Actions:');
-	$main_menu->addItem(new Medac::Console::Menu::Item(key => 'S', label => 'Search'));
+	$main_menu->addItem(new Medac::Console::Menu::Item(
+		key => 'S',
+		label => 'Search'
+	));
+	
 	$main_menu->addItem(new Medac::Console::Menu::Item(
 		key => 'C',
 		label => colorize('Change SABNZBd Download Category (current: <yellow>' . $category . '</yellow>)'),
 		action => \&setCategory
 	));
+	
+	$main_menu->addItem(new Medac::Console::Menu::Item(
+		key => 'V',
+		label => 'View SABNZBd status',
+		action => \&viewStatus
+	));
+																										 
 
 	$resp = $main_menu->display();
 	my $show_resp = '';
