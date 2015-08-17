@@ -8,14 +8,14 @@ use FindBin;
 use JSON::XS;
 use strict;
 use warnings;
-use Data::Dumper;
+use Data::Printer;
 use File::Basename;
 use File::Slurp;
 use POSIX;
-use Config::Auto;
 use Medac::Metadata::Source::IMDB;
 use Medac::Metadata::Source::Plex;
 use Medac::Metadata::Source::CouchPotato;
+use Medac::Metadata::Source::SickBeard;
 use Medac::Search::NZB::Womble;
 use Medac::Search::NZB::OMGWTFNZBS;
 use Medac::Cache;
@@ -28,20 +28,11 @@ my $file_data = read_file($config_file);
 my $config = decode_json($file_data);
 
 
-my $womble = new Medac::Search::NZB::Womble();
-my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.org'});
 
-my $term = 'cross country';
+my $sb = new Medac::Metadata::Source::SickBeard($config->{sickbeard});
+#p($sb->managedShows());
+#p($sb->managedShows());
 
-print ">>>> Womble <<<<\n";
-
-my $results = $womble->search($term);
-print Dumper($results);
-
-print ">>>> OMG <<<<\n";
-
-$results = $omg->searchTV({terms => $term});
-print Dumper($results);
-
-#my $menu = new Medac::Console::Menu(title => "My Menu!");
-#print $menu->getMenu();
+p($sb->search('Inside No. 9'));
+#$sb->addShow(72965);
+p($sb->getEpisodes(276840));

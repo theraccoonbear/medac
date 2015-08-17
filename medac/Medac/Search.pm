@@ -35,6 +35,12 @@ has 'cache_context' => (
 	}
 );
 
+has 'use_cache' => (
+	is => 'rw',
+	isa => 'Bool',
+	default => 0
+);
+
 has 'mech' => (
 	'is' => 'rw',
 	'isa' => 'WWW::Mechanize',
@@ -74,10 +80,17 @@ sub pullURL {
 		content => ''
 	};
 	
-	$self->mech->get($url);
-	if ($self->mech->success) {
+	if ($self->{use_cach} && $self->cache->hit($url)) {
 		$ret->{success} = 1;
-		$ret->{content} = $self->mech->{content};
+		$ret->{content} = $self->cache->getVal($url);
+		print "Cache Hit! $url\n";
+	} else {
+		$self->mech->get($url);
+		if ($self->mech->success) {
+			$ret->{success} = 1;
+			$ret->{content} = $self->mech->{content};
+			$self->cache->store($url, $ret->{content});
+		}
 	}
 	
 	return $ret;

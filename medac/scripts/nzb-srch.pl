@@ -29,6 +29,7 @@ use Medac::Cache;
 use Medac::Search::NZB::OMGWTFNZBS;
 use Medac::Downloader::Sabnzbd;
 use Medac::Console::Menu;
+use Medac::Metadata::Source::SickBeard;
 
 my $cache = new Medac::Cache(context => 'nzb-srch');
 my $previous_fh = select(STDOUT); $| = 1; select($previous_fh);
@@ -61,6 +62,7 @@ if ($config_file && -f $config_file) {
 
 my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.org'});
 my $sab = new Medac::Downloader::Sabnzbd($config->{'sabnzbd'});
+my $sb = new Medac::Metadata::Source::SickBeard($config->{sickbeard});
 
 sub commafy {
    my $input = shift;
@@ -111,7 +113,7 @@ sub startSearch {
 	
 }
 
-sub viewStatus() {
+sub manageSab() {
 
 	ReadMode 4; # Turn off controls keys
 	my $key;
@@ -145,7 +147,7 @@ sub viewStatus() {
 	#print "Pressed: $key after $ticks ticks\n";
 	print "\n\n\n";
 	ReadMode 0;
-}
+} # manageSab
 
 sub movieSearch {
 	my $default_movie_name = $cache->retrieve('default-movie-name') || undef;
@@ -252,8 +254,47 @@ sub tvSearch {
 	}
 	
 	return $result;
-	#return $shows;
-} # startSearch()
+} # tvSearch()
+
+sub listSickbeardShows {
+	print Medac::Console::Menu->hr() . "\n";
+	my $shows = $sb->managedShows();
+	if ($shows->{success}) {
+		foreach my $show (@{$shows->{shows}}) {			
+			my $entry = '';
+			$entry .= ($show->{airing} ? ' <green>ON-AIR</green>' : '<red>OFF-AIR</red>') . '  ';
+			$entry .= ($show->{paused} ? "<red>||</red>" : "<green>|></green>") . '  ';
+			$entry .= '<yellow>' . sprintf('%10s', $show->{next_air_date}) . '</yellow> ';
+			$entry .= '<cyan>' . sprintf('%-' . $shows->{longest} . 's', $show->{name}) . '</cyan> ';
+			$entry .= '<white>' . $show->{downloaded} . '/' . $show->{count} . ' (' . sprintf('%0.2f', $show->{dl_percent}) . '%)</white> ';
+			$entry .= "\n";
+			print colorize($entry);
+		}
+	}
+}
+
+sub manageSickbeard {
+	my $sb_menu = new Medac::Console::Menu(title => 'Sickbeard Console');
+	
+	
+	$sb_menu->addItem(new Medac::Console::Menu::Item(
+		key => 'L',
+		label => 'List Shows',
+		action => \&listSickbeardShows
+	));
+	
+	$sb_menu->addItem(new Medac::Console::Menu::Item(
+		key => 'X',
+		label => 'Exit Sickbeard Console'
+	));
+	
+	my $resp = '';
+	while ($resp ne 'X') {
+		$resp = uc($sb_menu->display());
+	}
+	
+	
+} # manageSickbeard
 
 
 my $resp = '';
@@ -279,10 +320,15 @@ while ($resp !~ m/^X$/i) {
 	
 	$main_menu->addItem(new Medac::Console::Menu::Item(
 		key => 'V',
-		label => 'View SABNZBd status',
-		action => \&viewStatus
+		label => 'Manage SABNZBd',
+		action => \&manageSab
 	));
-																										 
+			
+	$main_menu->addItem(new Medac::Console::Menu::Item(
+		key => 'B',
+		label => 'Manage Sickbeard',
+		action => \&manageSickbeard
+	));																							 
 
 	$resp = $main_menu->display();
 	my $show_resp = '';

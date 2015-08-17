@@ -8,10 +8,10 @@ use File::Slurp;
 use Cwd qw(abs_path cwd);
 use Cache::FileCache;
 
-my $cache = new Cache::FileCache({
-	'namespace' => 'Plex',
-	'default_expires_in' => 600
-});
+#my $cache = new Cache::FileCache({
+#	'namespace' => 'Plex',
+#	'default_expires_in' => 600
+#});
 
 
 has 'context' => (
