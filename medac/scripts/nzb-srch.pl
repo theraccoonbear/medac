@@ -273,9 +273,64 @@ sub listSickbeardShows {
 	}
 }
 
+sub addShow {
+	my $term = prompt("New Show Name?");
+	my $results = $sb->search($term);
+	my $add_menu = new Medac::Console::Menu('title' => 'Select Show');
+	
+	my $root_dirs = $sb->rootDirs();
+	my $def_dir = '';
+	foreach my $dir (@{ $root_dirs->{dirs} }) {
+		if ($dir->{default}) {
+			$def_dir = $dir->{location};
+			last;
+		}
+	}
+	
+	my $i = 1;
+	my $resp = '';
+	my $added = 0;
+	foreach my $show (@{ $results->{results} }) {
+		$add_menu->addItem(new Medac::Console::Menu::Item(
+			key => $i++,
+			label => colorize('<white>' . $show->{name} . '</white> <cyan>(</cyan><yellow>First Aired: ' . $show->{first_aired} . '</yellow><cyan>)</cyan>'),
+			action => sub {
+				my $location = prompt("Location <cyan>(</cyan><yellow>Enter for:</yellow> <white>$def_dir</white><cyan>)</cyan>");
+				if ($location eq '') {
+					$location = $def_dir;
+				}
+				
+				my $wanted = prompt("Find all episodes <cyan>(</cyan><yellow>y/N<cyan>)</cyan>");
+				my $params = {};
+				if (lc($wanted) eq 'y') {
+					$params->{status} = 'wanted';
+				}
+				
+				my $add_result = $sb->addShow($show->{tvdbid}, $location, $params);
+				$added = 1;
+			}
+		));
+	}
+	
+	$add_menu->addItem(new Medac::Console::Menu::Item(
+		key => 'X',
+		label => 'Cancel Add'
+	));
+	
+	
+	while (!$added && $resp ne 'X') {
+		$resp = uc($add_menu->display());
+	}
+}
+
 sub manageSickbeard {
 	my $sb_menu = new Medac::Console::Menu(title => 'Sickbeard Console');
 	
+	$sb_menu->addItem(new Medac::Console::Menu::Item(
+		key => 'A',
+		label => 'Add New Show',
+		action => \&addShow
+	));
 	
 	$sb_menu->addItem(new Medac::Console::Menu::Item(
 		key => 'L',

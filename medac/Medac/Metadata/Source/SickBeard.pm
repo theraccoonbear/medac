@@ -251,7 +251,7 @@ sub search {
 	my $data = decode_json($page->{content});
 	my $results = [];
 	if (lc($data->{result}) eq 'success') {
-		$results = $data->{data}->{results}
+		$results = $data->{data}->{results};
 	}
 	
 	return {
@@ -272,9 +272,8 @@ sub addShow {
 		tvdbid => $tvdb_id
 	};
 	
-	my $root_dirs = $self->rootDirs();
-	
-	p($root_dirs);
+	#my $root_dirs = $self->rootDirs();
+	#p($root_dirs);
 	
 	if ($options->{initial} && $init_quality->{$options->{initial}}) { $params->{initial} = $options->{initial}; }
 	if ($options->{archive} && $arch_quality->{$options->{archive}}) { $params->{archive} = $options->{archive}; }
@@ -284,7 +283,12 @@ sub addShow {
 	my $url = $self->baseURL() . '?' . $self->encodeParams($params);
 	my $page = $self->pullURL($url);
 	my $data = decode_json($page->{content});
-	p($data);
+	#p($data);
+	return {
+		success => lc($data->{result}) eq 'success',
+		message => $data->{message},
+		results => $data->{data}
+	};
 	
 }
 
