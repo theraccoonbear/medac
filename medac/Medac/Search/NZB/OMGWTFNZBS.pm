@@ -87,6 +87,11 @@ sub searchMovies {
 	
 	my $results = $self->search($terms, '15,16,17,18', $retention);
 	
+	if ($results->{notice} && $results->{notice} =~ m/0/) {
+		return [];
+	}
+	
+	
 	my $now = time;
 	
 	foreach my $nzb (@$results) {
