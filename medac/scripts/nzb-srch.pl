@@ -182,9 +182,9 @@ sub movieSearch {
 			
 			if ($movie_year) {
 				if ($movie_year =~ m/^(?<year>(19|20)\d{2})(?<modifier>[\+-])?$/) {
-					if ($+{modifier} eq '+') {
+					if ($+{modifier} && $+{modifier} eq '+') {
 						$match = $match && ($n->{year} eq '????' || $n->{year} >= $+{year});
-					} elsif ($+{modifier} eq '-') {
+					} elsif ($+{modifier} && $+{modifier} eq '-') {
 						$match = $match && ($n->{year} eq '????' || $n->{year} <= $+{year});
 					}
 				} else {
