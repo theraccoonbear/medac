@@ -442,7 +442,16 @@ while ($resp !~ m/^X$/i) {
 					new Medac::Console::Menu::Item(
 						key => (scalar(@{$my_content->{results}}) - $idx) + 1,
 						label => $label,
-						prefix => $queued->{$content->{getnzb}} ? '*' : ''
+						prefix => $queued->{$content->{getnzb}} ? '*' : '',
+						action => sub {
+							if ($sab->queueDownload($content->{getnzb}, $content->{release}, $category)) {
+								$queued->{$content->{getnzb}} = $content;
+								$cache->store('queue', $queued);
+								print "Queued in sabnzbd\n";
+							} else {
+								print "Couldn't be queued!\n";
+							}
+						}
 					)
 				);
 			}
@@ -485,16 +494,6 @@ while ($resp !~ m/^X$/i) {
 			
 			
 			$show_resp = $choose_menu->display();
-			if ($show_resp =~ m/^\d+$/) {
-				my $show = $entries->{$show_resp};
-				if ($sab->queueDownload($show->{getnzb}, $show->{release}, $category)) {
-					$queued->{$show->{getnzb}} = $show;
-					$cache->store('queue', $queued);
-					print "Queued in sabnzbd\n";
-				} else {
-					print "Couldn't be queued!\n";
-				}
-			}
 		}
 	}
 }
