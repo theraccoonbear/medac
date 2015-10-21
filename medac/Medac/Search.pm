@@ -14,6 +14,7 @@ use Medac::Cache;
 use JSON::XS;
 use URI::Escape;
 use DateTime;
+use Data::Printer;
 #use DateTime::Format::Strptime;
 
 has cache_age => (
@@ -49,6 +50,7 @@ has 'mech' => (
 		my $cookie_jar = HTTP::Cookies->new();
 		$cookie_jar->clear();
 		my $www_mech = WWW::Mechanize->new(
+			autocheck => 0,
 			cookie_jar => $cookie_jar,
 			SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_NONE,
 			PERL_LWP_SSL_VERIFY_HOSTNAME => 0,
@@ -90,6 +92,8 @@ sub pullURL {
 			$ret->{success} = 1;
 			$ret->{content} = $self->mech->{content};
 			$self->cache->store($url, $ret->{content});
+		} else {
+			p($self->mech);
 		}
 	}
 	
