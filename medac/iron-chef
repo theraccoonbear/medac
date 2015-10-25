@@ -12,6 +12,7 @@ use strict;
 use warnings;
 
 use Data::Dumper;
+use Data::Printer;
 use File::Basename;
 use POSIX;
 
@@ -24,11 +25,11 @@ use Medac::Cache;
 my $imdb = new Medac::Metadata::Source::IMDB();
 
 my $search;
-my $scan;
+my $scan = '.';
 
 GetOptions (
 	"search|s=s"   => \$search,
-	'scan' => \$scan
+	'scan=s' => \$scan
 );						
 
 
@@ -68,9 +69,11 @@ sub pickMovie {
 } # pickMovie()
 
 if (!$search) {
-	opendir DFH, '.';
+	print "Scanning $scan\n";
+	opendir DFH, $scan;
 	my @files = readdir DFH;
 	closedir DFH;
+	p(@files);
 	foreach my $file (@files) {
 		if (-d $file && $file !~ m/^\.{1,2}$/ && $file !~ m/\(tt\d+\)/gi) {
 			$file =~ s/\[[^\]]+\]//gi;
