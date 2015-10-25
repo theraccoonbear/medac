@@ -47,6 +47,7 @@ my $host_name = 0;
 my $port = 32400;
 my $username = 0;
 my $password = 0;
+my $protocol = 'http';
 my $config_file = 'test-config.json';
 
 #my $image_base = 0;
@@ -73,6 +74,7 @@ if ($config_file && -f $config_file) {
 	$port =  $config->{port} || $port;
 	$username = $config->{username} || $username;
 	$password = $config->{password} || $password;
+	$protocol = $config->{protocol} || $protocol;
 } else {
 	GetOptions(
 		'm|max|maxdays=i' => \$max_days,
@@ -115,7 +117,8 @@ my $plex = new Medac::Metadata::Source::Plex(
 	port => $port,
 	username => $username,
 	password => $password,
-	maxage => $max_days * 60 * 60 * 24
+	maxage => $max_days * 60 * 60 * 24,
+	protocol => $protocol
 );
 
 

@@ -29,6 +29,12 @@ has 'hostname' => (
 	'isa' => 'Str'
 );
 
+has 'protocol' => (
+	'is' => 'rw',
+	'isa' => 'Str',
+	'default' => 'http'
+);
+
 has 'port' => (
 	'is' => 'rw',
 	'isa' => 'Int',
@@ -67,7 +73,7 @@ has 'depth' => (
 
 sub baseURL {
 	my $self = shift;
-	return 'http://' . $self->hostname. ':' . $self->port;
+	return $self->protocol . '://' . $self->hostname. ':' . $self->port;
 }
 
 sub getNode {
