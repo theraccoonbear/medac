@@ -54,7 +54,7 @@ sub videoDetails {
 	my $cmd = "$video_tool -i '$file' 2>&1";
 	my $details = `$cmd`;
 	chomp($details);
-	if ($details =~ m/Duration: (?<duration>(?<hours>\d{2}):(?<minutes>\d{2}):(?<seconds>\d{2})(.\d+)?)/gism) {
+	if ($details =~ m/Duration: (?<duration>(?<hours>\d{2}):(?<minutes>\d{2}):(?<seconds>\d{2}\.\d+))/gism) {
 		$resp->{duration} = {
 			raw => $+{duration},
 			hours => 1 * $+{hours},
