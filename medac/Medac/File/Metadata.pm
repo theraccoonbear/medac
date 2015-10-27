@@ -35,14 +35,16 @@ sub videoDetails {
 	my $self = shift @_;
 	my $file = shift @_;
 	
+	my $resp = {};
+	
 	if (! $self->ffmpeg && ! $self->avconv) {
 		print STDERR "Neither ffmpeg or avconv is installed!\n";
-		return;
+		return $resp;
 	}
 	
 	if (! -f $file) {
 		print STDERR "Cannot find: $file\n";
-		return;
+		return $resp;
 	}
 	
 	my $video_tool = $self->avconv || $self->ffmpeg;
@@ -50,20 +52,24 @@ sub videoDetails {
 	my $details = `$cmd`;
 	chomp($details);
 	if ($details =~ m/Duration: (?<duration>(?<hours>\d{2}):(?<minutes>\d{2}):(?<seconds>\d{2}).(?<ms>\d+))/gism) {
-		return {
-			duration => {
-				raw => $+{duration},
-				hours => 1 * $+{hours},
-				minutes => 1 * $+{minutes},
-				seconds => 1 * $+{seconds},
-				ms => 1 * $+{ms}
-			},
-			output => $details
+		$resp->{duration} = {
+			raw => $+{duration},
+			hours => 1 * $+{hours},
+			minutes => 1 * $+{minutes},
+			seconds => 1 * $+{seconds},
+			ms => 1 * $+{ms}
 		};
-	} else {
-		return;
 	}
 	
+	if ($details =~ m/,\s+(?<width>\d+)x(?<height>\d+)\s*,/gism) {
+		$resp->{dimensions} = {
+			width => 1 * $+{width},
+			height => 1 * $+{height}
+		};
+	}
+	
+	
+	return $resp;
 }
 
 1;
