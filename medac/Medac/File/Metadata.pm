@@ -1,7 +1,7 @@
 package Medac::File::Metadata;
 
 use Moose;
-use Data::Dumper;
+use Data::Printer;
 
 has 'ffmpeg' => (
 	is => 'rw',
