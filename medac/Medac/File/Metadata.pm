@@ -61,7 +61,7 @@ sub videoDetails {
 		};
 	}
 	
-	if ($details =~ m/,\s+(?<width>\d+)x(?<height>\d+)\s*,/gism) {
+	if ($details =~ m/,\s+(?<width>\d+)x(?<height>\d+)/gism) {
 		$resp->{dimensions} = {
 			width => 1 * $+{width},
 			height => 1 * $+{height}
