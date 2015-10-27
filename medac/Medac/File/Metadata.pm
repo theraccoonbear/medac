@@ -61,6 +61,10 @@ sub videoDetails {
 			minutes => 1 * $+{minutes},
 			seconds => 1 * $+{seconds}
 		};
+		
+		$resp->{duration}->{in_seconds} = ($resp->{duration}->{hours} * 60 * 60) + ($resp->{duration}->{minutes} * 60) + $resp->{duration}->{seconds};
+		$resp->{duration}->{in_minutes} = ($resp->{duration}->{hours} * 60) + $resp->{duration}->{minutes} + ($resp->{duration}->{seconds} / 60);
+		$resp->{duration}->{in_hours} = $resp->{duration}->{hours} + ($resp->{duration}->{minutes} / 60) + ($resp->{duration}->{seconds} / 60 / 60);
 	}
 	
 	if ($details =~ m/,\s+(?<width>\d+)x(?<height>\d+)/gism) {
