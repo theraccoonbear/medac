@@ -41,8 +41,7 @@ foreach my $e (sort { $a->{season} <=> $b->{season} or $a->{episode} <=> $b->{ep
 		if (! -f $file) {
 			$ichef->downloadFile($e->{id}, $file);
 		} else {
-			print STDERR "Skipping...";
-			p($e);
+			print STDERR "Skipping $file\n";
 			my $details = $meta->videoDetails($file);
 			p($details);
 		}

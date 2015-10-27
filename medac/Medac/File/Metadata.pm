@@ -9,7 +9,6 @@ has 'ffmpeg' => (
 	default => sub {
 		my $ffmpeg = `which ffmpeg`;
 		chomp($ffmpeg);
-		p($ffmpeg);
 		if (! -f $ffmpeg || ! -e $ffmpeg) {
 			return undef;
 		} else {
@@ -18,34 +17,48 @@ has 'ffmpeg' => (
 	}
 );
 
+has 'avconv' => (
+	is => 'rw',
+	isa => 'Maybe[Str]',
+	default => sub {
+		my $avconv = `which avconv`;
+		chomp($avconv );
+		if (! -f $avconv || ! -e $avconv ) {
+			return undef;
+		} else {
+			return $avconv ;
+		}
+	}
+);
+
 sub videoDetails {
 	my $self = shift @_;
 	my $file = shift @_;
 	
-	if (! $self->ffmpeg ) {
-		print STDERR "FFMPEG IS NOT INSTALLED!\n";
+	if (! $self->ffmpeg && ! $self->avconv) {
+		print STDERR "Neither ffmpeg or avconv is installed!\n";
 		return;
 	}
 	
 	if (! -f $file) {
-		print STDERR "CANNOT READ: $file\n";
+		print STDERR "Cannot find: $file\n";
 		return;
 	}
 	
-	my $ffmpeg = $self->ffmpeg;
-	my $cmd = "$ffmpeg -i '$file' 2>&1";
-	print "Running: $cmd\n";
+	my $video_tool = $self->avconv || $self->ffmpeg;
+	my $cmd = "$video_tool -i '$file' 2>&1";
 	my $details = `$cmd`;
 	chomp($details);
 	if ($details =~ m/Duration: (?<duration>(?<hours>\d{2}):(?<minutes>\d{2}):(?<seconds>\d{2}).(?<ms>\d+))/gism) {
 		return {
 			duration => {
-				raw => $+{duration},
-				hours => $+{hours},
-				minutes => $+{minutes},
-				seconds => $+{seconds},
-				ms => $+{ms}
-			}
+				raw => 1 * $+{duration},
+				hours => 1 * $+{hours},
+				minutes => 1 * $+{minutes},
+				seconds => 1 * $+{seconds},
+				ms => 1 * $+{ms}
+			},
+			output => $details
 		};
 	} else {
 		return;
