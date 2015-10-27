@@ -33,7 +33,7 @@ sub videoDetails {
 	}
 	
 		
-	my $details = `$self->ffmpeg -i $file`;
+	my $details = `$self->ffmpeg -i '$file'`;
 	chomp($details);
 	if ($details =~ m/Duration: (?<duration>(?<hours>\d{2}):(?<minutes>\d{2}):(?<seconds>\d{2}).(?<ms>\d{2}))/gi) {
 		return {
