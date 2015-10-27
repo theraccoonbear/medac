@@ -47,6 +47,9 @@ sub videoDetails {
 		return $resp;
 	}
 	
+	$resp->{size} = (stat($file))[7];
+	
+	
 	my $video_tool = $self->avconv || $self->ffmpeg;
 	my $cmd = "$video_tool -i '$file' 2>&1";
 	my $details = `$cmd`;
