@@ -5,7 +5,7 @@ use Data::Printer;
 
 has 'ffmpeg' => (
 	is => 'rw',
-	isa => 'Maybe(Str)',
+	isa => 'Maybe[Str]',
 	default => sub {
 		my $ffmpeg = `which ffmpeg`;
 		chomp($ffmpeg);
