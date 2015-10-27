@@ -9,10 +9,12 @@ use Getopt::Long;
 use Data::Printer;
 use Medac::Search::TV::TheTVDB;
 use Medac::Search::TV::IronChefFans;
+use Medac::File::Metadata;
 use Text::Levenshtein qw(distance);
 use JSON::XS;
 
 
+my $meta = new Medac::File::Metadata();
 my $tvdb = new Medac::Search::TV::TheTVDB();
 my $ichef = new Medac::Search::TV::IronChefFans();
 
@@ -20,7 +22,7 @@ my $save_root= `echo ~/Desktop/sandbox/Iron Chef/`;
 chomp($save_root);
 
 my $listing = $ichef->getCategoryListing(1);
-#p($listing);
+
 
 
 foreach my $e (sort { $a->{season} <=> $b->{season} or $a->{episode} <=> $b->{episode} } @$listing) {
@@ -37,10 +39,12 @@ foreach my $e (sort { $a->{season} <=> $b->{season} or $a->{episode} <=> $b->{ep
 		}
 		
 		if (! -f $file) {
-			#$ichef->downloadFile($e->{id}, $file);
+			$ichef->downloadFile($e->{id}, $file);
 		} else {
 			print STDERR "Skipping...";
 			p($e);
+			my $details = $meta->videoDetails($file);
+			p($details);
 		}
 		
 		
