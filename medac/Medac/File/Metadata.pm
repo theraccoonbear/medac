@@ -52,7 +52,7 @@ sub videoDetails {
 	if ($details =~ m/Duration: (?<duration>(?<hours>\d{2}):(?<minutes>\d{2}):(?<seconds>\d{2}).(?<ms>\d+))/gism) {
 		return {
 			duration => {
-				raw => 1 * $+{duration},
+				raw => $+{duration},
 				hours => 1 * $+{hours},
 				minutes => 1 * $+{minutes},
 				seconds => 1 * $+{seconds},
