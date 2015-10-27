@@ -44,6 +44,11 @@ foreach my $e (sort { $a->{season} <=> $b->{season} or $a->{episode} <=> $b->{ep
 			print STDERR "Skipping $file\n";
 			my $details = $meta->videoDetails($file);
 			p($details);
+			if (! $details->{duration}) {
+				print "Uh Oh! Press any key when ready to continue...";
+				my $wait = <STDIN>;
+			}
+			
 		}
 		
 		
