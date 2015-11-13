@@ -87,7 +87,7 @@ sub searchMovies {
 	
 	my $results = $self->search($terms, '15,16,17,18', $retention);
 	
-	if (ref $results eq ref {} && $results->{notice} && $results->{notice} =~ m/0/) {
+	if (ref $results eq 'HASH' && $results->{notice} && $results->{notice} =~ m/0/) {
 		return [];
 	}
 	
@@ -122,6 +122,9 @@ sub searchTV {
 	my $results = $self->search($terms, '19,20,21', $retention);
 	
 	my $now = time;
+	if (ref $results eq 'HASH') {
+		return [];
+	}
 	
 	foreach my $nzb (@$results) {
 		$nzb = $self->parseRelease($nzb);
