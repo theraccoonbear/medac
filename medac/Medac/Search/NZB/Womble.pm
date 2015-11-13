@@ -122,4 +122,3 @@ sub search {
 } # search()
 
 1;
-#https://api.omgwtfnzbs.org/json/?search=NOVA.S41E11&catid=19%2C20&eng=1&api=088e4af3aedbb5d99ecdf23197f2fe69&user=medac&retention=1600

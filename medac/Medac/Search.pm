@@ -134,6 +134,16 @@ sub dist {
 	return distance($val_1, $val_2);
 }
 
+sub trim {
+	my $self = shift @_;
+	my $val = shift @_;
+	
+	$val =~ s/^\s+//;
+	$val =~ s/\s+$//;
+	
+	return $val;
+}
+
 sub encodeParams {
 	my $self = shift @_;
 	my $list = shift @_;

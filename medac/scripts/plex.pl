@@ -238,8 +238,9 @@ foreach my $movie (sort { $a->{age} <=> $b->{age} } @$recent_movies) {
 			
 			my $poster_url = $imdb_movie->{poster};
 			$movie->{imdb_url} = 'http://www.imdb.com' . $imdb_movie->{url};
-			$poster_url =~ s/S[XY]\d+_CR.+_\.jpg/SX100_CR0,0,100,150_.jpg/gi;
+			$poster_url =~ s/\d+_CR.+_\.jpg/100_CR0,0,100,150.jpg/gi;
 			#http://ia.media-imdb.com/images/M/MV5BMTQzMzMwNDExMV5BMl5BanBnXkFtZTcwMzE5MjU3OQ@@._V1_SX100_CR0,0,100,150_.jpg
+			#http://ia.media-imdb.com/images/M/MV5BNTgyMzIzNDAyM15BMl5BanBnXkFtZTgwMTE1Mzg0MTE@._V1_UX32_CR0,0,32,44_AL_.jpg
 			if (!$used->{$poster_url}) {
 				push @$movie_posters, "![$movie->{title}]($poster_url \"$movie->{title}\")";
 				$used->{$poster_url} = 1;
