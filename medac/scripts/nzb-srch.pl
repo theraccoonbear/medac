@@ -180,7 +180,7 @@ sub movieSearch {
 			my $n = shift @_;
 			my $match = 1;
 			
-			if ($movie_year) {
+			if ($movie_year && $movie_year ne '.') {
 				if ($movie_year =~ m/^(?<year>(19|20)\d{2})(?<modifier>[\+-])?$/) {
 					if ($+{modifier} && $+{modifier} eq '+') {
 						$match = $match && ($n->{year} eq '????' || $n->{year} >= $+{year});
