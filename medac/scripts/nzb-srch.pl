@@ -26,7 +26,8 @@ use Term::ANSIColor::Markup;
 
 
 use Medac::Cache;
-use Medac::Search::NZB::OMGWTFNZBS;
+#use Medac::Search::NZB::OMGWTFNZBS;
+use Medac::Search::NZB::NZBPlanet;
 use Medac::Downloader::Sabnzbd;
 use Medac::Console::Menu;
 use Medac::Metadata::Source::SickBeard;
@@ -60,7 +61,8 @@ if ($config_file && -f $config_file) {
 	die "No config file specified";
 }
 
-my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.org'});
+#my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.org'});
+my $nzbplanet = new Medac::Search::NZB::NZBPlanet($config->{'nzbplanet.net'});
 my $sab = new Medac::Downloader::Sabnzbd($config->{'sabnzbd'});
 my $sb = new Medac::Metadata::Source::SickBeard($config->{sickbeard});
 
@@ -174,7 +176,7 @@ sub movieSearch {
 	};
 	
 	
-	my $movies = my $my_movies = $omg->searchMovies({
+	my $movies = my $my_movies = $nzbplanet->searchMovies({
 		terms => $movie_name,
 		filter => sub {
 			my $n = shift @_;
@@ -235,8 +237,10 @@ sub tvSearch {
 		results => []
 	};
 	
-	my $shows = my $my_content = $omg->searchTV({
+	my $shows = my $my_content = $nzbplanet->searchTV({
 		terms => $show_name,
+		season => $season,
+		episode => $episode,
 		filter => sub {
 			my $n = shift @_;
 			my $match = 1;
@@ -461,19 +465,18 @@ while ($resp !~ m/^X$/i) {
 					key => 'F',
 					label => 'Filter Results',
 					action => sub {
-								print "Filter Regex: ";
-								my $rgx_filter = <STDIN>;
-								chomp($rgx_filter);
-								push @$filters, $rgx_filter;
-								my $new_content = [];
-								foreach my $c (@{$my_content->{results}}) {
-												if ($c->{release} =~ /$rgx_filter/i) {
-																push @$new_content, $c;
-												}
-												
-								}
-								$filtering = 1;
-								$my_content->{results} = $new_content;
+						print "Filter Regex: ";
+						my $rgx_filter = <STDIN>;
+						chomp($rgx_filter);
+						push @$filters, $rgx_filter;
+						my $new_content = [];
+						foreach my $c (@{$my_content->{results}}) {
+							if ($c->{release} =~ /$rgx_filter/i) {
+								push @$new_content, $c;
+							}
+						}
+						$filtering = 1;
+						$my_content->{results} = $new_content;
 					}
 				)
 			);
@@ -484,9 +487,9 @@ while ($resp !~ m/^X$/i) {
 					key => 'C',
 					label => colorize('Clear Filters ("<yellow>' . join('</yellow>", "<yellow>', @$filters) . '</yellow>")'),
 					action => sub {
-								$filtering = 0;
-								$filters = [];
-								$my_content->{results} = $unfiltered->{results};
+						$filtering = 0;
+						$filters = [];
+						$my_content->{results} = $unfiltered->{results};
 					}
 				)
 			);

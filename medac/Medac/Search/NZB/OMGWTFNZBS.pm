@@ -170,6 +170,7 @@ sub search {
 		#p($page); exit(0);
 		$page->{content} =~ s/\].*?$/\]/gis;
 		$page->{content} =~ s/^\s*//gis;
+		#p($page->{content});
 		$results = decode_json($page->{content})
 	}
 	

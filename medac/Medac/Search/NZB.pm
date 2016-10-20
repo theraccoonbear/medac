@@ -113,7 +113,7 @@ sub parseRelease {
 		$nzb->{video_codec} = $+{videocodec};
 	}
 	
-	if ($nzb->{weblink} =~ m/\/(?<imdb>tt\d+)$/) {
+	if ($nzb->{weblink} && $nzb->{weblink} =~ m/\/(?<imdb>tt\d+)$/) {
 		$nzb->{imdb} = $+{imdb};
 	}
 	

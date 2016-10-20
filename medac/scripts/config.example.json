@@ -34,6 +34,13 @@
 		"password": "Your password",
 		"cache_age": "3 hours"
 	},
+	"nzbplanet.net": {
+		"apiKey": "Your API Key",
+		"hostname": "api.nzbplanet.net",
+		"port": 443,
+		"protocol": "https",
+		"cache_age": "3 hours"
+	},
 	"sabnzbd": {
 		"apiKey": "Your SABNZBd API Key",
 		"hostname": "The hostname or IP for you SABNZBd server",
