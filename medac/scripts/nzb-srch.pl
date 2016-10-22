@@ -26,7 +26,8 @@ use Term::ANSIColor::Markup;
 
 
 use Medac::Cache;
-#use Medac::Search::NZB::OMGWTFNZBS;
+use Medac::Search::NZB::Unified;
+use Medac::Search::NZB::OMGWTFNZBS;
 use Medac::Search::NZB::NZBPlanet;
 use Medac::Downloader::Sabnzbd;
 use Medac::Console::Menu;
@@ -62,7 +63,9 @@ if ($config_file && -f $config_file) {
 }
 
 #my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.org'});
-my $nzbplanet = new Medac::Search::NZB::NZBPlanet($config->{'nzbplanet.net'});
+#my $nzbplanet = new Medac::Search::NZB::NZBPlanet($config->{'nzbplanet.net'});
+#my $searcher = new Medac::Search::NZB::Unified({agents => [$omg, $nzbplanet]});
+my $searcher = new Medac::Search::NZB::NZBPlanet($config->{'nzbplanet.net'});
 my $sab = new Medac::Downloader::Sabnzbd($config->{'sabnzbd'});
 my $sb = new Medac::Metadata::Source::SickBeard($config->{sickbeard});
 
@@ -109,10 +112,12 @@ sub startSearch {
 	my $ret_val = {};
 	if ($category eq 'tv') {
 		$ret_val = tvSearch();
-	} elsif ($category eq 'movie') {
+	} elsif ($category eq 'movies') {
 		$ret_val = movieSearch();
+	} else {
+		# Do something!?
 	}
-	
+	return $ret_val;
 }
 
 sub manageSab() {
@@ -175,8 +180,7 @@ sub movieSearch {
 		results => []
 	};
 	
-	
-	my $movies = my $my_movies = $nzbplanet->searchMovies({
+	my $movies = my $my_movies = $searcher->searchMovies({
 		terms => $movie_name,
 		filter => sub {
 			my $n = shift @_;
@@ -237,7 +241,7 @@ sub tvSearch {
 		results => []
 	};
 	
-	my $shows = my $my_content = $nzbplanet->searchTV({
+	my $shows = my $my_content = $searcher->searchTV({
 		terms => $show_name,
 		season => $season,
 		episode => $episode,
@@ -430,7 +434,7 @@ while ($resp !~ m/^X$/i) {
 					$entry_str .= "<red>$daysOld day(s) old</red>";
 					$entry_str .= ' - ';
 					$entry_str .= "<cyan>$release</cyan>";
-				} elsif ($category eq 'movie') {
+				} elsif ($category eq 'movies') {
 					$entry_str .= "<yellow>$year</yellow>";
 					$entry_str .= ' - ';
 					$entry_str .= "<blue>$quality</blue>";

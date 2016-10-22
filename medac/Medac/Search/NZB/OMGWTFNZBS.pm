@@ -166,20 +166,10 @@ sub search {
 	my $results = [];
 	
 	if ($page->{success}) {
-		# peculiar this
-		#p($page); exit(0);
 		$page->{content} =~ s/\].*?$/\]/gis;
 		$page->{content} =~ s/^\s*//gis;
-		#p($page->{content});
 		$results = decode_json($page->{content})
 	}
-	
-	
-	
-	
-	#$results = ref $results eq ref {} && $results->{notice} ? [] : $results;
-	#$results = ref $results eq 'ARRAY' ? [] : $results;
-	#exit(0);
 	
 	return $results;
 } # search()

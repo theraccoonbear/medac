@@ -113,6 +113,39 @@ has '+cache_context' => (
 #	return $results;
 #}
 
+sub searchMovies {
+	my $self = shift @_;
+	my $params = shift @_;
+	my $terms = $params->{terms} or die "No search term";
+	my $retention = $params->{retention} || 1600;
+	my $filter = $params->{filter} || undef;
+	my $results = [];
+	
+	my $extra = {
+		cat => 2000
+	};
+	
+	my $base_res = $self->search($params->{terms}, 'search', $extra);
+	
+	foreach my $nzb (@$base_res) {
+		$nzb->{release} = $nzb->{title};
+		$nzb = $self->parseRelease($nzb);
+		push @$results, $nzb;
+	}
+	
+	if ($filter) {
+		my $nr = [];
+		foreach my $nzb (@$results) {
+			if (&$filter($nzb)) {
+				push @$nr, $nzb;
+			}
+		}
+		$results = $nr;
+	}
+	
+	return $results;
+}
+
 sub searchTV {
 	my $self = shift @_;
 	my $params = shift @_;
@@ -207,6 +240,7 @@ sub search {
 		$item->{sizebytes} = $item->{size};
 		$item->{getnzb} = $item->{link};
 		$item->{usenetage} = str2time($item->{usenetdate});
+		$item->{search_provider} = __PACKAGE__;
 		push @$results, $item;
 	}
 	
