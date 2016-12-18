@@ -96,7 +96,7 @@ has '+cache_context' => (
 #	my $now = time;
 #	
 #	foreach my $nzb (@$results) {
-#		$nzb = $self->parseRelease($nzb);
+#		$nzb = $self->parseRelease($nzb, {provider => 'NZBPlanet'});
 #	}
 #	
 #	if ($filter) {
@@ -129,7 +129,7 @@ sub searchMovies {
 	
 	foreach my $nzb (@$base_res) {
 		$nzb->{release} = $nzb->{title};
-		$nzb = $self->parseRelease($nzb);
+		$nzb = $self->parseRelease($nzb, {provider => 'NZBPlanet'});
 		push @$results, $nzb;
 	}
 	
@@ -166,7 +166,7 @@ sub searchTV {
 	
 	foreach my $nzb (@$base_res) {
 		$nzb->{release} = $nzb->{title};
-		$nzb = $self->parseRelease($nzb);
+		$nzb = $self->parseRelease($nzb, {provider => 'NZBPlanet'});
 		push @$results, $nzb;
 	}
 	

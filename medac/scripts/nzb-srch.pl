@@ -62,10 +62,13 @@ if ($config_file && -f $config_file) {
 	die "No config file specified";
 }
 
-#my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.org'});
-#my $nzbplanet = new Medac::Search::NZB::NZBPlanet($config->{'nzbplanet.net'});
-#my $searcher = new Medac::Search::NZB::Unified({agents => [$omg, $nzbplanet]});
-my $searcher = new Medac::Search::NZB::NZBPlanet($config->{'nzbplanet.net'});
+my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.org'});
+my $nzbplanet = new Medac::Search::NZB::NZBPlanet($config->{'nzbplanet.net'});
+my $searcher = new Medac::Search::NZB::Unified();
+$searcher->addAgent($omg);
+$searcher->addAgent($nzbplanet);
+#p($searcher->search_agents);
+#die;
 my $sab = new Medac::Downloader::Sabnzbd($config->{'sabnzbd'});
 my $sb = new Medac::Metadata::Source::SickBeard($config->{sickbeard});
 
@@ -412,6 +415,7 @@ while ($resp !~ m/^X$/i) {
 				my $episode = sprintf('%02d', $content->{episode});
 				my $year = $content->{year} =~ m/^\d{4}$/ ? sprintf('%04d', $content->{year}) : '    ';
 				my $release = $content->{release};
+				my $provider = $content->{provider};
 				my $quality = sprintf('%-5s', $content->{video_quality});
 				my $size = sprintf('%5s', format_bytes($content->{sizebytes}));
 				#my $daysOld = sprintf('%4s', commafy(ceil((time - $content->{usenetage}) / 60 / 60 / 24)));
@@ -433,7 +437,7 @@ while ($resp !~ m/^X$/i) {
 					$entry_str .= ' - ';
 					$entry_str .= "<red>$daysOld day(s) old</red>";
 					$entry_str .= ' - ';
-					$entry_str .= "<cyan>$release</cyan>";
+					$entry_str .= "<cyan>$release</cyan> [<magenta>$provider</magenta>]";
 				} elsif ($category eq 'movies') {
 					$entry_str .= "<yellow>$year</yellow>";
 					$entry_str .= ' - ';
@@ -443,7 +447,7 @@ while ($resp !~ m/^X$/i) {
 					$entry_str .= ' - ';
 					$entry_str .= "<red>$daysOld day(s) old</red>";
 					$entry_str .= ' - ';
-					$entry_str .= "<cyan>$release</cyan>";
+					$entry_str .= "<cyan>$release</cyan> [<magenta>$provider</magenta>]";
 				}
 				my $label = colorize($entry_str);
 				$choose_menu->addItem(

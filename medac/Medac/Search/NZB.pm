@@ -81,6 +81,7 @@ sub parseRelease {
 	$nzb->{age} = $now - (($nzb->{usenetage} || 0) * 1);
 	$nzb->{age_days} = $nzb->{age} / 60 / 60 / 24;
 	$nzb->{imdb} = '';
+	$nzb->{provider} = $opts->{provider} || 'unknown';
 	
 	my $quality_map = {
 		'web-dl' => 'Web',

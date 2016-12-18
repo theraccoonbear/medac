@@ -17,9 +17,9 @@ class Medac::Search::NZB::Unified extends Medac::Search::NZB {
 	use URI::Escape;
 	
 	
-	has 'agents' => (
+	has 'search_agents' => (
 		is => 'rw',
-		isa => 'ArrayRef[]',
+		isa => 'ArrayRef[Medac::Search::NZB]',
 		default => sub {
 			return [];
 		}
@@ -34,14 +34,19 @@ class Medac::Search::NZB::Unified extends Medac::Search::NZB {
 	);
 	
 	method addAgent(Medac::Search::NZB $agent) {
-		push @{$self->agents}, $agent;
+		if (!$self->search_agents) {
+			$self->search_agents([]);
+		}
+		
+		#p($self->search_agents);
+		push @{$self->search_agents}, $agent;
 	}
 	
 	method searchMusic {
 		my $params = shift @_;
 		my $results = [];
 		
-		foreach my $agent (@{$self->agents}) {
+		foreach my $agent (@{$self->search_agents}) {
 			my $new_results = $agent->searchMusic($params);
 			$results = [(@$results, @$new_results)];
 		}
@@ -54,11 +59,11 @@ class Medac::Search::NZB::Unified extends Medac::Search::NZB {
 		my $results = [];
 		
 		
-		p($self);
-		p($self->agents);
-		die;
+		#p($self);
+		#p($self->search_agents);
+		#die;
 		
-		foreach my $agent (@{$self->agents}) {
+		foreach my $agent (@{$self->search_agents}) {
 			my $new_results = $agent->searchMovies($params);
 			$results = [(@$results, @$new_results)];
 		}
@@ -70,7 +75,7 @@ class Medac::Search::NZB::Unified extends Medac::Search::NZB {
 		my $params = shift @_;
 		my $results = [];
 		
-		foreach my $agent (@{$self->agents}) {
+		foreach my $agent (@{$self->search_agents}) {
 			my $new_results = $agent->searchTV($params);
 			$results = [(@$results, @$new_results)];
 		}

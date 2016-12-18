@@ -110,7 +110,7 @@ sub search {
 				}
 				
 				
-				$nzb = $self->parseRelease($nzb);
+				$nzb = $self->parseRelease($nzb, {provider => 'Womble'});
 				push @$results, $nzb;
 			}
 		}

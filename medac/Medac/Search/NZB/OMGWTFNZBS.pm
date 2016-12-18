@@ -95,7 +95,7 @@ sub searchMovies {
 	my $now = time;
 	
 	foreach my $nzb (@$results) {
-		$nzb = $self->parseRelease($nzb);
+		$nzb = $self->parseRelease($nzb, {provider => 'OMGWTFNZBS'});
 	}
 	
 	if ($filter) {
@@ -127,7 +127,7 @@ sub searchTV {
 	}
 	
 	foreach my $nzb (@$results) {
-		$nzb = $self->parseRelease($nzb);
+		$nzb = $self->parseRelease($nzb, {provider => 'OMGWTFNZBS'});
 	}
 	
 	if ($filter) {
