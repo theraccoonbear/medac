@@ -62,7 +62,7 @@ if ($config_file && -f $config_file) {
 	die "No config file specified";
 }
 
-my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.org'});
+my $omg = new Medac::Search::NZB::OMGWTFNZBS($config->{'omgwtfnzbs.me'});
 my $nzbplanet = new Medac::Search::NZB::NZBPlanet($config->{'nzbplanet.net'});
 my $searcher = new Medac::Search::NZB::Unified();
 $searcher->addAgent($omg);
