@@ -20,7 +20,7 @@ use URI::Escape;
 has '+hostname' => (
 	is => 'rw',
 	isa => 'Str',
-	default => 'api.omgwtfnzbs.org'
+	default => 'api.omgwtfnzbs.me'
 );
 
 has '+port' => (
