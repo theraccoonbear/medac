@@ -18,12 +18,12 @@ my $meta = new Medac::File::Metadata();
 my $tvdb = new Medac::Search::TV::TheTVDB();
 my $ichef = new Medac::Search::TV::IronChefFans();
 
-my $save_root= `echo ~/Desktop/sandbox/Iron Chef/`;
+my $save_root = `echo ~/Desktop/sandbox/Iron Chef/`;
 chomp($save_root);
 
+GetOptions ("path=s" => \$save_root);
+
 my $listing = $ichef->getCategoryListing(1);
-
-
 
 foreach my $e (sort { $a->{season} <=> $b->{season} or $a->{episode} <=> $b->{episode} } @$listing) {
 	if ($e->{season} =~ m/^\d+$/ && $e->{episode} =~ m/^\d+$/) {
