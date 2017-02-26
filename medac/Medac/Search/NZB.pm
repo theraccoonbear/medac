@@ -29,7 +29,7 @@ has 'port' => (
 
 has 'protocol' => (
 	is => 'rw',
-	isa => 'Int',
+	isa => 'Str',
 	default => 'http'
 );
 
