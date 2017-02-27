@@ -4,7 +4,7 @@ use warnings;
 use FindBin;
 use Cwd 'abs_path';
 use File::Basename;
-use lib dirname(abs_path($0)) . '/..';
+use lib dirname(abs_path($0)) . '/../lib';
 use Getopt::Long;
 use Data::Printer;
 use Medac::Search::TV::TheTVDB;

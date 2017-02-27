@@ -5,7 +5,7 @@ use warnings;
 use Cwd 'abs_path';
 
 use FindBin;
-use lib "$FindBin::Bin/..";
+use lib "$FindBin::Bin/../lib";
 
 use Web::Scraper;
 use LWP::UserAgent;

@@ -7,9 +7,8 @@ use FindBin;
 use Cwd 'abs_path';
 use File::Basename;
 
-#use lib "$FindBin::Bin/..";
-
-use lib dirname(abs_path($0)) . '/..';
+#use lib "$FindBin::Bin/../lib";
+use lib dirname(abs_path($0)) . '/../lib';
 
 use JSON::XS;
 use Getopt::Long;
