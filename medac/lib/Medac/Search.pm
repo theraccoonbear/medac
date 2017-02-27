@@ -81,7 +81,7 @@ sub pullURL {
 		content => ''
 	};
 	
-	if ($self->{use_cach} && $self->cache->hit($url)) {
+	if ($self->use_cache && $self->cache->hit($url)) {
 		$ret->{success} = 1;
 		$ret->{content} = $self->cache->getVal($url);
 		print "Cache Hit! $url\n";
