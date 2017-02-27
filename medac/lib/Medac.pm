@@ -11,7 +11,7 @@ use warnings;
 use JSON::XS;
 use File::Slurp;
 use Data::Dumper;
-use Slurp;
+#use Slurp;
 use CGI;
 use POSIX;
 use Medac::API::Default;
