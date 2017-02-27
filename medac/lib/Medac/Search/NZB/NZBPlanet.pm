@@ -13,7 +13,6 @@ use Data::Dumper;
 use Date::Parse;
 use Data::Printer;
 use Text::Levenshtein qw(distance);
-use Mojo::DOM;
 use Medac::Cache;
 use JSON::XS;
 use URI::Escape;

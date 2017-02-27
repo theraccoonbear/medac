@@ -8,7 +8,6 @@ extends 'Medac::Metadata::Source';
 use Web::Scraper;
 use HTTP::Cookies;
 use Data::Printer;
-use Mojo::DOM;
 use Medac::Cache;
 use Time::Local;
 use URI::Escape;

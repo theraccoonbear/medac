@@ -11,7 +11,6 @@ use Web::Scraper;
 use HTTP::Cookies;
 use Data::Printer;
 use Text::Levenshtein qw(distance);
-use Mojo::DOM;
 use Medac::Cache;
 use JSON::XS;
 use URI::Escape;

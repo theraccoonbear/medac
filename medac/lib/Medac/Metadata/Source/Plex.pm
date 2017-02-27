@@ -10,7 +10,7 @@ use Web::Scraper;
 use HTTP::Cookies;
 use Data::Dumper;
 use Text::Levenshtein qw(distance);
-use Mojo::DOM;
+
 use Medac::Cache;
 use URI::Escape;
 use XML::Simple;

@@ -11,11 +11,11 @@ use warnings;
 use JSON::XS;
 use File::Slurp;
 use Data::Dumper;
-#use Slurp;
-#use CGI;
+use Slurp;
+use CGI;
 use POSIX;
 use Medac::API::Default;
-#use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
+use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use Cwd qw(abs_path cwd);
 use Moose::Util::TypeConstraints;
 
