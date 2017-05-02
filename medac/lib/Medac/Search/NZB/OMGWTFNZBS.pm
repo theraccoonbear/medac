@@ -52,10 +52,18 @@ sub searchMusic {
 	my $self = shift @_;
 	my $params = shift @_;
 	my $terms = $params->{terms} or die "No search term";
-	my $retention = $params->{retention} || 1600;
+	my $retention = $params->{retention} || 2000;
 	my $filter = $params->{filter} || undef;
 	
 	my $results = $self->search($terms, '7,22', $retention);
+
+	if (ref $results eq 'HASH' && $results->{notice}) {
+		if ($results->{notice} !~ m/0 results/) {
+			print STDERR "Error in OMGWTFNZBS!\n";
+			print STDERR $results->{notice} . "\n\n";
+		}
+		return [];
+	}
 
 	if ($filter) {
 		my $nr = [];
@@ -64,17 +72,23 @@ sub searchMusic {
 				push @$nr, $nzb;
 			}
 		}
-		$results = [map { my $pn = $self->parseRelease($_, {provider => 'OMGWTFNZBS'}); $pn; } @$nr];
+		$results = $nr;
 	}
 	
-	return $results;
+	return [map { 
+		my $opts =  {provider => 'OMGWTFNZBS'};
+		if ($_->{categoryid} eq '7') { $opts->{audio} = 'mp3'; }
+		if ($_->{categoryid} eq '22') { $opts->{audio} = 'flac'; }
+		my $pn = $self->parseRelease($_, $opts);
+		$pn; 
+	} @$results];;
 }
 
 sub searchMovies {
 	my $self = shift @_;
 	my $params = shift @_;
 	my $terms = $params->{terms} or die "No search term";
-	my $retention = $params->{retention} || 1600;
+	my $retention = $params->{retention} || 2000;
 	my $filter = $params->{filter} || undef;
 	
 	my $results = $self->search($terms, '15,16,17,18', $retention);
@@ -111,7 +125,7 @@ sub searchTV {
 	my $self = shift @_;
 	my $params = shift @_;
 	my $terms = $params->{terms} or die "No search term";
-	my $retention = $params->{retention} || 1600;
+	my $retention = $params->{retention} || 2000;
 	my $filter = $params->{filter} || undef;
 	
 	my $results = $self->search($terms, '19,20,21', $retention);
@@ -143,7 +157,7 @@ sub search {
 	my $self = shift @_;
 	my $terms = shift @_;
 	my $category = shift @_ || '19,20,21';
-	my $retention = shift @_ || 1600;
+	my $retention = shift @_ || 2000;
 	
 	my $params = {
 		search => $terms,

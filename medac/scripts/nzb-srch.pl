@@ -22,6 +22,7 @@ use POSIX;
 
 use Number::Bytes::Human qw(format_bytes);
 use Term::ANSIColor::Markup;
+use Term::Screen;
 
 
 use Medac::Cache;
@@ -31,6 +32,8 @@ use Medac::Search::NZB::NZBPlanet;
 use Medac::Downloader::Sabnzbd;
 use Medac::Console::Menu;
 use Medac::Metadata::Source::SickBeard;
+
+binmode(STDOUT, ":utf8");
 
 my $cache = new Medac::Cache(context => 'nzb-srch');
 my $previous_fh = select(STDOUT); $| = 1; select($previous_fh);
@@ -42,6 +45,7 @@ my $config = {};
 my $script_started = time();
 my $action_started;
 my $category = $cache->retrieve('default-category') || 'tv';
+my $clear_screen = `clear`;
 
 my $parser = new Term::ANSIColor::Markup();
 
@@ -66,10 +70,11 @@ my $nzbplanet = new Medac::Search::NZB::NZBPlanet($config->{'nzbplanet.net'});
 my $searcher = new Medac::Search::NZB::Unified();
 $searcher->addAgent($omg);
 $searcher->addAgent($nzbplanet);
-#p($searcher->search_agents);
-#die;
 my $sab = new Medac::Downloader::Sabnzbd($config->{'sabnzbd'});
 my $sb = new Medac::Metadata::Source::SickBeard($config->{sickbeard});
+
+my $human = Number::Bytes::Human->new(bs => 1000, round_style => 'round', precision => 1);
+
 
 sub commafy {
    my $input = shift;
@@ -77,6 +82,19 @@ sub commafy {
    $output =~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1,/g;
 	 $output = reverse $output;
    return $output;
+}
+
+sub center {
+	my $text = shift;
+	my $width = shift;
+
+	$text = length($text) > $width ? substr($text, 0, $width) : $text;
+
+	my $need = $width - length($text);
+	my $left = floor($need / 2);
+	my $right = ceil($need / 2);
+
+	return (' ' x $left) . $text . (' ' x $right);
 }
 
 sub prompt {
@@ -136,17 +154,21 @@ sub manageSab() {
 		my $now = gettimeofday();
 		if ($now - $last_disp > $tick_delay) {
 			my $downloads = $sab->getStatus();
+			print $clear_screen;
 			print colorize("<white>SABNZBd Queue Status</white>") . "\n";
 			print Medac::Console::Menu->hr() . "\n";
 			my $max_len = $downloads->{meta}->{title_length};
 			foreach my $dl (@{$downloads->{queue}}) {
 				my $entry = '';
-				$entry .= "    <red>" . ($dl->{status} eq 'Paused' ? '||' : '|>') . "<red> ";
+				$entry .= "    ";
+				$entry .= "<white>[</white><yellow>" . center($dl->{category}, 7) . "</yellow><white>]</white>";
+				$entry .= " ";
+				$entry .= "<red>" . ($dl->{status} eq 'Paused' ? "\N{U+23F8}" : "\N{U+25BA}") . "<red> ";
 				$entry .= "<cyan>" . sprintf('%-' . $max_len . 's', $dl->{name}) . "</cyan> ";
 				$entry .= "<white>-</white> ";
-				$entry .= "<yellow>" . sprintf('%-5s', format_bytes($dl->{bytes_downloaded})) . '</yellow>';
+				$entry .= "<yellow>" . sprintf('%-5s', $human->format($dl->{bytes_downloaded})) . '</yellow>';
 				$entry .= "<white>of</white> ";
-				$entry .= "<yellow>" . sprintf('%-5s', format_bytes($dl->{bytes})) . '</yellow>';
+				$entry .= "<yellow>" . sprintf('%-5s', $human->format($dl->{bytes})) . '</yellow>';
 				$entry .= "<white>(</white><yellow>" . sprintf('%0.2f', $dl->{percent_complete}) . '%</yellow><white>)</white>';
 				print colorize($entry) . "\n";
 			}
@@ -478,11 +500,21 @@ while ($resp !~ m/^X$/i) {
 				my $year = $content->{year} =~ m/^\d{4}$/ ? sprintf('%04d', $content->{year}) : '    ';
 				my $release = $content->{release};
 				my $provider = $content->{provider};
+				my $artistAlbum = '';
+				if ($content->{artist}) {
+					$artistAlbum .= '<blue>[</blue><white>' . $content->{artist} . '</white>';
+				}
+				if ($content->{album}) {
+					$artistAlbum .= ($artistAlbum ? '<blue>/</blue>' : '') . '<white>' . $content->{album} . '</white>';
+				}
+
+				$artistAlbum .= $artistAlbum ? '<blue>]</blue> ' : '';
+
 				my $quality = $category ne 'music' ? sprintf('%-5s', $content->{video_quality}) : sprintf('%-5s', $content->{audio});
 				my $size = sprintf('%5s', format_bytes($content->{sizebytes}));
 				#my $daysOld = sprintf('%4s', commafy(ceil((time - $content->{usenetage}) / 60 / 60 / 24)));
 				my $daysOld = commafy(ceil((time - $content->{usenetage}) / 60 / 60 / 24));
-				$daysOld = (' ' x (4 - length($daysOld))) . $daysOld;
+				$daysOld = (' ' x (5 - length($daysOld))) . $daysOld;
 				$idx++;
 				my $didx = sprintf('%2s', $idx);
 				$content->{fmtseason} = $season;
@@ -500,7 +532,7 @@ while ($resp !~ m/^X$/i) {
 					$entry_str .= "<red>$daysOld day(s) old</red>";
 					$entry_str .= ' - ';
 					$entry_str .= "<cyan>$release</cyan> [<magenta>$provider</magenta>]";
-				} elsif ($category eq 'movies' || $category eq 'music') {
+				} elsif ($category eq 'movies') {
 					$entry_str .= "<yellow>$year</yellow>";
 					$entry_str .= ' - ';
 					$entry_str .= "<blue>$quality</blue>";
@@ -509,6 +541,17 @@ while ($resp !~ m/^X$/i) {
 					$entry_str .= ' - ';
 					$entry_str .= "<red>$daysOld day(s) old</red>";
 					$entry_str .= ' - ';
+					$entry_str .= "<cyan>$release</cyan> [<magenta>$provider</magenta>]";
+				} elsif ($category eq 'music') {
+					$entry_str .= "<yellow>$year</yellow>";
+					$entry_str .= ' - ';
+					$entry_str .= "<blue>$quality</blue>";
+					$entry_str .= ' - ';
+					$entry_str .= "<yellow>$size</yellow>";
+					$entry_str .= ' - ';
+					$entry_str .= "<red>$daysOld day(s) old</red>";
+					$entry_str .= ' - ';
+					$entry_str .= $artistAlbum;
 					$entry_str .= "<cyan>$release</cyan> [<magenta>$provider</magenta>]";
 				}
 				my $label = colorize($entry_str);

@@ -33,7 +33,6 @@ sub getStatus {
 	my $resp = $self->pullURL($url);
 	my $json = decode_json($resp->{content});
 	my $results = [];
-	#p($json);
 	my $long_title = '';
 	if ($json->{queue} && $json->{queue}->{slots}) {
 		foreach my $dl (@{ $json->{queue}->{slots} }) {
@@ -46,7 +45,9 @@ sub getStatus {
 				percent_complete => (($dl->{mb} - $dl->{mbleft}) / $dl->{mb}) * 100,
 				status => $dl->{status},
 				age => $dl->{avg_age},
-				seconds_left => ($h * 60 * 60) + ($m * 60) + $s
+				seconds_left => ($h * 60 * 60) + ($m * 60) + $s,
+				category => $dl->{cat},
+				priority => $dl->{priority}
 			};
 			if (length($dl->{filename}) > length($long_title)) {
 				$long_title = $dl->{filename};

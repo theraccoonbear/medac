@@ -3,12 +3,14 @@ use lib '../..';
 
 use Moose;
 
+use POSIX;
 use Medac::Console::Menu::Item;
 use strict;
 use warnings;
 use Data::Dumper;
 use List::Util qw(reduce);
 use Term::ANSIColor::Markup qw(colorize);
+use Term::ReadKey;
 
 has 'title' => (
 	is => 'rw',
@@ -58,6 +60,16 @@ has 'maxLength' => (
 	default => 0
 );
 
+has 'environment' => (
+	is => 'rw',
+	isa => 'HashRef',
+	default => sub {
+		return {};
+	}
+);
+
+
+my ($width, $height, $wpixels, $hpixels) = GetTerminalSize();
 
 sub BUILD {
 	my $self = shift @_;
@@ -102,9 +114,10 @@ sub maxLen {
 }
 
 sub hr {
-	my $len = shift @_;
+	my $len = shift @_ || '';
+
 	if ($len !~ m/^\d+$/) {
-		$len = 40;
+		$len = floor($width / 2);
 	}
 	
 	return Medac::Console::Menu->colorize("<yellow>-</yellow><blue>=</blue>" x $len);
