@@ -116,6 +116,8 @@ sub startSearch {
 		$ret_val = tvSearch();
 	} elsif ($category eq 'movies') {
 		$ret_val = movieSearch();
+	} elsif ($category eq 'music') {
+		$ret_val = musicSearch();
 	} else {
 		# Do something!?
 	}
@@ -157,6 +159,66 @@ sub manageSab() {
 	print "\n\n\n";
 	ReadMode 0;
 } # manageSab
+
+sub musicSearch {
+	my $default_artist = $cache->retrieve('default-artist-name') || undef;
+	my $default_album = $cache->retrieve('default-album-name') || undef;
+	my $default_year = $cache->retrieve('default-album-year') || undef;
+	my $default_quality = $cache->retrieve('default-quality') || undef;
+	
+	my $artist = prompt("<yellow>Artist</yellow> name [enter for <cyan>\"</cyan><white>" . ($default_artist || 'no artist') . "</white><cyan>\"</cyan>]?");
+	my $album = prompt("<yellow>Album</yellow> name [enter for <cyan>\"</cyan><white>" . ($default_album || 'no album') . "</white><cyan>\"</cyan>]?");
+	my $year = prompt("<yellow>Year</yellow> of release [enter for <cyan>\"</cyan><white>" . ($default_album || 'any year') . "</white><cyan>\"</cyan>]?");
+	my $quality = prompt("Album <yellow>quality</yellow> [enter for <cyan>\"</cyan><white>" . ($default_quality || 'any quality') . "</white><cyan>\"</cyan>, e.g. 720p, HDTV|SDTV, etc]?");
+	
+	$artist = $artist =~ m/.+/ ? $artist : $default_artist;
+	$album = $album =~ m/.+/ ? $album : $default_album;
+	$year = $year =~ m/.+[\+-]?/ ? $year : $default_year;
+	$quality = $quality=~ m/.+/ ? $quality: $default_quality;
+	
+	$cache->store('default-artist-name', $artist);
+	$cache->store('default-album-name', $album);
+	$cache->store('default-album-year', $year);
+	$cache->store('default-quality', $quality);
+	
+	my $result = {
+		movie_name => $movie_name,
+		movie_year => $movie_year,
+		quality => $quality,
+		results => []
+	};
+	
+	my $movies = my $my_movies = $searcher->searchMusic({
+		terms => $movie_name,
+		filter => sub {
+			my $n = shift @_;
+			my $match = 1;
+			
+			if ($movie_year && $movie_year ne '.') {
+				if ($movie_year =~ m/^(?<year>(19|20)\d{2})(?<modifier>[\+-])?$/) {
+					if ($+{modifier} && $+{modifier} eq '+') {
+						$match = $match && ($n->{year} eq '????' || $n->{year} >= $+{year});
+					} elsif ($+{modifier} && $+{modifier} eq '-') {
+						$match = $match && ($n->{year} eq '????' || $n->{year} <= $+{year});
+					}
+				} else {
+					$match = $match && $n->{year} eq $movie_year;
+				}
+			}
+			
+			if ($quality && $quality =~ m/^.+$/) { $match = $match && $n->{video_quality} =~ m/($quality)/gi; }
+			
+			return $match;
+		}
+	});
+	
+	if (scalar @$movies >= 1) {
+		$result->{results} = $movies;
+	}
+	
+	return $result;
+	#return $shows;
+} # musicSearch()
 
 sub movieSearch {
 	my $default_movie_name = $cache->retrieve('default-movie-name') || undef;
