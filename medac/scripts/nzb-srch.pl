@@ -163,13 +163,13 @@ sub manageSab() {
 				$entry .= "    ";
 				$entry .= "<white>[</white><yellow>" . center($dl->{category}, 7) . "</yellow><white>]</white>";
 				$entry .= " ";
-				$entry .= "<red>" . ($dl->{status} eq 'Paused' ? "\N{U+23F8}" : "\N{U+25BA}") . "<red> ";
+				$entry .= $dl->{status} eq 'Paused' ? "<red>\N{U+23F8}</red> " : "<green>\N{U+25BA}</green> ";
 				$entry .= "<cyan>" . sprintf('%-' . $max_len . 's', $dl->{name}) . "</cyan> ";
 				$entry .= "<white>-</white> ";
 				$entry .= "<yellow>" . sprintf('%-5s', $human->format($dl->{bytes_downloaded})) . '</yellow>';
 				$entry .= "<white>of</white> ";
 				$entry .= "<yellow>" . sprintf('%-5s', $human->format($dl->{bytes})) . '</yellow>';
-				$entry .= "<white>(</white><yellow>" . sprintf('%0.2f', $dl->{percent_complete}) . '%</yellow><white>)</white>';
+				$entry .= "<white>(</white><yellow>" . sprintf('%0.2f', $dl->{percent_complete}) . '%</yellow><white>)</white> <blue>' . $dl->{time_left} . '</blue>';
 				print colorize($entry) . "\n";
 			}
 			print Medac::Console::Menu->hr() . "\n";

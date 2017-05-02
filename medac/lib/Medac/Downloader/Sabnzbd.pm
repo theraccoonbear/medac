@@ -45,6 +45,7 @@ sub getStatus {
 				percent_complete => (($dl->{mb} - $dl->{mbleft}) / $dl->{mb}) * 100,
 				status => $dl->{status},
 				age => $dl->{avg_age},
+				time_left => $dl->{timeleft},
 				seconds_left => ($h * 60 * 60) + ($m * 60) + $s,
 				category => $dl->{cat},
 				priority => $dl->{priority}
@@ -56,11 +57,13 @@ sub getStatus {
 			push @$results, $dle;
 		}
 	}
+
+	my $meta = $json->{queue};
+	$meta->{title_length} = length($long_title);
+	delete $meta->{slots};
 	
 	return {
-		meta => {
-			title_length => length($long_title)
-		},
+		meta => $meta,
 		queue => $results
 	};	
 }
