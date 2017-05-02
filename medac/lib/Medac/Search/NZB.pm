@@ -91,7 +91,7 @@ sub parseRelease {
 		'cam' => 'Cam'
 	};
 	
-	if ($opts->{audio} =~ m/(?<audio>DD5.1|MP3|OGG|FLAC|WMA|AAC)/i) {
+	if ($opts->{audio} && $opts->{audio} =~ m/(?<audio>DD5.1|MP3|OGG|FLAC|WMA|AAC)/i) {
 		$nzb->{audio} = uc($+{audio});
 	}
 
@@ -126,7 +126,7 @@ sub parseRelease {
 		$nzb->{repack} = 1;
 	}
 
-	if ($nzb->{weblink} =~ m!(last\.fm/music|metal-archives.com/albums/)(?<artist>[^/]+)/(?<album>[^/]+)!) {
+	if ($nzb->{weblink} && $nzb->{weblink} =~ m!(last\.fm/music|metal-archives.com/albums/)(?<artist>[^/]+)/(?<album>[^/]+)!) {
 		($nzb->{artist} = $+{artist}) =~ s/_/ /g;
 		($nzb->{album} = $+{album}) =~ s/_/ /g;
 	}
