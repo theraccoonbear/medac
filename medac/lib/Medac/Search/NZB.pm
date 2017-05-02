@@ -91,7 +91,7 @@ sub parseRelease {
 		'cam' => 'Cam'
 	};
 	
-	if ($nzb->{release} =~ m/(?<audio>DD5.1)/) {
+	if ($nzb->{release} =~ m/(?<audio>DD5.1|MP3|OGG|FLAC|WMA|AAC)/) {
 		$nzb->{audio} = $+{audio};
 	}
 	

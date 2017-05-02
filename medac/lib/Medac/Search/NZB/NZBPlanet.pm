@@ -49,6 +49,10 @@ has '+cache_context' => (
 	}
 );
 
+sub searchMusic {
+	return [];
+}
+
 sub searchMovies {
 	my $self = shift @_;
 	my $params = shift @_;
