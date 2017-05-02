@@ -86,10 +86,13 @@ sub searchMovies {
 	
 	my $results = $self->search($terms, '15,16,17,18', $retention);
 	
-	if (ref $results eq 'HASH' && $results->{notice} && $results->{notice} =~ m/0/) {
+	if (ref $results eq 'HASH' && $results->{notice}) {
+		if ($results->{notice} !~ m/0 results/) {
+			print STDERR "Error in OMGWTFNZBS!\n";
+			print STDERR $results->{notice} . "\n\n";
+		}
 		return [];
 	}
-	
 	
 	my $now = time;
 	

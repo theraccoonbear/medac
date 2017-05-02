@@ -11,7 +11,16 @@ use Medac::Downloader::WRS;
 my $wrs = new Medac::Downloader::WRS();
 
 my $episodes = $wrs->listEpisodesForSeason(2009, 2010);
-p($episodes);
+#p($episodes);
+die;
+my $season_number = 30;
+my $season_year = $season_number + 1980;
+my $ep_num = 0;
+foreach my $ep (@$episodes) {
+	$ep_num++;
+	print sprintf('The Woodwright\'s Shop - s%02de%02d - %s.mp4', $season_number, $ep_num, $episodes->{title}) . "\n"; 
+}
+
 
 #$wrs->grabEpisode(2365554475, '../media/The Woodwright\'s Shop - s35e08 - Bowl Carving with Peter Follansbee.mp4');
 #$wrs->grabEpisode(2365554505, '../media/The Woodwright\'s Shop - s35e09 - Hollows and Rounds.mp4');

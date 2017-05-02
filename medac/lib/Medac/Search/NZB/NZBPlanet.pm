@@ -49,69 +49,6 @@ has '+cache_context' => (
 	}
 );
 
-#sub searchMusic {
-#	my $self = shift @_;
-#	my $params = shift @_;
-#	my $terms = $params->{terms} or die "No search term";
-#	my $retention = $params->{retention} || 1600;
-#	my $filter = $params->{filter} || undef;
-#	
-#	my $results = $self->search($terms, '7', $retention);
-#	
-#	foreach my $nzb (@$results) {
-#		$nzb->{season} = 0;
-#		$nzb->{episode} = 0;
-#		print Dumper($nzb);
-#	}
-#	
-#	if ($filter) {
-#		my $nr = [];
-#		foreach my $nzb (@$results) {
-#			if (&$filter($nzb)) {
-#				push @$nr, $nzb;
-#			}
-#		}
-#		$results = $nr;
-#	}
-#	
-#	
-#	return $results;
-#}
-#
-#sub searchMovies {
-#	my $self = shift @_;
-#	my $params = shift @_;
-#	my $terms = $params->{terms} or die "No search term";
-#	my $retention = $params->{retention} || 1600;
-#	my $filter = $params->{filter} || undef;
-#	
-#	my $results = $self->search($terms, '15,16,17,18', $retention);
-#	
-#	if (ref $results eq 'HASH' && $results->{notice} && $results->{notice} =~ m/0/) {
-#		return [];
-#	}
-#	
-#	
-#	my $now = time;
-#	
-#	foreach my $nzb (@$results) {
-#		$nzb = $self->parseRelease($nzb, {provider => 'NZBPlanet'});
-#	}
-#	
-#	if ($filter) {
-#		my $nr = [];
-#		foreach my $nzb (@$results) {
-#			if (&$filter($nzb)) {
-#				push @$nr, $nzb;
-#			}
-#		}
-#		$results = $nr;
-#	}
-#	
-#	
-#	return $results;
-#}
-
 sub searchMovies {
 	my $self = shift @_;
 	my $params = shift @_;
@@ -126,6 +63,12 @@ sub searchMovies {
 	
 	my $base_res = $self->search($params->{terms}, 'search', $extra);
 	
+	if (ref $results ne 'ARRAY') {
+		print STDERR "Error with NZBPlanet!\n";
+		p($results);
+		return [];
+	}
+
 	foreach my $nzb (@$base_res) {
 		$nzb->{release} = $nzb->{title};
 		$nzb = $self->parseRelease($nzb, {provider => 'NZBPlanet'});
