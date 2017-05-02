@@ -41,7 +41,7 @@ my $config_file = dirname(abs_path($0)) . "/test-config.json";
 my $config = {};
 my $script_started = time();
 my $action_started;
-my $category = 'tv';
+my $category = $cache->retrieve('default-category') || 'tv';
 
 my $parser = new Term::ANSIColor::Markup();
 
@@ -106,6 +106,7 @@ sub setCategory {
 	my $new_cat = $cat_menu->display();
 	if ($new_cat ne 'x') {
 		$category = $new_cat;
+		$cache->store('default-category', $category);
 	}
 }
 
@@ -116,6 +117,8 @@ sub startSearch {
 		$ret_val = tvSearch();
 	} elsif ($category eq 'movies') {
 		$ret_val = movieSearch();
+	} elsif ($category eq 'music') {
+		$ret_val = musicSearch();
 	} else {
 		# Do something!?
 	}
@@ -157,6 +160,66 @@ sub manageSab() {
 	print "\n\n\n";
 	ReadMode 0;
 } # manageSab
+
+sub musicSearch {
+	my $default_artist = $cache->retrieve('default-artist-name') || undef;
+	my $default_album = $cache->retrieve('default-album-name') || undef;
+	my $default_year = $cache->retrieve('default-album-year') || undef;
+	my $default_quality = $cache->retrieve('default-quality') || undef;
+	
+	my $artist = prompt("<yellow>Artist</yellow> name [enter for <cyan>\"</cyan><white>" . ($default_artist || 'no artist') . "</white><cyan>\"</cyan>]?");
+	my $album = prompt("<yellow>Album</yellow> name [enter for <cyan>\"</cyan><white>" . ($default_album || 'no album') . "</white><cyan>\"</cyan>]?");
+	my $year = prompt("<yellow>Year</yellow> of release [enter for <cyan>\"</cyan><white>" . ($default_year || 'any year') . "</white><cyan>\"</cyan>]?");
+	my $quality = prompt("Album <yellow>quality</yellow> [enter for <cyan>\"</cyan><white>" . ($default_quality || 'any quality') . "</white><cyan>\"</cyan>, e.g. FLAC, MP3|WMA, etc]?");
+	
+	$artist = $artist =~ m/.+/ ? $artist : $default_artist;
+	$album = $album =~ m/.+/ ? $album : $default_album;
+	$year = $year =~ m/.+[\+-]?/ ? $year : $default_year;
+	$quality = $quality=~ m/.+/ ? $quality: $default_quality;
+	
+	$cache->store('default-artist-name', $artist);
+	$cache->store('default-album-name', $album);
+	$cache->store('default-album-year', $year);
+	$cache->store('default-quality', $quality);
+	
+	my $result = {
+		artist_name => $artist,
+		album_name => $album,
+		album_year => $year,
+		quality => $quality,
+		results => []
+	};
+	
+	my $music = $searcher->searchMusic({
+		terms => "$artist $album",
+		filter => sub {
+			my $n = shift @_;
+			my $match = 1;
+			
+			if ($year && $year ne '.') {
+				if ($year =~ m/^(?<year>(19|20)\d{2})(?<modifier>[\+-])?$/) {
+					if ($+{modifier} && $+{modifier} eq '+') {
+						$match = $match && ($n->{year} eq '????' || $n->{year} >= $+{year});
+					} elsif ($+{modifier} && $+{modifier} eq '-') {
+						$match = $match && ($n->{year} eq '????' || $n->{year} <= $+{year});
+					}
+				} else {
+					$match = $match && $n->{year} eq $year;
+				}
+			}
+			
+			if ($quality && $quality =~ m/^.+$/) { $match = $match && $n->{audio} =~ m/($quality)/gi; }
+			
+			return $match;
+		}
+	});
+	
+	if (scalar @$music >= 1) {
+		$result->{results} = $music;
+	}
+	
+	return $result;
+} # musicSearch()
 
 sub movieSearch {
 	my $default_movie_name = $cache->retrieve('default-movie-name') || undef;
@@ -415,7 +478,7 @@ while ($resp !~ m/^X$/i) {
 				my $year = $content->{year} =~ m/^\d{4}$/ ? sprintf('%04d', $content->{year}) : '    ';
 				my $release = $content->{release};
 				my $provider = $content->{provider};
-				my $quality = sprintf('%-5s', $content->{video_quality});
+				my $quality = $category ne 'music' ? sprintf('%-5s', $content->{video_quality}) : sprintf('%-5s', $content->{audio});
 				my $size = sprintf('%5s', format_bytes($content->{sizebytes}));
 				#my $daysOld = sprintf('%4s', commafy(ceil((time - $content->{usenetage}) / 60 / 60 / 24)));
 				my $daysOld = commafy(ceil((time - $content->{usenetage}) / 60 / 60 / 24));
@@ -437,7 +500,7 @@ while ($resp !~ m/^X$/i) {
 					$entry_str .= "<red>$daysOld day(s) old</red>";
 					$entry_str .= ' - ';
 					$entry_str .= "<cyan>$release</cyan> [<magenta>$provider</magenta>]";
-				} elsif ($category eq 'movies') {
+				} elsif ($category eq 'movies' || $category eq 'music') {
 					$entry_str .= "<yellow>$year</yellow>";
 					$entry_str .= ' - ';
 					$entry_str .= "<blue>$quality</blue>";

@@ -55,14 +55,8 @@ sub searchMusic {
 	my $retention = $params->{retention} || 1600;
 	my $filter = $params->{filter} || undef;
 	
-	my $results = $self->search($terms, '7', $retention);
-	
-	foreach my $nzb (@$results) {
-		$nzb->{season} = 0;
-		$nzb->{episode} = 0;
-		print Dumper($nzb);
-	}
-	
+	my $results = $self->search($terms, '7,22', $retention);
+
 	if ($filter) {
 		my $nr = [];
 		foreach my $nzb (@$results) {
@@ -70,9 +64,8 @@ sub searchMusic {
 				push @$nr, $nzb;
 			}
 		}
-		$results = $nr;
+		$results = [map { my $pn = $self->parseRelease($_, {provider => 'OMGWTFNZBS'}); $pn; } @$nr];
 	}
-	
 	
 	return $results;
 }
