@@ -156,6 +156,13 @@ sub search {
 	
 	my $init_results = decode_json($page->{content});
 
+	if (
+		! $init_results->{channel} ||
+		! $init_results->{item}
+	) {
+		return $results;
+	}
+
 	# handle single result
 	my $items = $init_results->{channel}->{item};
 	if (ref $items ne 'ARRAY') {
