@@ -155,8 +155,14 @@ sub search {
 	my $page = $self->pullURL($url);
 	
 	my $init_results = decode_json($page->{content});
+
+	# handle single result
+	my $items = $init_results->{channel}->{item};
+	if (ref $items ne 'ARRAY') {
+		$items = [$items];
+	}
 	
-	foreach my $item (@{ $init_results->{channel}->{item} }) {
+	foreach my $item (@{ $items }) {
 		foreach my $attr_item(@{ $item->{attr} }) {
 			my $name = $attr_item->{'@attributes'}->{name};
 			my $val = $attr_item->{'@attributes'}->{value};
