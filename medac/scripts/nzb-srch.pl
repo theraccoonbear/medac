@@ -497,7 +497,7 @@ while ($resp !~ m/^X$/i) {
 			foreach my $content (sort {$a->{usenetage} <=> $b->{usenetage}} @{$my_content->{results}}) {
 				my $season = sprintf('%02d', $content->{season});
 				my $episode = sprintf('%02d', $content->{episode});
-				my $year = $content->{year} =~ m/^\d{4}$/ ? sprintf('%04d', $content->{year}) : '    ';
+				my $year = ($content->{year} || '') =~ m/^\d{4}$/ ? sprintf('%04d', $content->{year}) : '    ';
 				my $release = $content->{release};
 				my $provider = $content->{provider};
 				my $artistAlbum = '';
@@ -510,7 +510,7 @@ while ($resp !~ m/^X$/i) {
 
 				$artistAlbum .= $artistAlbum ? '<blue>]</blue> ' : '';
 
-				my $quality = $category ne 'music' ? sprintf('%-5s', $content->{video_quality}) : sprintf('%-5s', $content->{audio});
+				my $quality = $category ne 'music' ? sprintf('%-5s', $content->{video_quality} || '') : sprintf('%-5s', $content->{audio} || '');
 				my $size = sprintf('%5s', format_bytes($content->{sizebytes}));
 				#my $daysOld = sprintf('%4s', commafy(ceil((time - $content->{usenetage}) / 60 / 60 / 24)));
 				my $daysOld = commafy(ceil((time - $content->{usenetage}) / 60 / 60 / 24));

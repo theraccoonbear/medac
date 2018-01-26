@@ -70,6 +70,8 @@ sub parseRelease {
 	
 	my $now = time;
 	
+	$opts->{audio} = $opts->{audio} || '';
+	$nzb->{release} = $nzb->{release} || '';
 	$nzb->{season} = 0;
 	$nzb->{episode} = 0;
 	$nzb->{video_quality} = '????';
@@ -91,44 +93,47 @@ sub parseRelease {
 		'cam' => 'Cam'
 	};
 	
-	if ($opts->{audio} || '' =~ m/(?<audio>DD5.1|MP3|OGG|FLAC|WMA|AAC)/i) {
-		$nzb->{audio} = uc($+{audio});
+	if ($opts->{audio} =~ m/(?<audio>DD5.1|MP3|OGG|FLAC|WMA|AAC)/i) {
+		$nzb->{audio} = uc($+{audio} || '');
 	}
 
-	if ($nzb->{release} || '' =~ m/(?<audio>DD5.1|MP3|OGG|FLAC|WMA|AAC)/i) {
-		$nzb->{audio} = uc($+{audio});
+	if ($nzb->{release}  =~ m/(?<audio>DD5.1|MP3|OGG|FLAC|WMA|AAC)/i) {
+		$nzb->{audio} = uc($+{audio} || '');
 	}
 	
-	if ($nzb->{release} || '' =~ m/(?<year>(19|20)\d{2})/) {
+	if ($nzb->{release} =~ m/(?<year>(19|20)\d{2})/) {
 		$nzb->{year} = $+{year};
 	}
 
-	if ($nzb->{release} || '' =~ m/s(?<season>\d{1,4})e(?<episode>\d{1,2})/i) {
-		$nzb->{season} = $+{season} * 1;
-		$nzb->{episode} = $+{episode} * 1;
+	if ($nzb->{release} =~ m/s(?<season>\d{1,4})e(?<episode>\d{1,2})/i) {
+		$nzb->{season} = ($+{season} || 0) * 1;
+		$nzb->{episode} = ($+{episode} || 0) * 1;
 	}
 	
-	if ($nzb->{release} || '' =~ m/(?<videoquality>((480|720|1080)[pi])|HDTV|HDRIP|WEB-DL|SDTV|DVD|PDTV|B[RD]RIP|VHSRIP|CAM)/i) {
-		
-		$nzb->{video_quality} = $quality_map->{lc($+{videoquality})} || $+{videoquality};
+	if ($nzb->{release} =~ m/(?<videoquality>((480|720|1080)[pi])|HDTV|HDRIP|WEB-DL|SDTV|DVD|PDTV|B[RD]RIP|VHSRIP|CAM)/i) {
+		if ($+{video_quality}) {
+			$nzb->{video_quality} = $quality_map->{lc($+{videoquality})} || $+{videoquality};
+		}
 	}
 	
-	if ($nzb->{release} || '' =~ m/(?<videocodec>(xvid|x264))/i) {
-		$nzb->{video_codec} = $+{videocodec};
+	if ($nzb->{release} =~ m/(?<videocodec>(xvid|x264))/i) {
+		if ($+{videocodec}) {
+			$nzb->{video_codec} = $+{videocodec};
+		}
 	}
 	
-	if ($nzb->{weblink} || '' =~ m/\/(?<imdb>tt\d+)$/) {
+	if ($nzb->{weblink} =~ m/\/(?<imdb>tt\d+)$/) {
 		$nzb->{imdb} = $+{imdb};
 	}
 	
 	
-	if ($nzb->{release} || '' =~ m/REPACK/) {
+	if ($nzb->{release} =~ m/REPACK/) {
 		$nzb->{repack} = 1;
 	}
 
-	if ($nzb->{weblink} || '' =~ m!(last\.fm/music|metal-archives.com/albums/)(?<artist>[^/]+)/(?<album>[^/]+)!) {
-		($nzb->{artist} = $+{artist}) =~ s/_/ /g;
-		($nzb->{album} = $+{album}) =~ s/_/ /g;
+	if ($nzb->{weblink} =~ m!(last\.fm/music|metal-archives.com/albums/)(?<artist>[^/]+)/(?<album>[^/]+)!) {
+		($nzb->{artist} = ($+{artist} || '')) =~ s/_/ /g;
+		($nzb->{album} = ($+{album} || '')) =~ s/_/ /g;
 	}
 
 	
