@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use strict;
 use warnings;
 
@@ -39,7 +39,7 @@ my $cache = new Medac::Cache(context => 'nzb-srch');
 my $previous_fh = select(STDOUT); $| = 1; select($previous_fh);
 
 # Config
-my $config_file = dirname(abs_path($0)) . "/test-config.json";
+my $config_file = dirname(abs_path($0)) . "/config.json";
 
 my $config = {};
 my $script_started = time();
