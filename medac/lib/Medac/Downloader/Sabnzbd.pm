@@ -37,12 +37,13 @@ sub getStatus {
 	if ($json->{queue} && $json->{queue}->{slots}) {
 		foreach my $dl (@{ $json->{queue}->{slots} }) {
 			my ($h, $m, $s) = split(/:/, $dl->{timeleft});
+      my $percentage_complete = $dl->{mb} > 0 ? (($dl->{mb} - $dl->{mbleft}) / $dl->{mb}) : 0;
 			my $dle = {
 				name => $dl->{filename},
 				bytes => $dl->{mb} * 1000000,
 				bytes_downloaded => ($dl->{mb} - $dl->{mbleft}) * 1000000,
 				bytes_remaining => $dl->{mbleft} * 1000000,
-				percent_complete => (($dl->{mb} - $dl->{mbleft}) / $dl->{mb}) * 100,
+				percent_complete => $percentage_complete * 100,
 				status => $dl->{status},
 				age => $dl->{avg_age},
 				time_left => $dl->{timeleft},
